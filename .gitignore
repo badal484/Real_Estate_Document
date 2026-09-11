@@ -1,5 +1,6 @@
 node_modules/
 venv/
-.envgit add .
-git commit -m "Port date engine to JS, move Python version to reference/"
-git push
+.env
+__pycache__/
+*.pyc
+.DS_Store
