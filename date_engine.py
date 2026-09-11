@@ -7,7 +7,7 @@ def compute_deadline(start_date, number_of_days, day_type, state="CA"):
         return start_date + timedelta(days=number_of_days)
 
     elif day_type == "business":
-        us_holidays = holidays.US(state=state)
+        us_holidays = holidays.US(subdiv=state)
         current_date = start_date
         days_added = 0
 
