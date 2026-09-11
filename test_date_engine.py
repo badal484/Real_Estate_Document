@@ -21,3 +21,9 @@ def test_business_days_crossing_holiday():
     start = date(2026, 12, 24)
     result = compute_deadline(start, 1, "business")
     assert result == date(2026, 12, 28)
+def test_india_business_days():
+    # Republic Day is Jan 26 in India
+    start = date(2026, 1, 24)  # Saturday
+    result = compute_deadline(start, 1, "business", country="IN", state="KA")
+    # Sat, Sun skipped, Jan 26 (Mon) is Republic Day -> also skipped
+    assert result == date(2026, 1, 27)
