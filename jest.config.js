@@ -1,11 +1,6 @@
-import { createDefaultEsmPreset } from 'ts-jest';
-
-const presetConfig = createDefaultEsmPreset({});
-
+// Root-level Jest config — only runs dateEngine.test.js
+// Backend and frontend have their own Jest configs inside their directories.
 export default {
-  ...presetConfig,
-  testEnvironment: 'node',
-  moduleNameMapper: {
-    '^(\\.{1,2}/.*)\\.js$': '$1',
-  },
+  testMatch: ['<rootDir>/*.test.js'],
+  testPathIgnorePatterns: ['/node_modules/', '/backend/', '/frontend/', '/reference/'],
 };

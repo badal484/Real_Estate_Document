@@ -1,0 +1,144 @@
+// Contingency Deadline Copilot — Prisma Schema
+// Database: PostgreSQL 16
+// Run: npx prisma db push  (dev)  |  npx prisma migrate deploy  (prod)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Deal ─────────────────────────────────────────────────────────────────────
+// One Deal = one purchase agreement (one contract file).
+model Deal {
+  id               String    @id @default(cuid())
+  propertyAddress  String
+  buyerName        String?
+  sellerName       String?
+  acceptanceDate   DateTime? // Contract acceptance / effective date
+  status           DealStatus @default(ACTIVE)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  documents  Document[]
+  clauses    ContingencyClause[]
+  deadlines  Deadline[]
+  auditLogs  AuditLog[]
+
+  @@map("deals")
+}
+
+enum DealStatus {
+  ACTIVE
+  CLOSED
+  CANCELLED
+}
+
+// ─── Document ─────────────────────────────────────────────────────────────────
+// Uploaded PDF (or future: other doc types).
+model Document {
+  id          String   @id @default(cuid())
+  dealId      String
+  filename    String                   // original filename
+  storagePath String                   // local path or S3 key
+  mimeType    String   @default("application/pdf")
+  sizeBytes   Int?
+  uploadedAt  DateTime @default(now())
+
+  deal    Deal                @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  clauses ContingencyClause[]
+
+  @@map("documents")
+}
+
+// ─── ContingencyClause ────────────────────────────────────────────────────────
+// A single extracted contingency from the PDF, with source evidence.
+model ContingencyClause {
+  id           String      @id @default(cuid())
+  dealId       String
+  documentId   String
+  clauseType   String      // e.g. "inspection", "financing", "appraisal"
+  rawText      String      // exact quoted text from PDF
+  pageNumber   Int?
+  boundingBox  Json?       // { x, y, width, height } for pdf.js highlight
+  confidence   Float?      // 0.0–1.0 from AI extraction
+  numberOfDays Int?        // parsed: "X days"
+  dayType      DayType?    // calendar | business
+  createdAt    DateTime    @default(now())
+
+  deal      Deal      @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  document  Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  deadline  Deadline?
+
+  @@map("contingency_clauses")
+}
+
+enum DayType {
+  calendar
+  business
+}
+
+// ─── Deadline ─────────────────────────────────────────────────────────────────
+// A computed (then user-confirmed) deadline derived from a clause.
+model Deadline {
+  id             String         @id @default(cuid())
+  dealId         String
+  clauseId       String         @unique    // one clause → one deadline
+  label          String                    // human-readable: "Inspection Contingency"
+  computedDate   DateTime                  // calculated by date engine
+  confirmedDate  DateTime?                 // set when user confirms or edits
+  dayType        DayType        @default(calendar)
+  status         DeadlineStatus @default(PENDING)
+  confirmedBy    String?                   // user identifier (email or name)
+  confirmedAt    DateTime?
+  alertSentAt    DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  deal   Deal              @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  clause ContingencyClause @relation(fields: [clauseId], references: [id], onDelete: Cascade)
+
+  @@map("deadlines")
+}
+
+enum DeadlineStatus {
+  PENDING    // extracted, not yet confirmed by user
+  CONFIRMED  // user confirmed the date
+  ACTIVE     // confirmed + alerts scheduled
+  MISSED     // past due date, not completed
+  COMPLETED  // agent marked as done
+}
+
+// ─── AuditLog ─────────────────────────────────────────────────────────────────
+// Immutable log of every extraction, confirmation, edit, or alert event.
+model AuditLog {
+  id            String      @id @default(cuid())
+  dealId        String
+  action        AuditAction
+  entityType    String?     // "Deadline" | "ContingencyClause" | "Deal"
+  entityId      String?
+  previousValue Json?       // before-state snapshot
+  newValue      Json?       // after-state snapshot
+  actor         String?     // "system" | user email/name
+  note          String?     // free-text annotation
+  createdAt     DateTime    @default(now())
+
+  deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@map("audit_logs")
+}
+
+enum AuditAction {
+  DOCUMENT_UPLOADED
+  EXTRACTION_STARTED
+  EXTRACTION_COMPLETED
+  DEADLINE_CONFIRMED
+  DEADLINE_EDITED
+  DEADLINE_ACTIVATED
+  ALERT_SENT
+  DEAL_CREATED
+  DEAL_UPDATED
+}
