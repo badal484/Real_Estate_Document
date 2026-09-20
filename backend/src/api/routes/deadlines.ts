@@ -10,6 +10,7 @@ import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { asyncHandler, createError } from '../../middleware/errorHandler.js';
 import { scheduleAlerts } from '../../services/alert.service.js';
+import { computeDeadlinesForDeal } from '../../services/deadline.service.js';
 
 const router = Router({ mergeParams: true });
 const prisma = new PrismaClient();
@@ -21,14 +22,30 @@ const ConfirmDeadlineSchema = z.object({
 });
 
 // ── GET /api/deals/:id/deadlines ──────────────────────────────────────────
-router.get(
-  '/',
-  asyncHandler(async (req, res) => {
-    const deadlines = await prisma.deadline.findMany({
-      where: { dealId: req.params['id'] },
+router.get('/', asyncHandler(async (req, res) => {
+    const dealId = req.params['id'];
+    let deadlines = await prisma.deadline.findMany({
+      where: { dealId },
       include: { clause: true },
       orderBy: { computedDate: 'asc' },
     });
+
+    if (deadlines.length === 0) {
+      const deal = await prisma.deal.findUnique({
+        where: { id: dealId },
+        include: { clauses: true },
+      });
+      if (deal && deal.clauses.length > 0) {
+        const baseDate = deal.acceptanceDate ?? deal.createdAt;
+        await computeDeadlinesForDeal(dealId, baseDate, deal.clauses);
+        deadlines = await prisma.deadline.findMany({
+          where: { dealId },
+          include: { clause: true },
+          orderBy: { computedDate: 'asc' },
+        });
+      }
+    }
+
     res.json(deadlines);
   }),
 );
@@ -64,8 +81,8 @@ router.patch(
         action: isEdit ? 'DEADLINE_EDITED' : 'DEADLINE_CONFIRMED',
         entityType: 'Deadline',
         entityId: existing.id,
-        previousValue: { computedDate: existing.computedDate, status: existing.status },
-        newValue: { confirmedDate, status: newStatus, confirmedBy },
+        previousValue: { label: existing.label, computedDate: existing.computedDate, status: existing.status },
+        newValue: { label: existing.label, confirmedDate, status: newStatus, confirmedBy },
         actor: confirmedBy ?? 'system',
       },
     });
@@ -79,6 +96,7 @@ router.patch(
           action: 'DEADLINE_ACTIVATED',
           entityType: 'Deadline',
           entityId: existing.id,
+          newValue: { label: existing.label, confirmedDate: updated.confirmedDate },
           actor: confirmedBy ?? 'system',
         },
       });

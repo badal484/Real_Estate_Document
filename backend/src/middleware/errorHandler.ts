@@ -13,7 +13,18 @@ export function errorHandler(
   _next: NextFunction,
 ): void {
   const statusCode = err.statusCode ?? 500;
-  const message = err.isOperational ? err.message : 'Internal server error';
+  let message = err.isOperational || process.env['NODE_ENV'] === 'development'
+    ? err.message
+    : 'Internal server error';
+
+  try {
+    const parsed = JSON.parse(err.message);
+    if (parsed.error?.message) {
+      message = parsed.error.message;
+    }
+  } catch {
+    // message is plain string
+  }
 
   logger.error(`[${statusCode}] ${err.message}`, {
     stack: err.stack,

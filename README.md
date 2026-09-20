@@ -6,8 +6,8 @@
 
 ```
 Real_Estate_Document/
-├── dateEngine.js          # ✅ Core business/calendar-day engine (built + tested)
-├── dateEngine.test.js     # ✅ Jest tests
+├── dateEngine.js          # Core business/calendar-day engine (built + tested)
+├── dateEngine.test.js     # Jest tests
 ├── package.json           # Root – date engine package
 ├── reference/             # Python mirror of date engine (reference only)
 ├── backend/               # Express + TypeScript + Prisma API
@@ -107,11 +107,11 @@ Key variables:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DATABASE_URL` | ✅ | PostgreSQL connection string |
+| `DATABASE_URL` |  | PostgreSQL connection string |
 | `ANTHROPIC_API_KEY` | Later | Claude API key (AI extraction — not yet active) |
 | `TWILIO_ACCOUNT_SID` | Later | SMS alerts (not yet active) |
 | `SENDGRID_API_KEY` | Later | Email alerts (not yet active) |
-| `NEXT_PUBLIC_API_URL` | ✅ frontend | Backend API base URL |
+| `NEXT_PUBLIC_API_URL` |  frontend | Backend API base URL |
 
 ---
 
@@ -119,8 +119,8 @@ Key variables:
 
 | Feature | Status |
 |---------|--------|
-| Date engine (business/calendar days) | ✅ Done |
-| Project scaffold (backend + frontend) | ✅ Done |
+| Date engine (business/calendar days) |  Done |
+| Project scaffold (backend + frontend) |  Done |
 | PDF upload endpoint | 🔜 Next |
 | AI extraction (Claude) | 🔜 Next |
 | Deadline confirmation UI | 🔜 Next |

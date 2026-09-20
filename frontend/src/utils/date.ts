@@ -8,6 +8,20 @@ export function formatDateTime(iso: string): string {
   return format(new Date(iso), 'MMM d, yyyy h:mm a');
 }
 
+export function formatAuditTimestamp(iso: string): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  return format(d, 'MMM d, yyyy • h:mm a');
+}
+
+export function formatShortDate(iso: string): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  return format(d, 'MMM d, yyyy');
+}
+
 export function relativeTime(iso: string): string {
   return formatDistanceToNow(new Date(iso), { addSuffix: true });
 }

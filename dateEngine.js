@@ -1,7 +1,7 @@
 import { addDays, isWeekend, format } from 'date-fns';
 import Holidays from 'date-holidays';
 
-export function computeDeadline(startDate, numberOfDays, dayType, country = 'US', state = 'CA') {
+export function computeDeadline(startDate, numberOfDays, dayType, country = 'IN', state = 'KA') {
     if (dayType === 'calendar') {
         return addDays(startDate, numberOfDays);
     }

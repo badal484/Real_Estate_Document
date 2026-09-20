@@ -99,7 +99,7 @@ export default function UploadPage() {
       {step === 'upload' && dealId && (
         <div className="space-y-4">
           <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-700">
-            ✅ Deal created. Now upload the Purchase Agreement PDF.
+             Deal created. Now upload the Purchase Agreement PDF.
           </div>
           <UploadZone
             dealId={dealId}
@@ -110,7 +110,7 @@ export default function UploadPage() {
 
       {step === 'done' && dealId && (
         <div className="card p-8 text-center space-y-4">
-          <div className="text-5xl">🎉</div>
+          <div className="text-5xl"></div>
           <h2 className="text-xl font-bold text-gray-900">Contract uploaded!</h2>
           <p className="text-sm text-gray-500">
             Extraction is running in the background. You can review the deadlines once complete.

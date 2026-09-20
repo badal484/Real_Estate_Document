@@ -9,8 +9,8 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { uploadMiddleware } from '../../middleware/upload.js';
 import { storeFile } from '../../services/storage.service.js';
-import { extractTextFromPdf } from '../../services/pdf.service.js';
-import { extractClausesFromText } from '../../services/ai.service.js';
+import { extractClausesFromPdf } from '../../services/ai.service.js';
+import { computeDeadlinesForDeal } from '../../services/deadline.service.js';
 import { asyncHandler, createError } from '../../middleware/errorHandler.js';
 import { logger } from '../../utils/logger.js';
 
@@ -30,9 +30,7 @@ router.get(
 );
 
 // ── POST /api/deals/:id/documents ─────────────────────────────────────────
-router.post(
-  '/',
-  uploadMiddleware.single('file'),
+router.post('/',uploadMiddleware.single('file'),
   asyncHandler(async (req, res) => {
     const dealId = req.params['id'];
     const file = req.file;
@@ -68,28 +66,52 @@ router.post(
       },
     });
 
-    // ── Extraction pipeline (stubs — will be real in next phase) ──────────
+    // ── Gemini extraction pipeline ───────────────────────────────────────
     logger.info(`[Pipeline] Starting extraction for document ${document.id}`);
 
     await prisma.auditLog.create({
       data: { dealId, action: 'EXTRACTION_STARTED', entityType: 'Document', entityId: document.id, actor: 'system' },
     });
 
-    // Step 1: PDF text extraction (stub)
-    const { text } = await extractTextFromPdf(storagePath);
+    const extraction = await extractClausesFromPdf(storagePath);
+    const clauses = await Promise.all(
+      extraction.clauses.map((clause) =>
+        prisma.contingencyClause.create({
+          data: {
+            dealId,
+            documentId: document.id,
+            clauseType: clause.clauseType,
+            rawText: clause.rawText,
+            pageNumber: clause.pageNumber,
+            numberOfDays: clause.numberOfDays,
+            dayType: clause.dayType,
+            confidence: clause.confidence,
+            ...(clause.boundingBox ? { boundingBox: clause.boundingBox } : {}),
+          },
+        }),
+      ),
+    );
 
-    // Step 2: AI clause extraction (stub)
-    const { clauses } = await extractClausesFromText(text, dealId);
-    logger.info(`[Pipeline] Extracted ${clauses.length} clauses (stub)`);
+    const baseAcceptanceDate = deal.acceptanceDate ?? new Date();
+    const deadlines = await computeDeadlinesForDeal(dealId, baseAcceptanceDate, clauses);
+    logger.info(`[Pipeline] Extracted ${clauses.length} clauses and computed ${deadlines.length} deadlines`);
 
     await prisma.auditLog.create({
-      data: { dealId, action: 'EXTRACTION_COMPLETED', entityType: 'Document', entityId: document.id, actor: 'system' },
+      data: {
+        dealId,
+        action: 'EXTRACTION_COMPLETED',
+        entityType: 'Document',
+        entityId: document.id,
+        actor: 'system',
+        newValue: { clauses: clauses.length, deadlines: deadlines.length, model: extraction.model },
+      },
     });
 
     res.status(201).json({
       document,
       extractedClauses: clauses.length,
-      message: 'Document uploaded. Extraction pipeline is a stub — implement pdf.service and ai.service next.',
+      computedDeadlines: deadlines.length,
+      message: 'Document uploaded and contingency extraction completed.',
     });
   }),
 );

@@ -81,7 +81,7 @@ export function UploadZone({ dealId, onSuccess }: Props) {
       {uploading ? (
         <p className="text-sm text-brand-600 font-medium animate-pulse">Uploading…</p>
       ) : success ? (
-        <p className="text-sm text-emerald-600 font-medium">✅ Upload successful!</p>
+        <p className="text-sm text-emerald-600 font-medium"> Upload successful!</p>
       ) : (
         <>
           <p className="text-sm font-semibold text-gray-700">

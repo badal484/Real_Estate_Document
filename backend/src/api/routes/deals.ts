@@ -16,7 +16,7 @@ const CreateDealSchema = z.object({
   propertyAddress: z.string().min(1),
   buyerName: z.string().optional(),
   sellerName: z.string().optional(),
-  acceptanceDate: z.string().datetime().optional(), // ISO 8601
+  acceptanceDate: z.string().date().optional(), // ISO 8601
 });
 
 const PatchDealSchema = CreateDealSchema.partial().extend({
@@ -24,9 +24,7 @@ const PatchDealSchema = CreateDealSchema.partial().extend({
 });
 
 // ── GET /api/deals ────────────────────────────────────────────────────────
-router.get(
-  '/',
-  asyncHandler(async (_req, res) => {
+router.get('/', asyncHandler(async (_req, res) => {
     const deals = await prisma.deal.findMany({
       orderBy: { createdAt: 'desc' },
       include: { _count: { select: { deadlines: true } } },
@@ -36,9 +34,7 @@ router.get(
 );
 
 // ── POST /api/deals ───────────────────────────────────────────────────────
-router.post(
-  '/',
-  asyncHandler(async (req, res) => {
+router.post('/',asyncHandler(async (req, res) => {
     const parsed = CreateDealSchema.safeParse(req.body);
     if (!parsed.success) throw createError(parsed.error.message, 422);
 

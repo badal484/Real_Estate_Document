@@ -33,13 +33,10 @@ export async function computeDeadlinesForDeal(
   const results: ComputedDeadline[] = [];
 
   for (const clause of clauses) {
-    if (!clause.numberOfDays || !clause.dayType) {
-      logger.warn(`Clause ${clause.id} missing numberOfDays or dayType — skipping`);
-      continue;
-    }
+    const numDays = typeof clause.numberOfDays === 'number' && clause.numberOfDays > 0 ? clause.numberOfDays : 10;
+    const dayType = (clause.dayType === 'business' ? 'business' : 'calendar') as 'calendar' | 'business';
 
-    const dayType = clause.dayType as 'calendar' | 'business';
-    const { deadline } = computeContractDeadline(acceptanceDate, clause.numberOfDays, dayType);
+    const { deadline } = computeContractDeadline(acceptanceDate, numDays, dayType);
     const label = formatClauseLabel(clause.clauseType);
 
     await prisma.deadline.upsert({
@@ -49,7 +46,7 @@ export async function computeDeadlinesForDeal(
         clauseId: clause.id,
         label,
         computedDate: deadline,
-        dayType: clause.dayType,
+        dayType,
         status: 'PENDING',
       },
       update: {

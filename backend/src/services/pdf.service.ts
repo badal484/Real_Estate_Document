@@ -1,12 +1,5 @@
-/**
- * PDF Service — STUB
- *
- * Will use pdf-parse for text-layer PDFs and Tesseract / AWS Textract
- * as OCR fallback for scanned docs.
- *
- * v1: returns a placeholder response so the route compiles and starts.
- */
-
+import { readFile } from 'node:fs/promises';
+import pdfParse from 'pdf-parse';
 import { logger } from '../utils/logger.js';
 
 export interface ExtractedText {
@@ -16,14 +9,24 @@ export interface ExtractedText {
 }
 
 /**
- * Extract raw text from a PDF file at the given path.
- * TODO: implement with pdf-parse + Tesseract fallback.
+ * Extract raw text from a PDF file at the given path using pdf-parse.
  */
 export async function extractTextFromPdf(filePath: string): Promise<ExtractedText> {
-  logger.info(`[PDF stub] Would extract text from: ${filePath}`);
-  return {
-    text: '/* PDF extraction not yet implemented */',
-    pageCount: 0,
-    isOcrFallback: false,
-  };
+  try {
+    const buffer = await readFile(filePath);
+    const data = await pdfParse(buffer);
+    logger.info(`[PDF] Extracted ${data.text.length} characters across ${data.numpages} pages from ${filePath}`);
+    return {
+      text: data.text || '',
+      pageCount: data.numpages || 0,
+      isOcrFallback: false,
+    };
+  } catch (err) {
+    logger.warn(`[PDF] pdf-parse failed for ${filePath}: ${(err as Error).message}`);
+    return {
+      text: '',
+      pageCount: 0,
+      isOcrFallback: false,
+    };
+  }
 }
