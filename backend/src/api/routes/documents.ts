@@ -73,7 +73,10 @@ router.post('/',uploadMiddleware.single('file'),
       data: { dealId, action: 'EXTRACTION_STARTED', entityType: 'Document', entityId: document.id, actor: 'system' },
     });
 
-    const extraction = await extractClausesFromPdf(storagePath);
+    // Always extract from the local temp copy multer wrote to disk — storagePath
+    // may be a remote ImageKit URL when STORAGE_DRIVER=imagekit, and the
+    // extraction pipeline needs local file bytes.
+    const extraction = await extractClausesFromPdf(file.path);
     const clauses = await Promise.all(
       extraction.clauses.map((clause) =>
         prisma.contingencyClause.create({

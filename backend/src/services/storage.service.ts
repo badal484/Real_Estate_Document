@@ -1,20 +1,40 @@
 /**
- * Storage Service — STUB
+ * Storage Service
  *
  * Local disk in dev (files land in backend/uploads/).
- * Will switch to AWS S3 or Cloudflare R2 in production via STORAGE_DRIVER env var.
- *
- * v1: local disk path is returned as-is.
+ * Production storage is ImageKit — set STORAGE_DRIVER=imagekit and the
+ * IMAGEKIT_* env vars to upload documents to ImageKit's media library / CDN.
  */
 
+import { readFile } from 'node:fs/promises';
+import ImageKit from 'imagekit';
 import { logger } from '../utils/logger.js';
 
 export interface UploadedFile {
-  storagePath: string;   // local path (dev) or S3/R2 key (prod)
+  storagePath: string;   // local path (dev) or ImageKit URL (prod)
   publicUrl: string | null;
 }
 
-export async function storeFile(localPath: string, _filename: string): Promise<UploadedFile> {
+let imagekit: ImageKit | null = null;
+
+function getImageKitClient(): ImageKit {
+  if (imagekit) return imagekit;
+
+  const publicKey = process.env['IMAGEKIT_PUBLIC_KEY'];
+  const privateKey = process.env['IMAGEKIT_PRIVATE_KEY'];
+  const urlEndpoint = process.env['IMAGEKIT_URL_ENDPOINT'];
+
+  if (!publicKey || !privateKey || !urlEndpoint) {
+    throw new Error(
+      'ImageKit is not configured — set IMAGEKIT_PUBLIC_KEY, IMAGEKIT_PRIVATE_KEY and IMAGEKIT_URL_ENDPOINT',
+    );
+  }
+
+  imagekit = new ImageKit({ publicKey, privateKey, urlEndpoint });
+  return imagekit;
+}
+
+export async function storeFile(localPath: string, filename: string): Promise<UploadedFile> {
   const driver = process.env['STORAGE_DRIVER'] ?? 'local';
 
   if (driver === 'local') {
@@ -22,7 +42,21 @@ export async function storeFile(localPath: string, _filename: string): Promise<U
     return { storagePath: localPath, publicUrl: null };
   }
 
-  // TODO: implement S3 / R2 upload using AWS SDK
-  logger.warn(`[Storage stub] Driver "${driver}" not yet implemented — falling back to local`);
+  if (driver === 'imagekit') {
+    const client = getImageKitClient();
+    const fileBuffer = await readFile(localPath);
+
+    const result = await client.upload({
+      file: fileBuffer,
+      fileName: filename,
+      folder: process.env['IMAGEKIT_FOLDER'] ?? '/contingency-copilot',
+      useUniqueFileName: true,
+    });
+
+    logger.info(`[Storage] Uploaded to ImageKit: ${result.url}`);
+    return { storagePath: result.url, publicUrl: result.url };
+  }
+
+  logger.warn(`[Storage] Unknown driver "${driver}" — falling back to local`);
   return { storagePath: localPath, publicUrl: null };
 }
