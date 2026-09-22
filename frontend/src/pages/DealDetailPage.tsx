@@ -1,7 +1,5 @@
-'use client';
-
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { Link, useParams } from 'react-router-dom';
 import { dealsApi, auditApi } from '@/services/api';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { Timeline } from '@/components/Timeline';
@@ -10,33 +8,35 @@ import { IconChevronRight, IconExclamationTriangle, IconSpinner } from '@/compon
 import type { Deal, AuditLog } from '@/types';
 import { formatDate } from '@/utils/date';
 
-export default function DealTimelinePage({ params }: { params: { id: string } }) {
+export function DealDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const dealId = id!;
   const [deal, setDeal] = useState<Deal | null>(null);
   const [dealError, setDealError] = useState<string | null>(null);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [auditLoading, setAuditLoading] = useState(true);
   const [auditError, setAuditError] = useState<string | null>(null);
-  const { deadlines, loading, error } = useDeadlines(params.id);
+  const { deadlines, loading, error } = useDeadlines(dealId);
 
   useEffect(() => {
     dealsApi
-      .get(params.id)
+      .get(dealId)
       .then(setDeal)
       .catch((err: Error) => setDealError(err.message));
 
     setAuditLoading(true);
     auditApi
-      .list(params.id)
+      .list(dealId)
       .then((res) => setAuditLogs(res.data))
       .catch((err: Error) => setAuditError(err.message))
       .finally(() => setAuditLoading(false));
-  }, [params.id]);
+  }, [dealId]);
 
   return (
     <div className="space-y-8">
       {/* Breadcrumb */}
       <nav className="mb-4 flex items-center gap-2 text-sm text-slate-500">
-        <Link href="/deals" className="hover:text-brand-700">Deals</Link>
+        <Link to="/deals" className="hover:text-brand-700">Deals</Link>
         <IconChevronRight className="h-3.5 w-3.5 text-slate-300" />
         <span className="font-medium text-slate-900">{deal?.propertyAddress ?? '…'}</span>
       </nav>
@@ -59,7 +59,7 @@ export default function DealTimelinePage({ params }: { params: { id: string } })
               {deal.acceptanceDate && <span>Accepted: <strong className="font-medium text-slate-700">{formatDate(deal.acceptanceDate)}</strong></span>}
             </div>
           </div>
-          <Link href={`/deals/${params.id}/review`} className="btn-primary shrink-0">
+          <Link to={`/deals/${dealId}/review`} className="btn-primary shrink-0">
             Review Deadlines
           </Link>
         </div>
@@ -99,7 +99,7 @@ export default function DealTimelinePage({ params }: { params: { id: string } })
       {/* Full Audit page link */}
       <div className="text-right">
         <Link
-          href={`/audit?dealId=${params.id}`}
+          to={`/audit?dealId=${dealId}`}
           className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-brand-700"
         >
           <span>View complete audit history &amp; data log</span>

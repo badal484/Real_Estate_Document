@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect } from 'react';
 import { deadlinesApi } from '@/services/api';
 import type { Deadline } from '@/types';

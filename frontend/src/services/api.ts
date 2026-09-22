@@ -1,6 +1,6 @@
 /**
  * Typed API client — thin fetch wrapper pointing at the Express backend.
- * All requests go through NEXT_PUBLIC_API_URL (default: http://localhost:3001/api).
+ * All requests go through VITE_API_URL (default: http://localhost:3001/api).
  */
 
 import type {
@@ -13,7 +13,7 @@ import type {
   PaginatedResponse,
 } from '@/types';
 
-const BASE_URL = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3001/api';
+const BASE_URL = import.meta.env['VITE_API_URL'] ?? 'http://localhost:3001/api';
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {

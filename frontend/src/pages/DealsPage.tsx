@@ -1,7 +1,5 @@
-'use client';
-
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 import { dealsApi } from '@/services/api';
 import type { Deal } from '@/types';
 import { formatDate } from '@/utils/date';
@@ -13,7 +11,7 @@ const STATUS_STYLE: Record<Deal['status'], string> = {
   CANCELLED: 'bg-red-50 text-red-700 ring-red-600/20',
 };
 
-export default function DealsPage() {
+export function DealsPage() {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +31,7 @@ export default function DealsPage() {
           <p className="page-eyebrow">Portfolio</p>
           <h1 className="mt-1 text-2xl font-bold text-slate-900">Deals</h1>
         </div>
-        <Link href="/upload" className="btn-primary">
+        <Link to="/upload" className="btn-primary">
           <IconPlus className="h-4 w-4" />
           New Deal
         </Link>
@@ -59,7 +57,7 @@ export default function DealsPage() {
             <IconInbox className="h-5 w-5" />
           </span>
           <p className="mt-3 text-sm text-slate-500">No deals yet.</p>
-          <Link href="/upload" className="btn-primary mt-4 inline-flex">
+          <Link to="/upload" className="btn-primary mt-4 inline-flex">
             <IconPlus className="h-4 w-4" />
             Upload your first contract
           </Link>
@@ -95,7 +93,7 @@ export default function DealsPage() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <Link
-                      href={`/deals/${deal.id}`}
+                      to={`/deals/${deal.id}`}
                       className="inline-flex items-center gap-0.5 text-xs font-semibold text-brand-700 hover:text-brand-900"
                     >
                       View

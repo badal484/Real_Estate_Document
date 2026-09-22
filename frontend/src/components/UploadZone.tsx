@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useRef } from 'react';
 import { IconArrowUpTray, IconCheckCircle, IconExclamationTriangle } from './icons';
 
@@ -29,7 +27,7 @@ export function UploadZone({ dealId, onSuccess }: Props) {
       const form = new FormData();
       form.append('file', file);
 
-      const apiBase = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3001/api';
+      const apiBase = import.meta.env['VITE_API_URL'] ?? 'http://localhost:3001/api';
       const res = await fetch(`${apiBase}/deals/${dealId}/documents`, {
         method: 'POST',
         body: form,

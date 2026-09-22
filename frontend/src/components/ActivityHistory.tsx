@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, type ComponentType } from 'react';
 import type { AuditLog } from '@/types';
 import { formatAuditTimestamp, formatShortDate } from '@/utils/date';

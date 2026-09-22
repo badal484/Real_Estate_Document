@@ -1,13 +1,11 @@
-'use client';
-
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router-dom';
 import { dealsApi } from '@/services/api';
 import { UploadZone } from '@/components/UploadZone';
 import { IconArrowRight, IconCheckCircle, IconExclamationTriangle } from '@/components/icons';
 
-export default function UploadPage() {
-  const router = useRouter();
+export function UploadPage() {
+  const navigate = useNavigate();
   const [step, setStep] = useState<'form' | 'upload' | 'done'>('form');
   const [dealId, setDealId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -139,10 +137,10 @@ export default function UploadPage() {
             Extraction is running in the background. You can review the deadlines once complete.
           </p>
           <div className="flex justify-center gap-3">
-            <button onClick={() => router.push(`/deals/${dealId}/review`)} className="btn-primary">
+            <button onClick={() => navigate(`/deals/${dealId}/review`)} className="btn-primary">
               Review Deadlines
             </button>
-            <button onClick={() => router.push('/deals')} className="btn-secondary">
+            <button onClick={() => navigate('/deals')} className="btn-secondary">
               All Deals
             </button>
           </div>

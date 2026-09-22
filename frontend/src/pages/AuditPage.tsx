@@ -1,15 +1,12 @@
-'use client';
-
-import { useEffect, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { auditApi } from '@/services/api';
 import { ActivityHistory } from '@/components/ActivityHistory';
 import { IconChevronRight, IconClipboardList } from '@/components/icons';
 import type { AuditLog } from '@/types';
 
-function AuditPageInner() {
-  const searchParams = useSearchParams();
+export function AuditPage() {
+  const [searchParams] = useSearchParams();
   const dealId = searchParams.get('dealId') ?? '';
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(false);
@@ -30,11 +27,11 @@ function AuditPageInner() {
       {/* Header & Navigation */}
       <div>
         <nav className="mb-2 flex items-center gap-2 text-sm text-slate-500">
-          <Link href="/deals" className="hover:text-brand-700">Deals</Link>
+          <Link to="/deals" className="hover:text-brand-700">Deals</Link>
           {dealId && (
             <>
               <IconChevronRight className="h-3.5 w-3.5 text-slate-300" />
-              <Link href={`/deals/${dealId}`} className="hover:text-brand-700">Deal Dashboard</Link>
+              <Link to={`/deals/${dealId}`} className="hover:text-brand-700">Deal Dashboard</Link>
             </>
           )}
           <IconChevronRight className="h-3.5 w-3.5 text-slate-300" />
@@ -53,7 +50,7 @@ function AuditPageInner() {
             <IconClipboardList className="h-5 w-5" />
           </span>
           <p className="mt-3 text-sm text-slate-500">Select a deal to view its activity history.</p>
-          <Link href="/deals" className="btn-primary mt-4 inline-flex">
+          <Link to="/deals" className="btn-primary mt-4 inline-flex">
             View All Deals
           </Link>
         </div>
@@ -69,13 +66,5 @@ function AuditPageInner() {
         />
       )}
     </div>
-  );
-}
-
-export default function AuditPage() {
-  return (
-    <Suspense fallback={<p className="text-sm text-slate-400">Loading&hellip;</p>}>
-      <AuditPageInner />
-    </Suspense>
   );
 }

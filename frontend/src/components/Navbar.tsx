@@ -1,7 +1,4 @@
-'use client';
-
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Link, useLocation } from 'react-router-dom';
 import { IconBuilding } from './icons';
 
 const LINKS = [
@@ -11,12 +8,13 @@ const LINKS = [
 ];
 
 export function Navbar() {
-  const pathname = usePathname();
+  const location = useLocation();
+  const pathname = location.pathname;
 
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-2.5">
+        <Link to="/" className="flex items-center gap-2.5">
           <span className="flex h-8 w-8 items-center justify-center rounded-md bg-brand-800 text-white">
             <IconBuilding className="h-[18px] w-[18px]" />
           </span>
@@ -27,11 +25,11 @@ export function Navbar() {
 
         <nav className="flex items-center gap-1 text-sm font-medium">
           {LINKS.map((link) => {
-            const active = pathname === link.href || pathname?.startsWith(`${link.href}/`);
+            const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
             return (
               <Link
                 key={link.href}
-                href={link.href}
+                to={link.href}
                 aria-current={active ? 'page' : undefined}
                 className={`rounded-md px-3 py-1.5 transition-colors ${
                   active
