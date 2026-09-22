@@ -51,12 +51,32 @@ export async function storeFile(localPath: string, filename: string): Promise<Up
       fileName: filename,
       folder: process.env['IMAGEKIT_FOLDER'] ?? '/contingency-copilot',
       useUniqueFileName: true,
+      isPrivateFile: true,
     });
 
-    logger.info(`[Storage] Uploaded to ImageKit: ${result.url}`);
-    return { storagePath: result.url, publicUrl: result.url };
+    logger.info(`[Storage] Uploaded to ImageKit (private): ${result.filePath}`);
+    // storagePath is the private file's URL — it will 403 without a signature.
+    // Use getSignedDocumentUrl() to hand callers a working, time-limited link.
+    return { storagePath: result.url, publicUrl: null };
   }
 
   logger.warn(`[Storage] Unknown driver "${driver}" — falling back to local`);
   return { storagePath: localPath, publicUrl: null };
+}
+
+/**
+ * Turns a stored document path into a link the caller can actually open.
+ * - local driver: the path is already only reachable from this server, return as-is.
+ * - imagekit driver: files are uploaded private, so this signs a URL that
+ *   expires after `expireSeconds` (default 15 minutes).
+ */
+export function getSignedDocumentUrl(storagePath: string, expireSeconds = 900): string {
+  const driver = process.env['STORAGE_DRIVER'] ?? 'local';
+
+  if (driver !== 'imagekit') {
+    return storagePath;
+  }
+
+  const client = getImageKitClient();
+  return client.url({ src: storagePath, signed: true, expireSeconds });
 }

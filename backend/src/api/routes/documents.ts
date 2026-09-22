@@ -1,14 +1,15 @@
 /**
  * /api/deals/:id/documents — PDF upload + list
  *
- * POST  /api/deals/:id/documents  → upload PDF (multer), store, trigger extraction pipeline
- * GET   /api/deals/:id/documents  → list documents for a deal
+ * POST  /api/deals/:id/documents       → upload PDF (multer), store, trigger extraction pipeline
+ * GET   /api/deals/:id/documents       → list documents for a deal
+ * GET   /api/deals/:id/documents/:docId/url → short-lived signed link to view/download the PDF
  */
 
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { uploadMiddleware } from '../../middleware/upload.js';
-import { storeFile } from '../../services/storage.service.js';
+import { storeFile, getSignedDocumentUrl } from '../../services/storage.service.js';
 import { extractClausesFromPdf } from '../../services/ai.service.js';
 import { computeDeadlinesForDeal } from '../../services/deadline.service.js';
 import { asyncHandler, createError } from '../../middleware/errorHandler.js';
@@ -116,6 +117,21 @@ router.post('/',uploadMiddleware.single('file'),
       computedDeadlines: deadlines.length,
       message: 'Document uploaded and contingency extraction completed.',
     });
+  }),
+);
+
+// ── GET /api/deals/:id/documents/:docId/url ────────────────────────────────
+// Returns a link to the document that's valid for a short time (15 min).
+// Documents are stored privately, so the stored storagePath itself won't load.
+router.get(
+  '/:docId/url',
+  asyncHandler(async (req, res) => {
+    const { id: dealId, docId } = req.params;
+    const document = await prisma.document.findFirst({ where: { id: docId, dealId } });
+    if (!document) throw createError('Document not found', 404);
+
+    const url = getSignedDocumentUrl(document.storagePath);
+    res.json({ url, expiresInSeconds: 900 });
   }),
 );
 
