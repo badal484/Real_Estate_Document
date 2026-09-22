@@ -1,8 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ComponentType } from 'react';
 import type { AuditLog } from '@/types';
 import { formatAuditTimestamp, formatShortDate } from '@/utils/date';
+import {
+  IconBuilding,
+  IconDocumentText,
+  IconMagnifyingGlass,
+  IconSparkles,
+  IconCheckCircle,
+  IconPencilSquare,
+  IconBell,
+  IconClipboardList,
+  IconMapPin,
+  IconChevronDown,
+  IconChevronUp,
+  IconSpinner,
+  IconExclamationTriangle,
+  type IconProps,
+} from './icons';
 
 interface Props {
   logs: AuditLog[];
@@ -13,7 +29,7 @@ interface Props {
 }
 
 interface EventView {
-  icon: string;
+  Icon: ComponentType<IconProps>;
   iconBgClass: string;
   iconTextClass: string;
   title: string;
@@ -44,7 +60,6 @@ function parseEventDetails(log: AuditLog): EventView {
   const next = (log.newValue as Record<string, unknown>) ?? {};
   const note = log.note;
 
-  // Format actor
   let actorText = '';
   if (log.actor && log.actor.toLowerCase() !== 'system') {
     actorText = `by ${log.actor}`;
@@ -56,8 +71,8 @@ function parseEventDetails(log: AuditLog): EventView {
     case 'DEAL_CREATED': {
       const address = (next['propertyAddress'] as string) || (prev['propertyAddress'] as string);
       return {
-        icon: '🏠',
-        iconBgClass: 'bg-emerald-50 ring-emerald-200 border-emerald-100',
+        Icon: IconBuilding,
+        iconBgClass: 'bg-emerald-50 ring-emerald-200',
         iconTextClass: 'text-emerald-700',
         title: 'Deal Created',
         description: address ? `Deal created for ${address}` : 'Deal created',
@@ -68,8 +83,8 @@ function parseEventDetails(log: AuditLog): EventView {
     case 'DOCUMENT_UPLOADED': {
       const filename = (next['filename'] as string) || (next['originalname'] as string) || note || 'document.pdf';
       return {
-        icon: '📄',
-        iconBgClass: 'bg-blue-50 ring-blue-200 border-blue-100',
+        Icon: IconDocumentText,
+        iconBgClass: 'bg-blue-50 ring-blue-200',
         iconTextClass: 'text-blue-700',
         title: 'Document Uploaded',
         description: filename,
@@ -79,8 +94,8 @@ function parseEventDetails(log: AuditLog): EventView {
 
     case 'EXTRACTION_STARTED': {
       return {
-        icon: '🔍',
-        iconBgClass: 'bg-amber-50 ring-amber-200 border-amber-100',
+        Icon: IconMagnifyingGlass,
+        iconBgClass: 'bg-amber-50 ring-amber-200',
         iconTextClass: 'text-amber-700',
         title: 'Extraction Started',
         description: 'AI scanning document for contingency clauses',
@@ -91,8 +106,8 @@ function parseEventDetails(log: AuditLog): EventView {
     case 'EXTRACTION_COMPLETED': {
       const clausesCount = (next['clauses'] as number) ?? (next['count'] as number) ?? 3;
       return {
-        icon: '🤖',
-        iconBgClass: 'bg-purple-50 ring-purple-200 border-purple-100',
+        Icon: IconSparkles,
+        iconBgClass: 'bg-purple-50 ring-purple-200',
         iconTextClass: 'text-purple-700',
         title: 'Extraction Completed',
         description: `AI extracted ${clausesCount} contingency clause${clausesCount === 1 ? '' : 's'}`,
@@ -106,9 +121,9 @@ function parseEventDetails(log: AuditLog): EventView {
       const targetDateIso = (next['confirmedDate'] as string) || (next['computedDate'] as string);
       const formattedTarget = targetDateIso ? formatShortDate(targetDateIso) : '';
       return {
-        icon: '✓',
-        iconBgClass: 'bg-emerald-50 ring-emerald-200 border-emerald-100',
-        iconTextClass: 'text-emerald-700 font-bold',
+        Icon: IconCheckCircle,
+        iconBgClass: 'bg-emerald-50 ring-emerald-200',
+        iconTextClass: 'text-emerald-700',
         title: 'Deadline Confirmed',
         description: formattedTarget ? `${label} confirmed for ${formattedTarget}` : `${label} confirmed`,
         actorText,
@@ -118,7 +133,7 @@ function parseEventDetails(log: AuditLog): EventView {
     case 'DEADLINE_EDITED': {
       const rawLabel = (next['label'] as string) || (prev['label'] as string);
       const label = formatDeadlineLabel(rawLabel);
-      
+
       const oldDateIso = (prev['computedDate'] as string) || (prev['confirmedDate'] as string);
       const newDateIso = (next['confirmedDate'] as string) || (next['computedDate'] as string);
 
@@ -128,8 +143,8 @@ function parseEventDetails(log: AuditLog): EventView {
       }
 
       return {
-        icon: '✏',
-        iconBgClass: 'bg-amber-50 ring-amber-200 border-amber-100',
+        Icon: IconPencilSquare,
+        iconBgClass: 'bg-amber-50 ring-amber-200',
         iconTextClass: 'text-amber-700',
         title: 'Deadline Edited',
         description: `${label} changed`,
@@ -142,9 +157,9 @@ function parseEventDetails(log: AuditLog): EventView {
       const rawLabel = (next['label'] as string) || (prev['label'] as string);
       const label = formatDeadlineLabel(rawLabel);
       return {
-        icon: '✓',
-        iconBgClass: 'bg-emerald-50 ring-emerald-200 border-emerald-100',
-        iconTextClass: 'text-emerald-700 font-bold',
+        Icon: IconCheckCircle,
+        iconBgClass: 'bg-emerald-50 ring-emerald-200',
+        iconTextClass: 'text-emerald-700',
         title: 'Deadline Activated',
         description: `${label} alerts activated`,
         actorText,
@@ -155,8 +170,8 @@ function parseEventDetails(log: AuditLog): EventView {
       const rawLabel = (next['label'] as string) || (prev['label'] as string) || (next['deadlineLabel'] as string);
       const label = formatDeadlineLabel(rawLabel);
       return {
-        icon: '📨',
-        iconBgClass: 'bg-indigo-50 ring-indigo-200 border-indigo-100',
+        Icon: IconBell,
+        iconBgClass: 'bg-indigo-50 ring-indigo-200',
         iconTextClass: 'text-indigo-700',
         title: 'Alert Sent',
         description: `Reminder sent for ${label}`,
@@ -166,9 +181,9 @@ function parseEventDetails(log: AuditLog): EventView {
 
     case 'DEAL_UPDATED': {
       return {
-        icon: '📝',
-        iconBgClass: 'bg-gray-50 ring-gray-200 border-gray-100',
-        iconTextClass: 'text-gray-700',
+        Icon: IconClipboardList,
+        iconBgClass: 'bg-slate-100 ring-slate-200',
+        iconTextClass: 'text-slate-700',
         title: 'Deal Updated',
         description: 'Deal details updated',
         actorText,
@@ -177,9 +192,9 @@ function parseEventDetails(log: AuditLog): EventView {
 
     default: {
       return {
-        icon: '📌',
-        iconBgClass: 'bg-gray-50 ring-gray-200 border-gray-100',
-        iconTextClass: 'text-gray-600',
+        Icon: IconMapPin,
+        iconBgClass: 'bg-slate-100 ring-slate-200',
+        iconTextClass: 'text-slate-600',
         title: (log.action as string).replace(/_/g, ' '),
         description: note || 'Activity recorded',
         actorText,
@@ -197,7 +212,6 @@ export function ActivityHistory({
 }: Props) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Ensure newest activity is shown first
   const sortedLogs = [...logs].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
@@ -206,12 +220,12 @@ export function ActivityHistory({
   const hasMore = sortedLogs.length > initialLimit;
 
   return (
-    <div className="card p-5 border border-gray-200 bg-white rounded-xl shadow-sm">
-      <div className="flex items-center justify-between mb-5 pb-3 border-b border-gray-100">
-        <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+    <div className="card p-5">
+      <div className="mb-5 flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 className="flex items-center gap-2 text-base font-semibold text-slate-900">
           <span>{title}</span>
           {sortedLogs.length > 0 && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
               {sortedLogs.length}
             </span>
           )}
@@ -219,28 +233,26 @@ export function ActivityHistory({
       </div>
 
       {loading && (
-        <div className="py-6 text-center text-sm text-gray-400 flex items-center justify-center gap-2">
-          <svg className="animate-spin h-4 w-4 text-brand-600" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-          </svg>
-          <span>Loading activity history…</span>
+        <div className="flex items-center justify-center gap-2 py-6 text-sm text-slate-400">
+          <IconSpinner className="h-4 w-4 animate-spin text-brand-600" />
+          <span>Loading activity history&hellip;</span>
         </div>
       )}
 
       {error && (
-        <div className="p-3 text-sm text-red-700 bg-red-50 rounded-lg border border-red-200">
-          ⚠ {error}
+        <div className="banner-error">
+          <IconExclamationTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{error}</span>
         </div>
       )}
 
       {!loading && !error && sortedLogs.length === 0 && (
-        <div className="text-center py-8 px-4 rounded-xl border border-dashed border-gray-200 bg-gray-50/50">
-          <div className="mx-auto w-10 h-10 rounded-full bg-white shadow-xs border border-gray-200 flex items-center justify-center text-gray-400 mb-2">
-            📋
-          </div>
-          <h4 className="text-sm font-semibold text-gray-900">No activity yet</h4>
-          <p className="text-xs text-gray-500 mt-1 max-w-xs mx-auto">
+        <div className="empty-state py-8">
+          <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 shadow-sm">
+            <IconClipboardList className="h-5 w-5" />
+          </span>
+          <h4 className="mt-2 text-sm font-semibold text-slate-900">No activity yet</h4>
+          <p className="mx-auto mt-1 max-w-xs text-xs text-slate-500">
             Important deal activity will appear here.
           </p>
         </div>
@@ -248,43 +260,39 @@ export function ActivityHistory({
 
       {!loading && !error && sortedLogs.length > 0 && (
         <div>
-          <ol className="relative border-l border-gray-200 ml-4 space-y-6 my-2">
+          <ol className="relative my-2 ml-4 space-y-6 border-l border-slate-200">
             {displayedLogs.map((log) => {
               const event = parseEventDetails(log);
+              const { Icon } = event;
               return (
-                <li key={log.id} className="ml-6 relative group">
-                  {/* Action Icon Badge */}
+                <li key={log.id} className="group relative ml-6">
                   <span
-                    className={`absolute -left-[41px] top-0 w-8 h-8 rounded-full flex items-center justify-center border-2 border-white ring-1 ${event.iconBgClass} text-xs ${event.iconTextClass} shadow-xs transition-transform group-hover:scale-105`}
+                    className={`absolute -left-[41px] top-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white ring-1 ${event.iconBgClass} ${event.iconTextClass} shadow-sm transition-transform group-hover:scale-105`}
                   >
-                    {event.icon}
+                    <Icon className="h-4 w-4" />
                   </span>
 
-                  <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1">
+                  <div className="flex flex-col justify-between gap-1 sm:flex-row sm:items-baseline">
                     <div>
-                      {/* Action Title */}
-                      <h4 className="text-sm font-semibold text-gray-900 leading-snug">
+                      <h4 className="text-sm font-semibold leading-snug text-slate-900">
                         {event.title}
                       </h4>
-                      {/* Short Description */}
-                      <p className="text-sm text-gray-700 mt-0.5 font-normal leading-relaxed">
+                      <p className="mt-0.5 text-sm font-normal leading-relaxed text-slate-700">
                         {event.description}
                       </p>
-                      {/* Optional diff box for edits (old → new) */}
                       {event.changeDiff && (
-                        <div className="mt-1.5 inline-flex items-center px-2.5 py-1 rounded-md bg-amber-50/70 text-xs font-mono text-amber-900 border border-amber-200/60 shadow-2xs">
-                          <span className="font-semibold text-amber-800 mr-1.5">Changed:</span>
+                        <div className="mt-1.5 inline-flex items-center rounded-md border border-amber-200/60 bg-amber-50/70 px-2.5 py-1 font-mono text-xs text-amber-900">
+                          <span className="mr-1.5 font-semibold text-amber-800">Changed:</span>
                           {event.changeDiff}
                         </div>
                       )}
                     </div>
 
-                    {/* Date/time and optional actor */}
-                    <div className="text-xs text-gray-400 whitespace-nowrap shrink-0 mt-1 sm:mt-0">
+                    <div className="mt-1 shrink-0 whitespace-nowrap text-xs text-slate-400 sm:mt-0">
                       <span>{formatAuditTimestamp(log.createdAt)}</span>
                       {event.actorText && (
-                        <span className="ml-1.5 text-gray-500 font-medium">
-                          • {event.actorText}
+                        <span className="ml-1.5 font-medium text-slate-500">
+                          &bull; {event.actorText}
                         </span>
                       )}
                     </div>
@@ -294,27 +302,22 @@ export function ActivityHistory({
             })}
           </ol>
 
-          {/* Expansion toggle */}
           {hasMore && (
-            <div className="mt-5 pt-3 border-t border-gray-100 text-center">
+            <div className="mt-5 border-t border-slate-100 pt-3 text-center">
               <button
                 type="button"
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 hover:text-brand-800 transition-colors py-1 px-3 rounded-md hover:bg-brand-50"
+                className="inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-semibold text-brand-700 transition-colors hover:bg-brand-50 hover:text-brand-900"
               >
                 {isExpanded ? (
                   <>
                     <span>Show less</span>
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                    </svg>
+                    <IconChevronUp className="h-3.5 w-3.5" />
                   </>
                 ) : (
                   <>
                     <span>View all activity ({sortedLogs.length - initialLimit} more)</span>
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
+                    <IconChevronDown className="h-3.5 w-3.5" />
                   </>
                 )}
               </button>

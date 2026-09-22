@@ -9,25 +9,37 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Brand colours — adjust to match your palette
+        // Brand — deep navy/blue, tuned for a trust-first legal & compliance product
         brand: {
-          50:  '#f0f9ff',
-          100: '#e0f2fe',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          900: '#0c4a6e',
+          50: '#eef3fa',
+          100: '#dbe6f3',
+          200: '#b2c9e4',
+          300: '#84a7d0',
+          400: '#5a83b8',
+          500: '#3d659c',
+          600: '#2d4f80',
+          700: '#243f68',
+          800: '#1c3153',
+          900: '#152540',
+          950: '#0d1626',
         },
         status: {
-          pending:   '#f59e0b',
-          confirmed: '#3b82f6',
-          active:    '#10b981',
-          missed:    '#ef4444',
-          completed: '#6b7280',
+          pending: '#b45309',
+          confirmed: '#1d4ed8',
+          active: '#047857',
+          missed: '#b91c1c',
+          completed: '#475569',
         },
       },
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-inter)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      },
+      boxShadow: {
+        soft: '0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 1px rgb(15 23 42 / 0.04)',
+        card: '0 1px 2px 0 rgb(15 23 42 / 0.03), 0 4px 12px -2px rgb(15 23 42 / 0.06)',
+      },
+      letterSpacing: {
+        tight: '-0.015em',
       },
     },
   },

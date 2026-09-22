@@ -1,28 +1,50 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { IconBuilding } from './icons';
+
+const LINKS = [
+  { href: '/upload', label: 'Upload' },
+  { href: '/deals', label: 'Deals' },
+  { href: '/audit', label: 'Audit Log' },
+];
 
 export function Navbar() {
+  const pathname = usePathname();
+
   return (
-    <nav className="border-b border-gray-200 bg-white shadow-sm">
+    <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 font-bold text-brand-700 text-lg">
-          <span className="text-2xl">🏠</span>
-          <span>Contingency Copilot</span>
+        <Link href="/" className="flex items-center gap-2.5">
+          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-brand-800 text-white">
+            <IconBuilding className="h-[18px] w-[18px]" />
+          </span>
+          <span className="text-[15px] font-semibold tracking-tight text-slate-900">
+            Contingency Copilot
+          </span>
         </Link>
 
-        {/* Nav links */}
-        <div className="flex items-center gap-6 text-sm font-medium text-gray-600">
-          <Link href="/upload" className="hover:text-brand-700 transition-colors">
-            Upload
-          </Link>
-          <Link href="/deals" className="hover:text-brand-700 transition-colors">
-            Deals
-          </Link>
-          <Link href="/audit" className="hover:text-brand-700 transition-colors">
-            Audit Log
-          </Link>
-        </div>
+        <nav className="flex items-center gap-1 text-sm font-medium">
+          {LINKS.map((link) => {
+            const active = pathname === link.href || pathname?.startsWith(`${link.href}/`);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                aria-current={active ? 'page' : undefined}
+                className={`rounded-md px-3 py-1.5 transition-colors ${
+                  active
+                    ? 'bg-brand-50 text-brand-800'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+        </nav>
       </div>
-    </nav>
+    </header>
   );
 }

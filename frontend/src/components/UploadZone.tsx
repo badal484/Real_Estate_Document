@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { IconArrowUpTray, IconCheckCircle, IconExclamationTriangle } from './icons';
 
 interface Props {
   dealId: string;
@@ -59,10 +60,10 @@ export function UploadZone({ dealId, onSuccess }: Props) {
         if (file) void uploadFile(file);
       }}
       onClick={() => inputRef.current?.click()}
-      className={`cursor-pointer rounded-2xl border-2 border-dashed p-12 text-center transition-colors ${
+      className={`cursor-pointer rounded-xl border-2 border-dashed p-12 text-center transition-colors ${
         dragging
           ? 'border-brand-500 bg-brand-50'
-          : 'border-gray-300 bg-white hover:border-brand-400 hover:bg-gray-50'
+          : 'border-slate-300 bg-white hover:border-brand-400 hover:bg-slate-50'
       }`}
     >
       <input
@@ -76,23 +77,36 @@ export function UploadZone({ dealId, onSuccess }: Props) {
         }}
       />
 
-      <div className="text-5xl mb-4">📄</div>
+      <span
+        className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full ${
+          success ? 'bg-emerald-100 text-emerald-600' : 'bg-brand-50 text-brand-700'
+        }`}
+      >
+        {success ? (
+          <IconCheckCircle className="h-6 w-6" />
+        ) : (
+          <IconArrowUpTray className={`h-6 w-6 ${uploading ? 'animate-pulse' : ''}`} />
+        )}
+      </span>
 
       {uploading ? (
-        <p className="text-sm text-brand-600 font-medium animate-pulse">Uploading…</p>
+        <p className="mt-4 text-sm font-medium text-brand-700">Uploading&hellip;</p>
       ) : success ? (
-        <p className="text-sm text-emerald-600 font-medium"> Upload successful!</p>
+        <p className="mt-4 text-sm font-medium text-emerald-700">Upload successful.</p>
       ) : (
         <>
-          <p className="text-sm font-semibold text-gray-700">
+          <p className="mt-4 text-sm font-semibold text-slate-700">
             Drag &amp; drop your Purchase Agreement PDF
           </p>
-          <p className="mt-1 text-xs text-gray-400">or click to browse — PDF only, max 50 MB</p>
+          <p className="mt-1 text-xs text-slate-400">or click to browse — PDF only, max 50 MB</p>
         </>
       )}
 
       {error && (
-        <p className="mt-3 text-xs text-red-600 font-medium">⚠ {error}</p>
+        <p className="mt-3 flex items-center justify-center gap-1.5 text-xs font-medium text-red-600">
+          <IconExclamationTriangle className="h-3.5 w-3.5" />
+          {error}
+        </p>
       )}
     </div>
   );

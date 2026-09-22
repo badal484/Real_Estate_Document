@@ -5,6 +5,13 @@ import Link from 'next/link';
 import { dealsApi } from '@/services/api';
 import type { Deal } from '@/types';
 import { formatDate } from '@/utils/date';
+import { IconChevronRight, IconExclamationTriangle, IconInbox, IconPlus, IconSpinner } from '@/components/icons';
+
+const STATUS_STYLE: Record<Deal['status'], string> = {
+  ACTIVE: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+  CLOSED: 'bg-slate-100 text-slate-600 ring-slate-500/20',
+  CANCELLED: 'bg-red-50 text-red-700 ring-red-600/20',
+};
 
 export default function DealsPage() {
   const [deals, setDeals] = useState<Deal[]>([]);
@@ -21,59 +28,78 @@ export default function DealsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Deals</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <p className="page-eyebrow">Portfolio</p>
+          <h1 className="mt-1 text-2xl font-bold text-slate-900">Deals</h1>
+        </div>
         <Link href="/upload" className="btn-primary">
-          + New Deal
+          <IconPlus className="h-4 w-4" />
+          New Deal
         </Link>
       </div>
 
-      {loading && <p className="text-gray-400 text-sm">Loading…</p>}
-      {error && <p className="text-red-600 text-sm">⚠ {error}</p>}
+      {loading && (
+        <div className="flex items-center gap-2 py-8 text-sm text-slate-400">
+          <IconSpinner className="h-4 w-4 animate-spin text-brand-600" />
+          Loading deals&hellip;
+        </div>
+      )}
+
+      {error && (
+        <p className="banner-error mb-4">
+          <IconExclamationTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          {error}
+        </p>
+      )}
 
       {!loading && deals.length === 0 && (
-        <div className="rounded-xl border-2 border-dashed border-gray-200 p-16 text-center">
-          <p className="text-gray-400 text-sm">No deals yet.</p>
+        <div className="empty-state">
+          <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 shadow-sm">
+            <IconInbox className="h-5 w-5" />
+          </span>
+          <p className="mt-3 text-sm text-slate-500">No deals yet.</p>
           <Link href="/upload" className="btn-primary mt-4 inline-flex">
+            <IconPlus className="h-4 w-4" />
             Upload your first contract
           </Link>
         </div>
       )}
 
       {deals.length > 0 && (
-        <div className="overflow-hidden card">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-50">
+        <div className="card overflow-hidden">
+          <table className="min-w-full divide-y divide-slate-200 text-sm">
+            <thead className="bg-slate-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Property</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Buyer</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Acceptance</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Deadlines</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Property</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Buyer</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Acceptance</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Deadlines</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
                 <th className="px-6 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 bg-white">
+            <tbody className="divide-y divide-slate-100 bg-white">
               {deals.map((deal) => (
-                <tr key={deal.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-gray-900 max-w-xs truncate">{deal.propertyAddress}</td>
-                  <td className="px-6 py-4 text-gray-500">{deal.buyerName ?? '—'}</td>
-                  <td className="px-6 py-4 text-gray-500">
+                <tr key={deal.id} className="transition-colors hover:bg-slate-50">
+                  <td className="max-w-xs truncate px-6 py-4 font-medium text-slate-900">{deal.propertyAddress}</td>
+                  <td className="px-6 py-4 text-slate-500">{deal.buyerName ?? '—'}</td>
+                  <td className="px-6 py-4 text-slate-500">
                     {deal.acceptanceDate ? formatDate(deal.acceptanceDate) : '—'}
                   </td>
-                  <td className="px-6 py-4 text-gray-500">{deal._count?.deadlines ?? 0}</td>
+                  <td className="px-6 py-4 text-slate-500">{deal._count?.deadlines ?? 0}</td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
-                      deal.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' :
-                      deal.status === 'CLOSED' ? 'bg-gray-100 text-gray-600' :
-                      'bg-red-100 text-red-700'
-                    }`}>
+                    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${STATUS_STYLE[deal.status]}`}>
                       {deal.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <Link href={`/deals/${deal.id}`} className="text-brand-600 hover:text-brand-800 font-medium text-xs">
-                      View →
+                    <Link
+                      href={`/deals/${deal.id}`}
+                      className="inline-flex items-center gap-0.5 text-xs font-semibold text-brand-700 hover:text-brand-900"
+                    >
+                      View
+                      <IconChevronRight className="h-3.5 w-3.5" />
                     </Link>
                   </td>
                 </tr>

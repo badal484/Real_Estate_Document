@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { auditApi } from '@/services/api';
 import { ActivityHistory } from '@/components/ActivityHistory';
+import { IconChevronRight, IconClipboardList } from '@/components/icons';
 import type { AuditLog } from '@/types';
 
 function AuditPageInner() {
@@ -25,30 +26,34 @@ function AuditPageInner() {
   }, [dealId]);
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="mx-auto max-w-4xl space-y-6">
       {/* Header & Navigation */}
       <div>
-        <nav className="text-sm text-gray-500 mb-2 flex items-center gap-2">
+        <nav className="mb-2 flex items-center gap-2 text-sm text-slate-500">
           <Link href="/deals" className="hover:text-brand-700">Deals</Link>
           {dealId && (
             <>
-              <span>/</span>
+              <IconChevronRight className="h-3.5 w-3.5 text-slate-300" />
               <Link href={`/deals/${dealId}`} className="hover:text-brand-700">Deal Dashboard</Link>
             </>
           )}
-          <span>/</span>
-          <span className="text-gray-900 font-medium">Audit History</span>
+          <IconChevronRight className="h-3.5 w-3.5 text-slate-300" />
+          <span className="font-medium text-slate-900">Audit History</span>
         </nav>
-        <h1 className="text-2xl font-bold text-gray-900">Activity History</h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <p className="page-eyebrow">Compliance</p>
+        <h1 className="mt-1 text-2xl font-bold text-slate-900">Activity History</h1>
+        <p className="mt-2 text-sm text-slate-500">
           Complete, immutable activity log of all document uploads, AI extractions, deadline edits, and notifications.
         </p>
       </div>
 
       {!dealId && (
-        <div className="rounded-xl border-2 border-dashed border-gray-200 p-12 text-center bg-white">
-          <p className="text-gray-500 text-sm">Select a deal to view its activity history.</p>
-          <Link href="/deals" className="btn-primary mt-4">
+        <div className="empty-state bg-white">
+          <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 shadow-sm">
+            <IconClipboardList className="h-5 w-5" />
+          </span>
+          <p className="mt-3 text-sm text-slate-500">Select a deal to view its activity history.</p>
+          <Link href="/deals" className="btn-primary mt-4 inline-flex">
             View All Deals
           </Link>
         </div>
@@ -69,7 +74,7 @@ function AuditPageInner() {
 
 export default function AuditPage() {
   return (
-    <Suspense fallback={<p className="text-gray-400 text-sm">Loading…</p>}>
+    <Suspense fallback={<p className="text-sm text-slate-400">Loading&hellip;</p>}>
       <AuditPageInner />
     </Suspense>
   );
