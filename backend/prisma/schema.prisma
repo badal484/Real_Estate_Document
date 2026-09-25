@@ -11,6 +11,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─── User ─────────────────────────────────────────────────────────────────────
+// An agent who signs in with Google.
+model User {
+  id          String   @id @default(cuid())
+  googleId    String   @unique
+  email       String   @unique
+  name        String?
+  pictureUrl  String?
+  lastLoginAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("users")
+}
+
 // ─── Deal ─────────────────────────────────────────────────────────────────────
 // One Deal = one purchase agreement (one contract file).
 model Deal {

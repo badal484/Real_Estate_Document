@@ -62,7 +62,7 @@ router.post('/',uploadMiddleware.single('file'),
         action: 'DOCUMENT_UPLOADED',
         entityType: 'Document',
         entityId: document.id,
-        actor: 'system',
+        actor: req.user?.email ?? 'system',
         newValue: { filename: file.originalname, sizeBytes: file.size },
       },
     });

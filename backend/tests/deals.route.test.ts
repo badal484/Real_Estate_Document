@@ -16,11 +16,18 @@ describe('GET /health', () => {
   });
 });
 
-describe('GET /api/deals — without DB', () => {
-  it('returns 500 or connects successfully', async () => {
+describe('GET /api/deals — without a session', () => {
+  it('returns 401', async () => {
     const res = await request(app).get('/api/deals');
-    // In CI without a real DB this will 500 — that is expected at scaffold stage
-    expect([200, 500]).toContain(res.status);
+    expect(res.status).toBe(401);
+    expect(res.body.error.message).toBe('Authentication required');
+  });
+});
+
+describe('POST /api/auth/google', () => {
+  it('returns 400 when the credential is missing', async () => {
+    const res = await request(app).post('/api/auth/google').send({});
+    expect(res.status).toBe(400);
   });
 });
 

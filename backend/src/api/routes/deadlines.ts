@@ -60,7 +60,8 @@ router.patch(
     const existing = await prisma.deadline.findUnique({ where: { id: req.params['dId'] } });
     if (!existing) throw createError('Deadline not found', 404);
 
-    const { confirmedDate, confirmedBy, activate } = parsed.data;
+    const { confirmedDate, activate } = parsed.data;
+    const confirmedBy = req.user?.email ?? parsed.data.confirmedBy;
     const isEdit = new Date(confirmedDate).getTime() !== existing.computedDate.getTime();
     const newStatus = activate ? 'ACTIVE' : 'CONFIRMED';
 
