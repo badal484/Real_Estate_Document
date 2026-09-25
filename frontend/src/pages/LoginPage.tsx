@@ -4,7 +4,6 @@ import { useAuth } from '@/context/AuthContext';
 import {
   IconBell,
   IconBuilding,
-  IconCheckCircle,
   IconClipboardList,
   IconExclamationTriangle,
   IconSparkles,
@@ -13,21 +12,6 @@ import {
 
 const GSI_SRC = 'https://accounts.google.com/gsi/client';
 const CLIENT_ID = import.meta.env['VITE_GOOGLE_CLIENT_ID'];
-
-type Mode = 'signin' | 'signup';
-
-const COPY: Record<Mode, { title: string; subtitle: string; buttonText: 'continue_with' | 'signup_with' }> = {
-  signin: {
-    title: 'Welcome back',
-    subtitle: 'Sign in to review deals and upcoming contingency deadlines.',
-    buttonText: 'continue_with',
-  },
-  signup: {
-    title: 'Create your account',
-    subtitle: 'Your Google account is all you need to start tracking purchase-agreement deadlines.',
-    buttonText: 'signup_with',
-  },
-};
 
 const FEATURES = [
   {
@@ -67,7 +51,6 @@ export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const buttonRef = useRef<HTMLDivElement>(null);
-  const [mode, setMode] = useState<Mode>('signin');
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(
     CLIENT_ID ? null : 'VITE_GOOGLE_CLIENT_ID is not configured.',
@@ -107,21 +90,19 @@ export function LoginPage() {
     };
   }, [signInWithGoogle, navigate, from]);
 
-  // (Re)render the button whenever the tab changes so its label matches.
+  // Render the Google button once the script is ready (and again after a failed attempt).
   useEffect(() => {
     if (!ready || signingIn || !buttonRef.current || !window.google) return;
     buttonRef.current.innerHTML = '';
     window.google.accounts.id.renderButton(buttonRef.current, {
       theme: 'outline',
       size: 'large',
-      text: COPY[mode].buttonText,
+      text: 'continue_with',
       shape: 'rectangular',
       // Google caps the button at 400px; fit it to the card on narrow screens.
       width: Math.min(400, buttonRef.current.clientWidth),
     });
-  }, [ready, mode, signingIn]);
-
-  const copy = COPY[mode];
+  }, [ready, signingIn]);
 
   return (
     <div className="flex min-h-screen bg-white">
@@ -187,37 +168,16 @@ export function LoginPage() {
           </div>
 
           <div className="card p-6 sm:p-8">
-            <div
-              role="tablist"
-              aria-label="Account"
-              className="mb-7 grid grid-cols-2 rounded-lg bg-slate-100 p-1 text-sm font-medium"
-            >
-              {(['signin', 'signup'] as const).map((m) => (
-                <button
-                  key={m}
-                  role="tab"
-                  type="button"
-                  aria-selected={mode === m}
-                  onClick={() => setMode(m)}
-                  className={`rounded-md py-1.5 transition-all ${
-                    mode === m
-                      ? 'bg-white text-slate-900 shadow-soft'
-                      : 'text-slate-500 hover:text-slate-800'
-                  }`}
-                >
-                  {m === 'signin' ? 'Sign in' : 'Create account'}
-                </button>
-              ))}
-            </div>
-
-            <h1 className="text-xl font-semibold text-slate-900">{copy.title}</h1>
-            <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{copy.subtitle}</p>
+            <h1 className="text-xl font-semibold text-slate-900">Sign in to Contingency Copilot</h1>
+            <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
+              Review deals and stay ahead of every contingency deadline.
+            </p>
 
             <div className="mt-7 flex min-h-[44px] justify-center">
               {signingIn ? (
                 <span className="flex items-center gap-2 text-sm text-slate-600">
                   <IconSpinner className="h-4 w-4 animate-spin text-brand-600" />
-                  {mode === 'signin' ? 'Signing you in…' : 'Creating your account…'}
+                  Signing you in…
                 </span>
               ) : ready ? (
                 <div ref={buttonRef} className="flex w-full justify-center" />
@@ -233,30 +193,11 @@ export function LoginPage() {
               </p>
             )}
 
-            {mode === 'signup' && (
-              <ul className="mt-7 space-y-2 border-t border-slate-100 pt-6 text-sm text-slate-600">
-                {['AI extraction on every contract', 'Deadlines you confirm before alerts go out', 'Full audit trail of every change'].map(
-                  (item) => (
-                    <li key={item} className="flex items-center gap-2">
-                      <IconCheckCircle className="h-4 w-4 text-emerald-600" />
-                      {item}
-                    </li>
-                  ),
-                )}
-              </ul>
-            )}
+            <p className="mt-6 border-t border-slate-100 pt-5 text-center text-xs leading-relaxed text-slate-500">
+              New here? Your account is created automatically the first time you continue with Google.
+            </p>
           </div>
 
-          <p className="mt-6 text-center text-sm text-slate-500">
-            {mode === 'signin' ? 'New to Contingency Copilot? ' : 'Already have an account? '}
-            <button
-              type="button"
-              onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
-              className="font-semibold text-brand-700 hover:text-brand-900"
-            >
-              {mode === 'signin' ? 'Create an account' : 'Sign in'}
-            </button>
-          </p>
         </div>
       </main>
     </div>
