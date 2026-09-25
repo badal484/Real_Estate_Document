@@ -20,7 +20,6 @@ export function ReviewPage() {
     try {
       await deadlinesApi.confirm(dealId, deadline.id, {
         confirmedDate: deadline.computedDate,
-        confirmedBy: 'agent', // TODO: replace with real user once auth is added
         activate: true,
       });
       refetch();

@@ -11,23 +11,45 @@ import type {
   ConfirmDeadlineInput,
   AuditLog,
   PaginatedResponse,
+  User,
 } from '@/types';
+import { authHeaders, notifyUnauthorized } from './session';
 
 const BASE_URL = import.meta.env['VITE_API_URL'] ?? 'http://localhost:3001/api';
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function send(path: string, init?: RequestInit): Promise<Response> {
   const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
     ...init,
+    headers: { ...authHeaders(), ...init?.headers },
   });
 
   if (!res.ok) {
+    if (res.status === 401) notifyUnauthorized();
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: { message?: string } }).error?.message ?? `HTTP ${res.status}`);
   }
 
+  return res;
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await send(path, {
+    ...init,
+    headers: { 'Content-Type': 'application/json', ...init?.headers },
+  });
   return res.json() as Promise<T>;
 }
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
+export const authApi = {
+  signInWithGoogle: (credential: string) =>
+    request<{ token: string; user: User }>('/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({ credential }),
+    }),
+  me: () => request<{ user: User }>('/auth/me'),
+};
 
 // ── Deals ─────────────────────────────────────────────────────────────────────
 
@@ -47,15 +69,8 @@ export const documentsApi = {
   upload: async (dealId: string, file: File) => {
     const form = new FormData();
     form.append('file', file);
-    const res = await fetch(`${BASE_URL}/deals/${dealId}/documents`, {
-      method: 'POST',
-      body: form,
-      // Do NOT set Content-Type — browser sets it with boundary automatically
-    });
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      throw new Error((body as { error?: { message?: string } }).error?.message ?? `HTTP ${res.status}`);
-    }
+    // Do NOT set Content-Type — browser sets it with boundary automatically
+    const res = await send(`/deals/${dealId}/documents`, { method: 'POST', body: form });
     return res.json();
   },
 };

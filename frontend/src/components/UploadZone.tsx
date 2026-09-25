@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { documentsApi } from '@/services/api';
 import { IconArrowUpTray, IconCheckCircle, IconExclamationTriangle } from './icons';
 
 interface Props {
@@ -24,20 +25,7 @@ export function UploadZone({ dealId, onSuccess }: Props) {
     setSuccess(false);
 
     try {
-      const form = new FormData();
-      form.append('file', file);
-
-      const apiBase = import.meta.env['VITE_API_URL'] ?? 'http://localhost:3001/api';
-      const res = await fetch(`${apiBase}/deals/${dealId}/documents`, {
-        method: 'POST',
-        body: form,
-      });
-
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error((body as { error?: { message?: string } }).error?.message ?? 'Upload failed');
-      }
-
+      await documentsApi.upload(dealId, file);
       setSuccess(true);
       onSuccess?.();
     } catch (err) {

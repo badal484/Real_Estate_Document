@@ -104,3 +104,10 @@ export interface ConfirmDeadlineInput {
   confirmedBy?: string;
   activate?: boolean;
 }
+
+export interface User {
+  id: string;
+  email: string;
+  name: string | null;
+  pictureUrl: string | null;
+}
