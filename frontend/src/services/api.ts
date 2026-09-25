@@ -21,6 +21,9 @@ async function send(path: string, init?: RequestInit): Promise<Response> {
   const res = await fetch(`${BASE_URL}${path}`, {
     ...init,
     headers: { ...authHeaders(), ...init?.headers },
+  }).catch(() => {
+    // fetch only rejects on network failure (server down, offline, CORS)
+    throw new Error("We couldn't reach the server. Check your connection and try again.");
   });
 
   if (!res.ok) {
