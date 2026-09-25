@@ -188,3 +188,13 @@ export function IconSpinner({ className }: IconProps) {
     </svg>
   );
 }
+
+export function IconArrowRightOnRectangle({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} aria-hidden="true">
+      <path d="M15 8V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-3" />
+      <path d="M10 12h11" />
+      <polyline points="18 9 21 12 18 15" />
+    </svg>
+  );
+}
