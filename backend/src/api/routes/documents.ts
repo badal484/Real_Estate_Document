@@ -111,11 +111,81 @@ router.post('/',uploadMiddleware.single('file'),
       },
     });
 
+    // ── Background Page-Level Indexing for AI Assistant ──────────────────
+    (async () => {
+      try {
+        await prisma.document.update({
+          where: { id: document.id },
+          data: { indexStatus: 'INDEXING' },
+        });
+
+        const { extractPagesFromPdf } = await import('../../services/pdf.service.js');
+        const { classifyDocument } = await import('../../services/docClassifier.service.js');
+        const { chunkDocumentPages } = await import('../../services/chunk.service.js');
+        const { generateEmbedding } = await import('../../services/embedding.service.js');
+
+        const pages = await extractPagesFromPdf(file.path);
+        const sampleText = pages.map((p) => p.text).join('\n').slice(0, 10000);
+        const classification = await classifyDocument({ filename: file.originalname, sampleText });
+        const chunks = chunkDocumentPages(pages);
+
+        for (const chunk of chunks) {
+          const embedding = await generateEmbedding(chunk.content);
+          await prisma.documentChunk.create({
+            data: {
+              documentId: document.id,
+              dealId,
+              pageNumber: chunk.pageNumber,
+              chunkIndex: chunk.chunkIndex,
+              sectionTitle: chunk.sectionTitle,
+              content: chunk.content,
+              tokenCount: chunk.tokenCount,
+              source: chunk.source,
+              embedding: embedding as unknown as object,
+            },
+          });
+        }
+
+        await prisma.document.update({
+          where: { id: document.id },
+          data: {
+            docType: classification.docType,
+            effectiveDate: classification.effectiveDate,
+            pageCount: pages.length,
+            indexStatus: 'READY',
+            indexedAt: new Date(),
+          },
+        });
+
+        await prisma.auditLog.create({
+          data: {
+            dealId,
+            action: 'DOCUMENT_INDEXED',
+            entityType: 'Document',
+            entityId: document.id,
+            actor: 'system',
+            newValue: {
+              docType: classification.docType,
+              pagesCount: pages.length,
+              chunksCount: chunks.length,
+            },
+          },
+        });
+        logger.info(`[Pipeline] Indexed document ${document.id}: ${chunks.length} chunks across ${pages.length} pages`);
+      } catch (indexErr) {
+        logger.error(`[Pipeline] Indexing failed for document ${document.id}: ${(indexErr as Error).message}`);
+        await prisma.document.update({
+          where: { id: document.id },
+          data: { indexStatus: 'FAILED' },
+        }).catch(() => {});
+      }
+    })();
+
     res.status(201).json({
       document,
       extractedClauses: clauses.length,
       computedDeadlines: deadlines.length,
-      message: 'Document uploaded and contingency extraction completed.',
+      message: 'Document uploaded, contingency extraction completed, indexing in progress.',
     });
   }),
 );

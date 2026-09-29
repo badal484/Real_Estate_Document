@@ -6,6 +6,7 @@ import dealsRouter from './api/routes/deals.js';
 import documentsRouter from './api/routes/documents.js';
 import deadlinesRouter from './api/routes/deadlines.js';
 import auditRouter from './api/routes/audit.js';
+import assistantRouter from './api/routes/assistant.js';
 import inboundRouter from './api/routes/inbound.js';
 import authRouter from './api/routes/auth.js';
 import { requireAuth } from './middleware/auth.js';
@@ -38,6 +39,7 @@ export function createApp() {
   app.use('/api/deals/:id/documents', requireAuth, documentsRouter);
   app.use('/api/deals/:id/deadlines', requireAuth, deadlinesRouter);
   app.use('/api/deals/:id/audit', requireAuth, auditRouter);
+  app.use('/api/deals/:id/assistant', requireAuth, assistantRouter);
 
   // ── 404 catch-all ─────────────────────────────────────────────────────────
   app.use((_req, res) => {
