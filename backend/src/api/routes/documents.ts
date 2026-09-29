@@ -205,4 +205,39 @@ router.get(
   }),
 );
 
+// ── GET /api/deals/:id/documents/:docId/file ───────────────────────────────
+// Securely streams the actual PDF file binary to the browser with CORS headers
+router.get(
+  '/:docId/file',
+  asyncHandler(async (req, res) => {
+    const { id: dealId, docId } = req.params;
+    const document = await prisma.document.findFirst({ where: { id: docId, dealId } });
+    if (!document) throw createError('Document not found', 404);
+
+    const { readFile } = await import('node:fs/promises');
+    const { existsSync } = await import('node:fs');
+    const path = await import('node:path');
+
+    if (document.storagePath.startsWith('http://') || document.storagePath.startsWith('https://')) {
+      const signedUrl = getSignedDocumentUrl(document.storagePath);
+      const remoteRes = await fetch(signedUrl);
+      if (!remoteRes.ok) throw createError('Failed to fetch remote document from storage', remoteRes.status);
+      const arrayBuffer = await remoteRes.arrayBuffer();
+      res.setHeader('Content-Type', document.mimeType || 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="${document.filename}"`);
+      return res.send(Buffer.from(arrayBuffer));
+    }
+
+    const resolvedPath = path.resolve(document.storagePath);
+    if (!existsSync(resolvedPath)) {
+      throw createError('Document file not found on local disk', 404);
+    }
+
+    const fileBuffer = await readFile(resolvedPath);
+    res.setHeader('Content-Type', document.mimeType || 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${document.filename}"`);
+    res.send(fileBuffer);
+  }),
+);
+
 export default router;

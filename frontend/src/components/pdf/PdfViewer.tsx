@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
+
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import {
   IconChevronLeft,
   IconChevronRight,
@@ -8,11 +10,15 @@ import {
   IconDocumentText,
   IconSparkles,
 } from '../icons';
-import { normalizeClientText, findQuoteInPage } from '@/utils/quoteMatcher';
+import { findQuoteInPage } from '@/utils/quoteMatcher';
 import type { Document as Doc } from '@/types';
 
-// Set up pdf.js worker using unpkg / local url
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+// Configure pdfjs worker to use local bundled Vite worker
+if (typeof window !== 'undefined' && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+}
+
+
 
 interface Props {
   fileUrl: string;

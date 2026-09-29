@@ -60,32 +60,53 @@ export function AssistantPage() {
       .finally(() => setLoadingDocs(false));
   }, [dealId]);
 
-  // 2. Fetch signed view URL when selected document changes
+  // 2. Fetch authenticated document blob when selected document changes
   useEffect(() => {
     if (!selectedDocId) return;
 
     const baseUrl = import.meta.env['VITE_API_URL'] ?? 'http://localhost:3001/api';
-    fetch(`${baseUrl}/deals/${dealId}/documents/${selectedDocId}/url`, {
+    const token = localStorage.getItem('copilot_token') || '';
+
+    let isMounted = true;
+    let createdUrl: string | null = null;
+
+    // Fetch the PDF binary stream securely
+    fetch(`${baseUrl}/deals/${dealId}/documents/${selectedDocId}/file`, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('copilot_token') || ''}`,
+        Authorization: `Bearer ${token}`,
       },
     })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.url) {
-          setPdfUrl(data.url);
-        } else {
-          // Fallback if local storage driver
-          const selectedDoc = documents.find((d) => d.id === selectedDocId);
-          if (selectedDoc?.storagePath) {
-            setPdfUrl(selectedDoc.storagePath);
-          }
-        }
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.blob();
       })
-      .catch((err) => {
-        console.warn('Could not fetch signed doc URL:', err);
+      .then((blob) => {
+        if (!isMounted) return;
+        createdUrl = URL.createObjectURL(blob);
+        setPdfUrl(createdUrl);
+      })
+      .catch(async (err) => {
+        console.warn('Direct file streaming failed, attempting fallback URL:', err);
+        try {
+          const res = await fetch(`${baseUrl}/deals/${dealId}/documents/${selectedDocId}/url`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+          if (isMounted && data.url) {
+            setPdfUrl(data.url);
+          }
+        } catch (fallbackErr) {
+          console.error('All document loading attempts failed:', fallbackErr);
+        }
       });
-  }, [dealId, selectedDocId, documents]);
+
+    return () => {
+      isMounted = false;
+      if (createdUrl) {
+        URL.revokeObjectURL(createdUrl);
+      }
+    };
+  }, [dealId, selectedDocId]);
 
   // 3. Handle citation click -> switch document & jump to page & focus quote
   const handleCitationClick = (citation: Citation) => {
