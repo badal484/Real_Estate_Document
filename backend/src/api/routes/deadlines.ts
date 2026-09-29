@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { asyncHandler, createError } from '../../middleware/errorHandler.js';
 import { scheduleAlerts } from '../../services/alert.service.js';
 import { computeDeadlinesForDeal } from '../../services/deadline.service.js';
+import { resetDeadlineAlertWindows } from '../../services/scheduler.service.js';
 
 const router = Router({ mergeParams: true });
 const prisma = new PrismaClient();
@@ -86,6 +87,10 @@ router.patch(
         actor: confirmedBy ?? 'system',
       },
     });
+
+    if (isEdit) {
+      await resetDeadlineAlertWindows(existing.id);
+    }
 
     // If activating, schedule alerts (stub)
     if (activate) {

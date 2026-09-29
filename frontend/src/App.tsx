@@ -4,6 +4,7 @@ import { UploadPage } from '@/pages/UploadPage';
 import { DealsPage } from '@/pages/DealsPage';
 import { DealDetailPage } from '@/pages/DealDetailPage';
 import { ReviewPage } from '@/pages/ReviewPage';
+import { AssistantPage } from '@/pages/AssistantPage';
 import { AuditPage } from '@/pages/AuditPage';
 
 export default function App() {
@@ -17,9 +18,11 @@ export default function App() {
           <Route path="/deals" element={<DealsPage />} />
           <Route path="/deals/:id" element={<DealDetailPage />} />
           <Route path="/deals/:id/review" element={<ReviewPage />} />
+          <Route path="/deals/:id/assistant" element={<AssistantPage />} />
           <Route path="/audit" element={<AuditPage />} />
         </Routes>
       </main>
     </>
   );
 }
+

@@ -17,6 +17,7 @@
     "@anthropic-ai/sdk": "^0.30.0",
     "@google/genai": "^2.23.0",
     "@prisma/client": "^5.22.0",
+    "@sendgrid/mail": "^8.1.6",
     "cors": "^2.8.5",
     "date-fns": "^4.4.0",
     "date-holidays": "^3.36.1",

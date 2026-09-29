@@ -20,13 +20,17 @@ model Deal {
   sellerName       String?
   acceptanceDate   DateTime? // Contract acceptance / effective date
   status           DealStatus @default(ACTIVE)
+  timezone         String    @default("America/Los_Angeles")
+  inboundAlias     String?   @unique
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
-  documents  Document[]
-  clauses    ContingencyClause[]
-  deadlines  Deadline[]
-  auditLogs  AuditLog[]
+  documents            Document[]
+  clauses              ContingencyClause[]
+  deadlines            Deadline[]
+  auditLogs            AuditLog[]
+  notificationSettings NotificationSetting?
+  emailLogs            EmailLog[]
 
   @@map("deals")
 }
@@ -98,8 +102,9 @@ model Deadline {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
-  deal   Deal              @relation(fields: [dealId], references: [id], onDelete: Cascade)
-  clause ContingencyClause @relation(fields: [clauseId], references: [id], onDelete: Cascade)
+  deal      Deal              @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  clause    ContingencyClause @relation(fields: [clauseId], references: [id], onDelete: Cascade)
+  emailLogs EmailLog[]
 
   @@map("deadlines")
 }
@@ -110,6 +115,45 @@ enum DeadlineStatus {
   ACTIVE     // confirmed + alerts scheduled
   MISSED     // past due date, not completed
   COMPLETED  // agent marked as done
+}
+
+// ─── NotificationSetting ──────────────────────────────────────────────────────
+model NotificationSetting {
+  id         String   @id @default(cuid())
+  dealId     String   @unique
+  recipients String[] // Array of email addresses
+  d3         Boolean  @default(true)
+  d1         Boolean  @default(true)
+  dayOf      Boolean  @default(true)
+  missed     Boolean  @default(true)
+  enabled    Boolean  @default(true)
+  timezone   String   @default("America/Los_Angeles")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@map("notification_settings")
+}
+
+// ─── EmailLog ─────────────────────────────────────────────────────────────────
+model EmailLog {
+  id                String   @id @default(cuid())
+  dealId            String
+  deadlineId        String?
+  window            String   // "d3" | "d1" | "day_of" | "missed" | "summary" | "inbound" | "test"
+  template          String   // template identifier
+  recipient         String
+  status            String   @default("PENDING") // PENDING | DELIVERED | BOUNCED | DROPPED | FAILED
+  providerMessageId String?
+  error             String?
+  sentAt            DateTime @default(now())
+
+  deal     Deal      @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  deadline Deadline? @relation(fields: [deadlineId], references: [id], onDelete: Cascade)
+
+  @@unique([deadlineId, window])
+  @@map("email_logs")
 }
 
 // ─── AuditLog ─────────────────────────────────────────────────────────────────
@@ -139,6 +183,8 @@ enum AuditAction {
   DEADLINE_EDITED
   DEADLINE_ACTIVATED
   ALERT_SENT
+  EMAIL_SENT_TEST
+  EMAIL_INBOUND_RECEIVED
   DEAL_CREATED
   DEAL_UPDATED
 }
