@@ -157,6 +157,16 @@ router.post('/',uploadMiddleware.single('file'),
           },
         });
 
+        if (classification.effectiveDate && (classification.docType === 'PURCHASE_AGREEMENT' || !deal.acceptanceDate)) {
+          await prisma.deal.update({
+            where: { id: dealId },
+            data: { acceptanceDate: classification.effectiveDate },
+          });
+          const allClauses = await prisma.contingencyClause.findMany({ where: { dealId } });
+          await computeDeadlinesForDeal(dealId, classification.effectiveDate, allClauses);
+        }
+
+
         await prisma.auditLog.create({
           data: {
             dealId,
