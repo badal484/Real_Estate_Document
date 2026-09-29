@@ -262,28 +262,31 @@ export function PdfViewer({
       {/* Main Canvas Document Scroll Container */}
       <div className="flex-1 overflow-auto p-4 flex items-center justify-center relative bg-slate-900/90">
         {loading && (
-          <div className="flex flex-col items-center gap-2 text-slate-400 text-sm">
-            <IconSpinner className="h-6 w-6 animate-spin text-brand-500" />
+          <div className="flex flex-col items-center gap-3 text-slate-400 text-sm py-16">
+            <IconSpinner className="h-7 w-7 animate-spin text-brand-500" />
             <span>Loading document pages&hellip;</span>
           </div>
         )}
 
-        {error && (
-          <div className="flex flex-col items-center gap-2 text-rose-400 text-sm max-w-sm text-center">
+        {error && !loading && (
+          <div className="flex flex-col items-center gap-2 text-rose-400 text-sm max-w-sm text-center py-16">
             <IconExclamationTriangle className="h-6 w-6" />
             <span>{error}</span>
           </div>
         )}
 
-        <div className="relative shadow-2xl rounded bg-white">
-          <canvas ref={canvasRef} className="block rounded" />
-          {rendering && (
-            <div className="absolute inset-0 bg-slate-950/20 backdrop-blur-[1px] flex items-center justify-center rounded">
-              <IconSpinner className="h-5 w-5 animate-spin text-brand-500" />
-            </div>
-          )}
-        </div>
+        {!loading && !error && pdfDoc && (
+          <div className="relative shadow-2xl rounded bg-white">
+            <canvas ref={canvasRef} className="block rounded" />
+            {rendering && (
+              <div className="absolute inset-0 bg-slate-950/20 backdrop-blur-[1px] flex items-center justify-center rounded">
+                <IconSpinner className="h-5 w-5 animate-spin text-brand-500" />
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
     </div>
   );
 }

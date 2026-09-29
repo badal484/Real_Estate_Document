@@ -220,28 +220,62 @@ ${formattedDocContext || 'No document text indexed.'}
 ${question}
 `;
 
-  // 5. Call Gemini with system instructions & structured schema
+  // 5. Call Gemini with system instructions & structured schema (with multi-model fallback)
   const apiKey = process.env['GEMINI_API_KEY'];
   if (!apiKey) throw new Error('GEMINI_API_KEY is not configured');
 
   const ai = new GoogleGenAI({ apiKey });
-  const model = process.env['GEMINI_MODEL'] ?? 'gemini-3.6-flash';
+  const candidateModels = Array.from(
+    new Set(
+      [
+        process.env['GEMINI_MODEL'],
+        'gemini-2.5-flash',
+        'gemini-2.0-flash',
+        'gemini-1.5-flash',
+        'gemini-1.5-pro',
+      ].filter(Boolean) as string[],
+    ),
+  );
 
-  const geminiResponse = await ai.models.generateContent({
-    model,
-    contents: [
-      { text: fullPromptContent },
-    ],
-    config: {
-      systemInstruction: SYSTEM_INSTRUCTION,
-      responseMimeType: 'application/json',
-      responseJsonSchema: assistantJsonSchema,
-      temperature: 0.1,
-    },
-  });
+  let rawJson = '{}';
+  let lastError: unknown = null;
 
-  let rawJson = geminiResponse.text ?? '{}';
+  for (const candidateModel of candidateModels) {
+    try {
+      logger.info(`[Assistant] Attempting reasoning with model: ${candidateModel}`);
+      const geminiResponse = await ai.models.generateContent({
+        model: candidateModel,
+        contents: [{ text: fullPromptContent }],
+        config: {
+          systemInstruction: SYSTEM_INSTRUCTION,
+          responseMimeType: 'application/json',
+          responseJsonSchema: assistantJsonSchema,
+          temperature: 0.1,
+        },
+      });
+
+      if (geminiResponse.text) {
+        rawJson = geminiResponse.text;
+        logger.info(`[Assistant] Successfully generated answer using ${candidateModel}`);
+        lastError = null;
+        break;
+      }
+    } catch (modelErr) {
+      lastError = modelErr;
+      logger.warn(
+        `[Assistant] Model ${candidateModel} failed: ${(modelErr as Error).message}. Trying next candidate...`,
+      );
+      await new Promise((r) => setTimeout(r, 400));
+    }
+  }
+
+  if (lastError && rawJson === '{}') {
+    logger.error(`[Assistant] All candidate models failed: ${(lastError as Error).message}`);
+    throw lastError;
+  }
+
   rawJson = rawJson.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+
 
   let parsedResponse;
   try {

@@ -68,7 +68,16 @@ export async function classifyDocument(params: {
   }
 
   const ai = new GoogleGenAI({ apiKey });
-  const model = process.env['GEMINI_MODEL'] ?? 'gemini-3.6-flash';
+  const candidateModels = Array.from(
+    new Set(
+      [
+        process.env['GEMINI_MODEL'],
+        'gemini-2.5-flash',
+        'gemini-2.0-flash',
+        'gemini-1.5-flash',
+      ].filter(Boolean) as string[],
+    ),
+  );
 
   const prompt = `Classify this real estate document based on its filename and text excerpt.
 Filename: "${filename}"
@@ -88,39 +97,49 @@ Classify the docType as one of:
 
 Extract effectiveDate (YYYY-MM-DD) if stated on the document (acceptance date, signing date, or addendum date), otherwise null.`;
 
-  try {
-    const response = await ai.models.generateContent({
-      model,
-      contents: [{ text: prompt }],
-      config: {
-        responseMimeType: 'application/json',
-        responseJsonSchema: classificationJsonSchema,
-        temperature: 0.1,
-      },
-    });
+  let lastError: unknown = null;
 
-    const raw = JSON.parse(response.text ?? '{}');
-    const parsed = ClassificationSchema.parse(raw);
+  for (const candidateModel of candidateModels) {
+    try {
+      const response = await ai.models.generateContent({
+        model: candidateModel,
+        contents: [{ text: prompt }],
+        config: {
+          responseMimeType: 'application/json',
+          responseJsonSchema: classificationJsonSchema,
+          temperature: 0.1,
+        },
+      });
 
-    let parsedDate: Date | null = null;
-    if (parsed.effectiveDate) {
-      const d = new Date(parsed.effectiveDate);
-      if (!isNaN(d.getTime())) {
-        parsedDate = d;
+      if (response.text) {
+        const raw = JSON.parse(response.text);
+        const parsed = ClassificationSchema.parse(raw);
+
+        let parsedDate: Date | null = null;
+        if (parsed.effectiveDate) {
+          const d = new Date(parsed.effectiveDate);
+          if (!isNaN(d.getTime())) {
+            parsedDate = d;
+          }
+        }
+
+        return {
+          docType: parsed.docType,
+          effectiveDate: parsedDate,
+          confidence: parsed.confidence,
+          reasoning: parsed.reasoning,
+        };
       }
+    } catch (err) {
+      lastError = err;
+      logger.warn(`[Classifier] Model ${candidateModel} failed: ${(err as Error).message}. Trying fallback...`);
     }
-
-    return {
-      docType: parsed.docType as DocType,
-      effectiveDate: parsedDate,
-      confidence: parsed.confidence,
-      reasoning: parsed.reasoning,
-    };
-  } catch (err) {
-    logger.warn(`[Classifier] Gemini classification failed: ${(err as Error).message}, using heuristic fallback`);
-    return heuristicClassification(filename);
   }
+
+  logger.warn(`[Classifier] All AI models failed, using heuristic fallback for ${filename}: ${(lastError as Error)?.message}`);
+  return heuristicClassification(filename);
 }
+
 
 function heuristicClassification(filename: string): DocClassificationResult {
   const lower = filename.toLowerCase();

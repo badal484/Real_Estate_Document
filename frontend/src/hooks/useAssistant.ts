@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { assistantApi } from '@/services/api';
+import { authHeaders } from '@/services/session';
 import type {
   AssistantMessage,
   Citation,
@@ -77,10 +78,12 @@ export function useAssistant(dealId: string) {
         headers: {
           'Content-Type': 'application/json',
           Accept: 'text/event-stream',
+          ...authHeaders(),
         },
         body: JSON.stringify({ question, conversationId }),
         signal: abortControllerRef.current.signal,
       });
+
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: Failed to get answer from assistant.`);

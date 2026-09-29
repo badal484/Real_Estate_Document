@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { dealsApi, documentsApi } from '@/services/api';
+import { authHeaders } from '@/services/session';
 import { useAssistant } from '@/hooks/useAssistant';
 import { PdfViewer } from '@/components/pdf/PdfViewer';
 import { ChatWindow } from '@/components/assistant/ChatWindow';
@@ -65,15 +66,14 @@ export function AssistantPage() {
     if (!selectedDocId) return;
 
     const baseUrl = import.meta.env['VITE_API_URL'] ?? 'http://localhost:3001/api';
-    const token = localStorage.getItem('copilot_token') || '';
 
     let isMounted = true;
     let createdUrl: string | null = null;
 
-    // Fetch the PDF binary stream securely
+    // Fetch the PDF binary stream securely with session headers
     fetch(`${baseUrl}/deals/${dealId}/documents/${selectedDocId}/file`, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...authHeaders(),
       },
     })
       .then((res) => {
@@ -89,7 +89,7 @@ export function AssistantPage() {
         console.warn('Direct file streaming failed, attempting fallback URL:', err);
         try {
           const res = await fetch(`${baseUrl}/deals/${dealId}/documents/${selectedDocId}/url`, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: { ...authHeaders() },
           });
           const data = await res.json();
           if (isMounted && data.url) {
@@ -107,6 +107,7 @@ export function AssistantPage() {
       }
     };
   }, [dealId, selectedDocId]);
+
 
   // 3. Handle citation click -> switch document & jump to page & focus quote
   const handleCitationClick = (citation: Citation) => {
