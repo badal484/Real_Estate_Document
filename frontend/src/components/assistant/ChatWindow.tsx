@@ -9,7 +9,7 @@ import {
   IconSpinner,
   IconArrowPath,
   IconExclamationTriangle,
-  IconDocumentText,
+  IconMicrophone,
 } from '../icons';
 import type {
   AssistantMessage,
@@ -49,6 +49,7 @@ export function ChatWindow({
 }: Props) {
   const [input, setInput] = useState('');
   const [activeTab, setActiveTab] = useState<'chat' | 'summary'>('chat');
+  const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -63,14 +64,69 @@ export function ChatWindow({
     onAsk(q);
   };
 
+  // Voice Query (Speech to Text)
+  const handleToggleVoice = () => {
+    if (typeof window === 'undefined') return;
+
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert('Voice dictation is not supported on this browser. Please use Chrome, Safari, or Edge.');
+      return;
+    }
+
+    if (isListening) {
+      setIsListening(false);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        if (transcript) {
+          setInput((prev) => (prev ? `${prev} ${transcript}` : transcript));
+        }
+      };
+
+      recognition.onerror = () => {
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognition.start();
+    } catch {
+      setIsListening(false);
+    }
+  };
+
   const isIndexing = indexStatus?.status === 'INDEXING';
 
+  const quickPrompts = [
+    'What is the contract acceptance date?',
+    'What are the inspection contingency terms?',
+    'When is the loan commitment due?',
+    'What happens if appraisal is below price?',
+  ];
+
   return (
-    <div className="flex flex-col h-full bg-slate-50/50 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="flex flex-col h-full bg-slate-50/50 rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-3.5 bg-white border-b border-slate-200">
+      <div className="flex items-center justify-between px-5 py-3.5 bg-white border-b border-slate-200 select-none">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-600 text-white shadow-sm">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-600 text-white shadow-xs">
             <IconSparkles className="h-4 w-4" />
           </div>
           <div>
@@ -100,7 +156,7 @@ export function ChatWindow({
               onClick={() => setActiveTab('chat')}
               className={`rounded-md px-2.5 py-1 font-medium transition-all ${
                 activeTab === 'chat'
-                  ? 'bg-white text-slate-900 shadow-xs'
+                  ? 'bg-white text-slate-900 shadow-2xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -111,7 +167,7 @@ export function ChatWindow({
               onClick={() => setActiveTab('summary')}
               className={`rounded-md px-2.5 py-1 font-medium transition-all ${
                 activeTab === 'summary'
-                  ? 'bg-white text-slate-900 shadow-xs'
+                  ? 'bg-white text-slate-900 shadow-2xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -142,7 +198,7 @@ export function ChatWindow({
             {messages.length === 0 && (
               <div className="py-6 px-2 space-y-6">
                 <div className="text-center space-y-2 max-w-sm mx-auto">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-50 text-purple-600 mx-auto shadow-sm ring-1 ring-purple-100">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-50 text-purple-600 mx-auto shadow-xs ring-1 ring-purple-100">
                     <IconSparkles className="h-6 w-6" />
                   </div>
                   <h4 className="text-sm font-semibold text-slate-900">
@@ -196,32 +252,65 @@ export function ChatWindow({
 
       {/* Input Box (Chat Tab only) */}
       {activeTab === 'chat' && (
-        <form
-          onSubmit={handleSubmit}
-          className="p-3 bg-white border-t border-slate-200 flex items-center gap-2"
-        >
-          <input
-            type="text"
-            placeholder="Ask about inspection period, earnest money, loan contingency..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            disabled={loading}
-            className="input-base text-xs flex-1 py-2.5"
-          />
+        <div className="bg-white border-t border-slate-200">
+          {/* Quick Prompt Pill Strip */}
+          {messages.length > 0 && (
+            <div className="px-3 pt-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+              {quickPrompts.map((qp, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => onAsk(qp)}
+                  disabled={loading}
+                  className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[10px] text-slate-600 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 transition-colors disabled:opacity-40"
+                >
+                  {qp}
+                </button>
+              ))}
+            </div>
+          )}
 
-          <button
-            type="submit"
-            disabled={loading || !input.trim()}
-            className="btn-primary flex items-center justify-center p-2.5 h-10 w-10 shrink-0 disabled:opacity-40"
-            title="Ask AI Copilot"
+          <form
+            onSubmit={handleSubmit}
+            className="p-3 flex items-center gap-2"
           >
-            {loading ? (
-              <IconSpinner className="h-4 w-4 animate-spin text-white" />
-            ) : (
-              <IconPaperAirplane className="h-4 w-4" />
-            )}
-          </button>
-        </form>
+            {/* Microphone Voice Button */}
+            <button
+              type="button"
+              onClick={handleToggleVoice}
+              className={`p-2.5 rounded-xl border transition-all ${
+                isListening
+                  ? 'bg-rose-500 text-white border-rose-600 ring-2 ring-rose-300 animate-pulse'
+                  : 'bg-slate-50 hover:bg-slate-100 text-slate-500 border-slate-200'
+              }`}
+              title={isListening ? 'Listening... click to stop' : 'Voice dictation'}
+            >
+              <IconMicrophone className="h-4 w-4" />
+            </button>
+
+            <input
+              type="text"
+              placeholder="Ask about inspection period, earnest money, loan contingency..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              disabled={loading}
+              className="input-base text-xs flex-1 py-2.5"
+            />
+
+            <button
+              type="submit"
+              disabled={loading || !input.trim()}
+              className="btn-primary flex items-center justify-center p-2.5 h-10 w-10 shrink-0 disabled:opacity-40"
+              title="Ask AI Copilot"
+            >
+              {loading ? (
+                <IconSpinner className="h-4 w-4 animate-spin text-white" />
+              ) : (
+                <IconPaperAirplane className="h-4 w-4" />
+              )}
+            </button>
+          </form>
+        </div>
       )}
     </div>
   );
