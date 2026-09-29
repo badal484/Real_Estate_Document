@@ -9,8 +9,9 @@ import {
   IconDocumentText,
   IconSparkles,
   IconMagnifyingGlass,
+  IconCheck,
 } from '../icons';
-import { findQuoteInPage, normalizeClientText } from '@/utils/quoteMatcher';
+import { findQuoteInPage, findMatchingItemIndices } from '@/utils/quoteMatcher';
 import type { Document as Doc } from '@/types';
 
 // Configure pdfjs worker to use local bundled Vite worker
@@ -34,6 +35,7 @@ interface Props {
   documents?: Doc[];
   selectedDocId?: string;
   onSelectDoc?: (docId: string) => void;
+  onClearHighlight?: () => void;
   className?: string;
 }
 
@@ -45,6 +47,7 @@ export function PdfViewer({
   documents = [],
   selectedDocId,
   onSelectDoc,
+  onClearHighlight,
   className = '',
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -52,7 +55,7 @@ export function PdfViewer({
   const [pdfDoc, setPdfDoc] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [numPages, setNumPages] = useState(0);
-  const [scale, setScale] = useState(1.25);
+  const [scale, setScale] = useState(1.2);
   const [loading, setLoading] = useState(true);
   const [rendering, setRendering] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -154,45 +157,44 @@ export function PdfViewer({
           .join(' ');
         setPageText(extracted);
 
-        // Compute Bounding Boxes for Quote Highlighting or In-Page Search
+        // Determine target text to highlight (in-page search takes priority, otherwise focused quote)
         const targetSearch = searchQuery.trim()
-          ? searchQuery.trim().toLowerCase()
+          ? searchQuery.trim()
           : highlightQuote
-            ? normalizeClientText(highlightQuote).slice(0, 40)
+            ? highlightQuote.trim()
             : '';
 
         const boxes: HighlightBox[] = [];
 
-        if (targetSearch && targetSearch.length >= 3) {
-          const normTargetWords = targetSearch.split(/\s+/).filter((w) => w.length > 2);
+        if (targetSearch) {
+          // Continuous phrase matching to get exact matching item indices
+          const matchedIndices = findMatchingItemIndices(textContent.items as any[], targetSearch);
+          const matchedSet = new Set(matchedIndices);
 
-          for (const item of textContent.items as any[]) {
-            if (!('str' in item) || !item.str) continue;
-            const itemText = item.str.toLowerCase();
+          (textContent.items as any[]).forEach((item, itemIdx) => {
+            if (!('str' in item) || !item.str) return;
+            if (!matchedSet.has(itemIdx)) return;
 
-            const isMatch = normTargetWords.some((w) => itemText.includes(w));
-            if (isMatch) {
-              const tx = item.transform[4];
-              const ty = item.transform[5];
-              const tw = item.width || 30;
-              const th = item.height || 12;
+            const tx = item.transform[4];
+            const ty = item.transform[5];
+            const tw = item.width || 30;
+            const th = item.height || 12;
 
-              // Convert PDF coordinates to Canvas Viewport coordinates
-              const [vx1, vy1, vx2, vy2] = viewport.convertToViewportRectangle([
-                tx,
-                ty,
-                tx + tw,
-                ty + th,
-              ]);
+            // Convert PDF coordinates to Canvas Viewport coordinates
+            const [vx1, vy1, vx2, vy2] = viewport.convertToViewportRectangle([
+              tx,
+              ty,
+              tx + tw,
+              ty + th,
+            ]);
 
-              const left = Math.min(vx1, vx2);
-              const top = Math.min(vy1, vy2);
-              const width = Math.max(Math.abs(vx2 - vx1), 10);
-              const height = Math.max(Math.abs(vy2 - vy1), 12);
+            const left = Math.min(vx1, vx2);
+            const top = Math.min(vy1, vy2);
+            const width = Math.max(Math.abs(vx2 - vx1), 8);
+            const height = Math.max(Math.abs(vy2 - vy1), 12);
 
-              boxes.push({ left, top, width, height, text: item.str });
-            }
-          }
+            boxes.push({ left, top, width, height, text: item.str });
+          });
         }
 
         setHighlightBoxes(boxes);
@@ -270,18 +272,20 @@ export function PdfViewer({
   return (
     <div
       ref={containerRef}
-      className={`flex flex-col h-full bg-slate-900 rounded-2xl overflow-hidden shadow-xl border border-slate-800 ${className}`}
+      className={`flex flex-col h-full bg-white rounded-2xl overflow-hidden shadow-xs border border-slate-200/90 ${className}`}
     >
-      {/* Top Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-2.5 px-4 py-3 bg-slate-950 border-b border-slate-800 text-xs text-slate-300 select-none">
+      {/* Professional Top Toolbar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-slate-50/90 border-b border-slate-200 text-xs text-slate-700 select-none">
         {/* Document Switcher & Info */}
         <div className="flex items-center gap-2 max-w-xs truncate">
-          <IconDocumentText className="h-4 w-4 text-brand-400 shrink-0" />
+          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-white border border-slate-200 text-brand-600 shadow-2xs shrink-0">
+            <IconDocumentText className="h-3.5 w-3.5" />
+          </div>
           {documents.length > 1 && onSelectDoc ? (
             <select
               value={selectedDocId}
               onChange={(e) => onSelectDoc(e.target.value)}
-              className="bg-slate-900 text-slate-200 border border-slate-700 rounded-md px-2 py-1 text-xs focus:ring-brand-500 truncate cursor-pointer"
+              className="bg-white text-slate-800 border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-medium focus:ring-1 focus:ring-brand-500 focus:border-brand-500 truncate cursor-pointer shadow-2xs"
             >
               {documents.map((d) => (
                 <option key={d.id} value={d.id}>
@@ -290,46 +294,39 @@ export function PdfViewer({
               ))}
             </select>
           ) : (
-            <span className="font-medium text-slate-200 truncate">{filename}</span>
+            <span className="font-semibold text-slate-800 truncate" title={filename}>
+              {filename}
+            </span>
           )}
         </div>
 
-        {/* Page Navigation & Thumbnails */}
-        <div className="flex items-center gap-2">
+        {/* Page Navigation Controls */}
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
             onClick={handlePrevPage}
             disabled={currentPage <= 1 || loading}
-            className="p-1 rounded-md hover:bg-slate-800 disabled:opacity-30 transition-colors"
-            title="Previous Page (Arrow Left)"
+            className="p-1 rounded-md text-slate-500 hover:text-slate-800 hover:bg-slate-200/60 disabled:opacity-30 transition-colors"
+            title="Previous Page"
           >
             <IconChevronLeft className="h-4 w-4" />
           </button>
 
           {/* Quick Page Pill Strip */}
-          <div className="flex items-center gap-1 bg-slate-900 px-1.5 py-0.5 rounded-lg border border-slate-800">
-            {Array.from({ length: numPages || 1 }, (_, i) => i + 1).map((pageNum) => (
-              <button
-                key={pageNum}
-                type="button"
-                onClick={() => setCurrentPage(pageNum)}
-                className={`px-2 py-0.5 rounded text-[11px] font-mono font-medium transition-all ${
-                  currentPage === pageNum
-                    ? 'bg-brand-600 text-white shadow-xs'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-                }`}
-              >
-                {pageNum}
-              </button>
-            ))}
+          <div className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-lg border border-slate-200 shadow-2xs">
+            <span className="text-[11px] font-medium text-slate-500">Page</span>
+            <span className="text-[11px] font-bold font-mono text-slate-900 px-1">
+              {currentPage}
+            </span>
+            <span className="text-[11px] text-slate-400">of {numPages || 1}</span>
           </div>
 
           <button
             type="button"
             onClick={handleNextPage}
             disabled={currentPage >= numPages || loading}
-            className="p-1 rounded-md hover:bg-slate-800 disabled:opacity-30 transition-colors"
-            title="Next Page (Arrow Right)"
+            className="p-1 rounded-md text-slate-500 hover:text-slate-800 hover:bg-slate-200/60 disabled:opacity-30 transition-colors"
+            title="Next Page"
           >
             <IconChevronRight className="h-4 w-4" />
           </button>
@@ -341,29 +338,33 @@ export function PdfViewer({
           <button
             type="button"
             onClick={() => setShowSearch(!showSearch)}
-            className={`p-1.5 rounded-md transition-colors ${
-              showSearch || searchQuery ? 'bg-brand-600 text-white' : 'hover:bg-slate-800 text-slate-300'
+            className={`p-1.5 rounded-lg border text-xs font-medium transition-colors ${
+              showSearch || searchQuery
+                ? 'bg-brand-50 text-brand-700 border-brand-200'
+                : 'bg-white hover:bg-slate-100 text-slate-600 border-slate-200 shadow-2xs'
             }`}
-            title="Search text in document"
+            title="Search in document"
           >
             <IconMagnifyingGlass className="h-3.5 w-3.5" />
           </button>
 
           {/* Zoom Controls */}
-          <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-lg p-0.5">
+          <div className="flex items-center gap-0.5 bg-white border border-slate-200 rounded-lg p-0.5 shadow-2xs">
             <button
               type="button"
-              onClick={() => setScale((s) => Math.max(0.6, s - 0.2))}
-              className="px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300"
+              onClick={() => setScale((s) => Math.max(0.6, s - 0.15))}
+              className="px-2 py-0.5 rounded hover:bg-slate-100 text-slate-600 font-medium"
               title="Zoom Out"
             >
               &minus;
             </button>
-            <span className="font-mono text-[11px] text-slate-300 px-1">{Math.round(scale * 100)}%</span>
+            <span className="font-mono text-[11px] font-medium text-slate-700 px-1.5">
+              {Math.round(scale * 100)}%
+            </span>
             <button
               type="button"
-              onClick={() => setScale((s) => Math.min(2.5, s + 0.2))}
-              className="px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300"
+              onClick={() => setScale((s) => Math.min(2.5, s + 0.15))}
+              className="px-2 py-0.5 rounded hover:bg-slate-100 text-slate-600 font-medium"
               title="Zoom In"
             >
               &#43;
@@ -372,37 +373,37 @@ export function PdfViewer({
         </div>
       </div>
 
-      {/* In-Document Search Input Bar */}
+      {/* In-Document Search Bar */}
       {showSearch && (
-        <div className="px-4 py-2 bg-slate-950 border-b border-slate-800 flex items-center justify-between gap-3 text-xs">
+        <div className="px-4 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-3 text-xs animate-in slide-in-from-top-1 duration-150">
           <div className="flex items-center gap-2 flex-1 max-w-sm">
             <IconMagnifyingGlass className="h-3.5 w-3.5 text-slate-400 shrink-0" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Search contract terms (e.g. inspection, escrow, loan)..."
-              className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-slate-100 text-xs placeholder-slate-500 focus:outline-hidden focus:ring-1 focus:ring-brand-500"
+              placeholder="Search contract terms (e.g. inspection, earnest, escrow)..."
+              className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-slate-800 text-xs placeholder-slate-400 focus:outline-hidden focus:ring-1 focus:ring-brand-500 shadow-2xs"
               autoFocus
             />
           </div>
 
           {searchResults.length > 0 && (
-            <div className="flex items-center gap-2 text-slate-400">
-              <span className="text-[11px]">
-                Page {searchResults[currentMatchIndex]} ({currentMatchIndex + 1} of {searchResults.length} pages)
+            <div className="flex items-center gap-2 text-slate-600">
+              <span className="text-[11px] font-medium">
+                Page {searchResults[currentMatchIndex]} ({currentMatchIndex + 1} of {searchResults.length} matches)
               </span>
               <button
                 type="button"
                 onClick={prevSearchMatch}
-                className="p-1 rounded hover:bg-slate-800 text-slate-300"
+                className="p-1 rounded hover:bg-slate-200 text-slate-600"
               >
                 <IconChevronLeft className="h-3.5 w-3.5" />
               </button>
               <button
                 type="button"
                 onClick={nextSearchMatch}
-                className="p-1 rounded hover:bg-slate-800 text-slate-300"
+                className="p-1 rounded hover:bg-slate-200 text-slate-600"
               >
                 <IconChevronRight className="h-3.5 w-3.5" />
               </button>
@@ -411,49 +412,64 @@ export function PdfViewer({
         </div>
       )}
 
-      {/* Citation Highlight Indicator Banner */}
+      {/* Citation Highlight Focus Banner */}
       {highlightQuote && (
-        <div className="px-4 py-2 bg-amber-950/80 border-b border-amber-800/60 flex items-start gap-2.5 text-xs animate-in fade-in duration-200">
-          <IconSparkles className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-          <div className="flex-1 min-w-0">
-            <span className="font-semibold text-amber-200">Focused Citation Clause:</span>
-            <p className="font-mono text-amber-100/90 mt-0.5 italic line-clamp-2">
-              &ldquo;{highlightQuote}&rdquo;
-            </p>
+        <div className="px-4 py-2.5 bg-amber-50/95 border-b border-amber-200 flex items-center justify-between gap-3 text-xs animate-in fade-in duration-200 shadow-2xs">
+          <div className="flex items-start gap-2.5 min-w-0">
+            <div className="flex h-5 w-5 items-center justify-center rounded-md bg-amber-100 text-amber-700 shrink-0 mt-0.5">
+              <IconSparkles className="h-3.5 w-3.5" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-amber-900 text-[11px] uppercase tracking-wide">
+                  Focused Citation Clause
+                </span>
+                {highlightBoxes.length > 0 && (
+                  <span className="rounded-full bg-amber-200/80 text-amber-800 px-2 py-0.2 font-semibold text-[10px]">
+                    In-Situ Highlighted
+                  </span>
+                )}
+              </div>
+              <p className="font-mono text-amber-950/90 text-[11px] mt-0.5 italic line-clamp-2">
+                &ldquo;{highlightQuote}&rdquo;
+              </p>
+            </div>
           </div>
-          {highlightBoxes.length > 0 ? (
-            <span className="shrink-0 rounded-full bg-amber-400/20 text-amber-300 px-2 py-0.5 font-medium text-[11px] border border-amber-500/40">
-              ✨ In-Situ Highlighted
-            </span>
-          ) : (
-            <span className="shrink-0 rounded bg-amber-900/60 text-amber-300 px-2 py-0.5 font-medium text-[11px] border border-amber-700/50">
-              Page {currentPage}
-            </span>
+
+          {onClearHighlight && (
+            <button
+              type="button"
+              onClick={onClearHighlight}
+              className="text-amber-700 hover:text-amber-900 hover:bg-amber-100 px-2 py-1 rounded text-xs font-semibold shrink-0 transition-colors"
+              title="Dismiss focused highlight"
+            >
+              &times; Clear
+            </button>
           )}
         </div>
       )}
 
-      {/* Main Canvas Document Scroll Container */}
-      <div className="flex-1 overflow-auto p-4 flex items-center justify-center relative bg-slate-900/90">
+      {/* Clean Document Canvas Viewport */}
+      <div className="flex-1 overflow-auto p-6 flex items-center justify-center relative bg-slate-100/80">
         {loading && (
-          <div className="flex flex-col items-center gap-3 text-slate-400 text-sm py-16">
-            <IconSpinner className="h-7 w-7 animate-spin text-brand-500" />
-            <span>Loading document pages&hellip;</span>
+          <div className="flex flex-col items-center gap-3 text-slate-500 text-sm py-16">
+            <IconSpinner className="h-6 w-6 animate-spin text-brand-600" />
+            <span className="font-medium">Loading document pages&hellip;</span>
           </div>
         )}
 
         {error && !loading && (
-          <div className="flex flex-col items-center gap-2 text-rose-400 text-sm max-w-sm text-center py-16">
+          <div className="flex flex-col items-center gap-2 text-rose-600 text-sm max-w-sm text-center py-16">
             <IconExclamationTriangle className="h-6 w-6" />
-            <span>{error}</span>
+            <span className="font-medium">{error}</span>
           </div>
         )}
 
         {!loading && !error && pdfDoc && (
-          <div className="relative shadow-2xl rounded bg-white transition-transform duration-150">
-            <canvas ref={canvasRef} className="block rounded" />
+          <div className="relative shadow-xl rounded-sm bg-white border border-slate-200/80 transition-transform duration-150">
+            <canvas ref={canvasRef} className="block rounded-sm" />
 
-            {/* Glowing In-Situ Highlighting Overlay */}
+            {/* Precise In-Situ Highlighter Overlay */}
             {highlightBoxes.length > 0 && (
               <div className="absolute inset-0 pointer-events-none">
                 {highlightBoxes.map((box, idx) => (
@@ -466,7 +482,7 @@ export function PdfViewer({
                       width: `${box.width}px`,
                       height: `${box.height}px`,
                     }}
-                    className="bg-amber-300/35 border-b-2 border-amber-500 rounded-xs ring-2 ring-amber-400/50 shadow-xs animate-pulse"
+                    className="bg-amber-300/40 border-b-2 border-amber-500/80 rounded-2xs ring-1 ring-amber-400/40 shadow-xs"
                     title={box.text}
                   />
                 ))}
@@ -474,8 +490,8 @@ export function PdfViewer({
             )}
 
             {rendering && (
-              <div className="absolute inset-0 bg-slate-950/20 backdrop-blur-[1px] flex items-center justify-center rounded">
-                <IconSpinner className="h-5 w-5 animate-spin text-brand-500" />
+              <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] flex items-center justify-center rounded-sm">
+                <IconSpinner className="h-5 w-5 animate-spin text-brand-600" />
               </div>
             )}
           </div>
@@ -484,3 +500,4 @@ export function PdfViewer({
     </div>
   );
 }
+

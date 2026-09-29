@@ -58,3 +58,79 @@ export function findQuoteInPage(quote: string, pageText: string): QuoteMatchResu
 
   return { isMatched: false, confidence: 0 };
 }
+
+/**
+ * Finds the exact continuous text item indices corresponding to the target quote or search phrase.
+ * Prevents false-positive highlighting of random isolated words across the page.
+ */
+export function findMatchingItemIndices(
+  items: Array<{ str?: string }>,
+  targetQuote: string
+): number[] {
+  if (!items || items.length === 0 || !targetQuote || !targetQuote.trim()) return [];
+
+  // 1. Build continuous character-to-item mapping
+  let continuousText = '';
+  const charToItem: number[] = [];
+
+  for (let i = 0; i < items.length; i++) {
+    const str = items[i]?.str ?? '';
+    if (str.length === 0) continue;
+
+    if (continuousText.length > 0 && !continuousText.endsWith(' ')) {
+      continuousText += ' ';
+      charToItem.push(i);
+    }
+
+    for (let c = 0; c < str.length; c++) {
+      continuousText += str[c];
+      charToItem.push(i);
+    }
+  }
+
+  const normContinuous = continuousText.toLowerCase();
+  const normTarget = targetQuote.trim().toLowerCase();
+
+  // Try exact substring match first
+  let matchIdx = normContinuous.indexOf(normTarget);
+  let matchLength = normTarget.length;
+
+  // If not found, try matching first 45-60 chars of target
+  if (matchIdx === -1 && normTarget.length > 30) {
+    const subTarget = normTarget.slice(0, Math.min(50, normTarget.length));
+    matchIdx = normContinuous.indexOf(subTarget);
+    if (matchIdx !== -1) {
+      matchLength = subTarget.length;
+    }
+  }
+
+  // If still not found, try matching 4-word continuous sequence
+  if (matchIdx === -1) {
+    const words = normTarget.split(/\s+/).filter((w) => w.length > 2);
+    if (words.length >= 3) {
+      const phrase = words.slice(0, Math.min(5, words.length)).join(' ');
+      matchIdx = normContinuous.indexOf(phrase);
+      if (matchIdx !== -1) {
+        matchLength = phrase.length;
+      }
+    }
+  }
+
+  if (matchIdx === -1 || matchLength === 0) {
+    return [];
+  }
+
+  // 3. Extract only the exact items in the matched range
+  const matchedItemSet = new Set<number>();
+  const endIdx = Math.min(matchIdx + matchLength, charToItem.length);
+
+  for (let c = matchIdx; c < endIdx; c++) {
+    const itemIndex = charToItem[c];
+    if (itemIndex !== undefined && itemIndex >= 0) {
+      matchedItemSet.add(itemIndex);
+    }
+  }
+
+  return Array.from(matchedItemSet);
+}
+

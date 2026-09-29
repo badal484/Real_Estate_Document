@@ -179,6 +179,7 @@ export function AssistantPage() {
               documents={documents}
               selectedDocId={selectedDocId}
               onSelectDoc={setSelectedDocId}
+              onClearHighlight={() => setHighlightQuote(undefined)}
               className="flex-1"
             />
           )}
