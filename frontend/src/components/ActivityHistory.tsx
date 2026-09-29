@@ -167,12 +167,62 @@ function parseEventDetails(log: AuditLog): EventView {
     case 'ALERT_SENT': {
       const rawLabel = (next['label'] as string) || (prev['label'] as string) || (next['deadlineLabel'] as string);
       const label = formatDeadlineLabel(rawLabel);
+      const recipient = (next['recipient'] as string) || (prev['recipient'] as string);
       return {
         Icon: IconBell,
         iconBgClass: 'bg-indigo-50 ring-indigo-200',
         iconTextClass: 'text-indigo-700',
-        title: 'Alert Sent',
-        description: `Reminder sent for ${label}`,
+        title: 'Email Alert Dispatched',
+        description: recipient ? `${label} notice sent to ${recipient}` : `Reminder sent for ${label}`,
+        actorText,
+      };
+    }
+
+    case 'EMAIL_SENT_TEST': {
+      const recipient = (next['to'] as string) || 'test recipient';
+      return {
+        Icon: IconBell,
+        iconBgClass: 'bg-indigo-50 ring-indigo-200',
+        iconTextClass: 'text-indigo-700',
+        title: 'Test Alert Sent',
+        description: `Test reminder dispatched to ${recipient}`,
+        actorText,
+      };
+    }
+
+    case 'EMAIL_INBOUND_RECEIVED': {
+      const from = (next['from'] as string) || 'inbound sender';
+      return {
+        Icon: IconDocumentText,
+        iconBgClass: 'bg-emerald-50 ring-emerald-200',
+        iconTextClass: 'text-emerald-700',
+        title: 'Inbound Document Received',
+        description: `Forwarded contract from ${from}`,
+        actorText,
+      };
+    }
+
+    case 'DOCUMENT_INDEXED': {
+      const chunksCount = (next['chunksCount'] as number) ?? (next['count'] as number) ?? 1;
+      const docType = (next['docType'] as string)?.replace(/_/g, ' ') || 'Document';
+      return {
+        Icon: IconSparkles,
+        iconBgClass: 'bg-purple-50 ring-purple-200',
+        iconTextClass: 'text-purple-700',
+        title: 'Document AI Indexed',
+        description: `${docType} indexed (${chunksCount} page-aware chunks)`,
+        actorText,
+      };
+    }
+
+    case 'ASSISTANT_QUERY': {
+      const citationsCount = (next['citationsCount'] as number) ?? 0;
+      return {
+        Icon: IconSparkles,
+        iconBgClass: 'bg-brand-50 ring-brand-200',
+        iconTextClass: 'text-brand-700',
+        title: 'AI Knowledge Query',
+        description: `Copilot answered inquiry (${citationsCount} verified citation${citationsCount === 1 ? '' : 's'})`,
         actorText,
       };
     }

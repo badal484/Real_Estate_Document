@@ -8,6 +8,7 @@ import { DealsPage } from '@/pages/DealsPage';
 import { DealDetailPage } from '@/pages/DealDetailPage';
 import { ReviewPage } from '@/pages/ReviewPage';
 import { AuditPage } from '@/pages/AuditPage';
+import { NotificationSettingsPage } from '@/pages/NotificationSettingsPage';
 
 function ProtectedLayout() {
   const { user, loading } = useAuth();
@@ -44,6 +45,7 @@ export default function App() {
         <Route path="/deals" element={<DealsPage />} />
         <Route path="/deals/:id" element={<DealDetailPage />} />
         <Route path="/deals/:id/review" element={<ReviewPage />} />
+        <Route path="/deals/:id/notifications" element={<NotificationSettingsPage />} />
         <Route path="/audit" element={<AuditPage />} />
       </Route>
     </Routes>

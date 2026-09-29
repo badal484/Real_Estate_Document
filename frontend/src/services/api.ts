@@ -12,6 +12,17 @@ import type {
   AuditLog,
   PaginatedResponse,
   User,
+  NotificationSetting,
+  UpdateNotificationSettingsInput,
+  EmailLog,
+  EmailPreviewRequest,
+  EmailPreviewResponse,
+  InboundAddressResponse,
+  AssistantAnswer,
+  AssistantConversation,
+  SuggestedQuestionsResponse,
+  DealSummaryResponse,
+  IndexStatusResponse,
 } from '@/types';
 import { authHeaders, notifyUnauthorized } from './session';
 
@@ -96,4 +107,59 @@ export const auditApi = {
     request<PaginatedResponse<AuditLog>>(
       `/deals/${dealId}/audit?page=${page}&limit=${limit}`,
     ),
+};
+
+// ── Notifications (Email Contract) ────────────────────────────────────────────
+
+export const notificationsApi = {
+  getSettings: (dealId: string) =>
+    request<NotificationSetting>(`/deals/${dealId}/notifications/settings`),
+  updateSettings: (dealId: string, data: UpdateNotificationSettingsInput) =>
+    request<NotificationSetting>(`/deals/${dealId}/notifications/settings`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  sendTestEmail: (dealId: string, to: string) =>
+    request<{ sent: boolean; message: string }>(`/deals/${dealId}/notifications/test`, {
+      method: 'POST',
+      body: JSON.stringify({ to }),
+    }),
+  sendSummaryEmail: (dealId: string, to: string[]) =>
+    request<{ sent: boolean; count: number }>(`/deals/${dealId}/notifications/summary`, {
+      method: 'POST',
+      body: JSON.stringify({ to }),
+    }),
+  previewTemplate: (dealId: string, data: EmailPreviewRequest) =>
+    request<EmailPreviewResponse>(`/deals/${dealId}/notifications/preview`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  getLogs: (dealId: string) =>
+    request<EmailLog[]>(`/deals/${dealId}/notifications/log`),
+  getInboundAddress: (dealId: string) =>
+    request<InboundAddressResponse>(`/deals/${dealId}/notifications/inbound-address`),
+};
+
+// ── Assistant (AI Knowledge Assistant Contract) ───────────────────────────────
+
+export const assistantApi = {
+  ask: (dealId: string, data: { question: string; conversationId?: string }) =>
+    request<AssistantAnswer>(`/deals/${dealId}/assistant/ask`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  getSuggestions: (dealId: string) =>
+    request<SuggestedQuestionsResponse>(`/deals/${dealId}/assistant/suggestions`),
+  getSummary: (dealId: string) =>
+    request<DealSummaryResponse>(`/deals/${dealId}/assistant/summary`),
+  listConversations: (dealId: string) =>
+    request<AssistantConversation[]>(`/deals/${dealId}/assistant/conversations`),
+  getConversation: (dealId: string, conversationId: string) =>
+    request<AssistantConversation>(`/deals/${dealId}/assistant/conversations/${conversationId}`),
+  reindex: (dealId: string) =>
+    request<{ message: string; documentCount: number }>(`/deals/${dealId}/assistant/reindex`, {
+      method: 'POST',
+    }),
+  getIndexStatus: (dealId: string) =>
+    request<IndexStatusResponse>(`/deals/${dealId}/assistant/index-status`),
 };
