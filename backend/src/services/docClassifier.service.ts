@@ -72,12 +72,14 @@ export async function classifyDocument(params: {
     new Set(
       [
         process.env['GEMINI_MODEL'],
-        'gemini-2.5-flash',
-        'gemini-2.0-flash',
-        'gemini-1.5-flash',
+        'gemini-2.5-flash-lite',
+        'gemini-3.5-flash-lite',
+        'gemini-3.5-flash',
+        'gemini-3.8-flash',
       ].filter(Boolean) as string[],
     ),
   );
+
 
   const prompt = `Classify this real estate document based on its filename and text excerpt.
 Filename: "${filename}"

@@ -78,13 +78,13 @@ export async function extractClausesFromPdf(filePath: string): Promise<Extractio
   const envModel = process.env['GEMINI_MODEL'] ?? 'gemini-3.6-flash';
   const candidateModels = Array.from(new Set([
     envModel,
-    'gemini-3.6-flash',
+    'gemini-2.5-flash-lite',
+    'gemini-3.5-flash-lite',
+    'gemini-3.5-flash',
     'gemini-3.8-flash',
     'gemini-flash-latest',
-    'gemini-3.5-flash-lite',
-    'gemini-3.1-pro-preview',
-    'gemini-1.5-flash',
-  ]));
+  ].filter(Boolean) as string[]));
+
 
   const pdfData = await readFile(filePath, { encoding: 'base64' });
   const pdfTextResult = await extractTextFromPdf(filePath);
