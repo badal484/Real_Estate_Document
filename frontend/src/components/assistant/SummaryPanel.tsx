@@ -8,6 +8,7 @@ import {
   IconClipboard,
   IconCheck,
   IconArrowDownTray,
+  IconShieldCheck,
 } from '../icons';
 
 interface Props {
@@ -43,10 +44,9 @@ export function SummaryPanel({ summary, loading }: Props) {
   healthScore -= medRiskCount * 5;
   healthScore = Math.max(20, Math.min(100, healthScore));
 
-  const healthColor =
-    healthScore >= 80 ? 'text-emerald-600 bg-emerald-50 border-emerald-200' :
-    healthScore >= 60 ? 'text-amber-600 bg-amber-50 border-amber-200' :
-    'text-rose-600 bg-rose-50 border-rose-200';
+  const strokeDashoffset = 251.2 - (251.2 * healthScore) / 100;
+  const gaugeColor =
+    healthScore >= 80 ? 'text-emerald-600' : healthScore >= 60 ? 'text-amber-500' : 'text-rose-500';
 
   const generateMarkdownBrief = () => {
     return `# TRANSACTION EXECUTIVE BRIEF
@@ -100,22 +100,59 @@ ${
   };
 
   return (
-    <div className="space-y-5">
-      {/* Top Health & Action Bar */}
-      <div className="flex items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-slate-200 shadow-xs">
-        <div className="flex items-center gap-3">
-          <div
-            className={`flex h-12 w-12 flex-col items-center justify-center rounded-xl border font-bold text-sm shadow-xs ${healthColor}`}
-          >
-            <span>{healthScore}</span>
-            <span className="text-[9px] font-normal tracking-tight uppercase">Score</span>
+    <div className="space-y-4">
+      {/* Top Health Gauge & Action Bar */}
+      <div className="flex items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
+        <div className="flex items-center gap-3.5">
+          {/* Circular SVG Progress Gauge */}
+          <div className="relative flex h-14 w-14 items-center justify-center shrink-0">
+            <svg className="h-14 w-14 -rotate-90 transform" viewBox="0 0 90 90">
+              <circle
+                cx="45"
+                cy="45"
+                r="38"
+                stroke="currentColor"
+                strokeWidth="7"
+                fill="transparent"
+                className="text-slate-100"
+              />
+              <circle
+                cx="45"
+                cy="45"
+                r="38"
+                stroke="currentColor"
+                strokeWidth="7"
+                fill="transparent"
+                strokeDasharray="238.7"
+                strokeDashoffset={238.7 - (238.7 * healthScore) / 100}
+                strokeLinecap="round"
+                className={`${gaugeColor} transition-all duration-700 ease-out`}
+              />
+            </svg>
+            <div className="absolute flex flex-col items-center justify-center text-center">
+              <span className="text-xs font-black tracking-tight text-slate-900 leading-none font-mono">
+                {healthScore}
+              </span>
+              <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter mt-0.5">
+                Score
+              </span>
+            </div>
           </div>
+
           <div>
-            <h4 className="text-xs font-bold text-slate-900">
-              Transaction Health &amp; Audit
-            </h4>
-            <p className="text-[11px] text-slate-500">
-              {healthScore >= 80 ? 'Low contract risk' : 'Attention required on unconfirmed terms'}
+            <div className="flex items-center gap-1.5">
+              <h4 className="text-xs font-bold text-slate-900">
+                Transaction Health Score
+              </h4>
+              <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                <IconShieldCheck className="h-2.5 w-2.5" />
+                Audited
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              {healthScore >= 80
+                ? 'High compliance — low risk detected'
+                : 'Attention needed on unverified terms'}
             </p>
           </div>
         </div>
@@ -123,19 +160,21 @@ ${
         <button
           type="button"
           onClick={() => setShowBriefModal(true)}
-          className="btn-secondary text-xs flex items-center gap-1.5 py-1.5 px-3"
+          className="btn-secondary text-xs flex items-center gap-1.5 py-1.5 px-3 shrink-0"
         >
-          <IconClipboard className="h-3.5 w-3.5 text-slate-600" />
+          <IconClipboard className="h-3.5 w-3.5 text-slate-500" />
           <span>Export Brief</span>
         </button>
       </div>
 
       {/* Executive Summary */}
-      <div className="card p-4 border-purple-100 bg-gradient-to-br from-white via-purple-50/20 to-brand-50/30 space-y-2.5">
+      <div className="card p-4 border-brand-100/80 bg-gradient-to-br from-white via-brand-50/20 to-indigo-50/20 space-y-2">
         <div className="flex items-center gap-2">
-          <IconSparkles className="h-4 w-4 text-purple-600" />
-          <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
-            Executive Summary
+          <div className="flex h-5 w-5 items-center justify-center rounded bg-brand-100 text-brand-700">
+            <IconSparkles className="h-3.5 w-3.5" />
+          </div>
+          <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+            Executive Brief
           </h3>
         </div>
         <p className="text-xs leading-relaxed text-slate-700">
@@ -159,13 +198,13 @@ ${
                 key={idx}
                 className={`p-3 rounded-xl border text-xs ${
                   risk.severity === 'high'
-                    ? 'border-rose-200 bg-rose-50/70 text-rose-900'
-                    : 'border-amber-200 bg-amber-50/70 text-amber-900'
+                    ? 'border-rose-200 bg-rose-50/70 text-rose-950'
+                    : 'border-amber-200 bg-amber-50/70 text-amber-950'
                 }`}
               >
-                <div className="flex items-center justify-between font-semibold">
+                <div className="flex items-center justify-between font-bold">
                   <span>{risk.title}</span>
-                  <span className="text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded bg-white/60">
+                  <span className="text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded bg-white/80 border border-slate-200/60">
                     {risk.severity}
                   </span>
                 </div>
@@ -183,7 +222,7 @@ ${
             <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
               Contingency Deadlines ({summary.contingencyMatrix.length})
             </h3>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[10px] text-slate-400">
               Deterministic schedule derived from contract acceptance date
             </p>
           </div>
@@ -191,7 +230,7 @@ ${
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-600">
-            <thead className="bg-slate-50 text-slate-700 border-b border-slate-100 text-[11px]">
+            <thead className="bg-slate-50/90 text-slate-700 border-b border-slate-100 text-[11px]">
               <tr>
                 <th className="py-2.5 px-3.5 font-semibold">Contingency</th>
                 <th className="py-2.5 px-3.5 font-semibold">Target Date</th>
@@ -202,8 +241,8 @@ ${
             <tbody className="divide-y divide-slate-100">
               {summary.contingencyMatrix.map((item, idx) => (
                 <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
-                  <td className="py-2.5 px-3.5 font-medium text-slate-900">{item.label}</td>
-                  <td className="py-2.5 px-3.5 font-mono text-[11px] text-slate-800">{item.targetDate}</td>
+                  <td className="py-2.5 px-3.5 font-semibold text-slate-900">{item.label}</td>
+                  <td className="py-2.5 px-3.5 font-mono text-[11px] text-slate-800 font-medium">{item.targetDate}</td>
                   <td className="py-2.5 px-3.5 text-slate-500 truncate max-w-[140px] text-[11px]">
                     {item.sourceDocument ? (
                       <span>
@@ -215,12 +254,12 @@ ${
                   </td>
                   <td className="py-2.5 px-3.5 text-right">
                     {item.isConfirmed ? (
-                      <span className="inline-flex items-center gap-1 text-emerald-700 font-medium text-[11px] bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                        <IconCheckCircle className="h-3 w-3" />
-                        Confirmed
+                      <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold text-[10px] bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        <IconCheckCircle className="h-3 w-3 text-emerald-600" />
+                        Verified
                       </span>
                     ) : (
-                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-amber-800 text-[10px] font-medium border border-amber-200">
+                      <span className="rounded-full bg-amber-50 px-2 py-0.5 text-amber-800 text-[10px] font-semibold border border-amber-200">
                         Pending
                       </span>
                     )}
@@ -244,7 +283,7 @@ ${
               <button
                 type="button"
                 onClick={() => setShowBriefModal(false)}
-                className="text-slate-400 hover:text-slate-700 text-lg leading-none"
+                className="text-slate-400 hover:text-slate-700 text-lg leading-none cursor-pointer"
               >
                 &times;
               </button>
@@ -292,3 +331,4 @@ ${
     </div>
   );
 }
+

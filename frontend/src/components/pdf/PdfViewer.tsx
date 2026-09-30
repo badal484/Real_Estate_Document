@@ -52,6 +52,7 @@ export function PdfViewer({
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const [pdfDoc, setPdfDoc] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [numPages, setNumPages] = useState(0);
@@ -75,6 +76,17 @@ export function PdfViewer({
       setCurrentPage(initialPage);
     }
   }, [initialPage]);
+
+  // Smooth Auto-Scroll to highlighted clause when boxes are computed
+  useEffect(() => {
+    if (highlightBoxes.length > 0 && scrollContainerRef.current) {
+      const firstBox = highlightBoxes[0];
+      const container = scrollContainerRef.current;
+      const targetScrollTop = Math.max(0, firstBox.top - container.clientHeight / 3);
+      container.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
+    }
+  }, [highlightBoxes]);
+
 
   // Load PDF Document
   useEffect(() => {
@@ -450,7 +462,7 @@ export function PdfViewer({
       )}
 
       {/* Clean Document Canvas Viewport */}
-      <div className="flex-1 overflow-auto p-6 flex items-center justify-center relative bg-slate-100/80">
+      <div ref={scrollContainerRef} className="flex-1 overflow-auto p-6 flex items-center justify-center relative bg-slate-100/80">
         {loading && (
           <div className="flex flex-col items-center gap-3 text-slate-500 text-sm py-16">
             <IconSpinner className="h-6 w-6 animate-spin text-brand-600" />
