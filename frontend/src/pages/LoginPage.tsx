@@ -8,16 +8,11 @@ import {
   Clock,
   Lock,
   Mail,
-  ArrowRight,
   AlertTriangle,
   Loader2,
   CheckCircle2,
-  Zap,
-  Scale,
-  FileCheck2,
   UserCheck,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 const GSI_SRC = 'https://accounts.google.com/gsi/client';
@@ -57,12 +52,14 @@ function loadGoogleScript(): Promise<void> {
 }
 
 export function LoginPage() {
-  const { signInWithGoogle, signInAsDemoAgent } = useAuth();
+  const { signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const buttonRef = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    CLIENT_ID ? null : 'VITE_GOOGLE_CLIENT_ID is not configured.',
+  );
   const [signingIn, setSigningIn] = useState(false);
 
   const from = (location.state as { from?: string } | null)?.from ?? '/upload';
@@ -108,18 +105,6 @@ export function LoginPage() {
       width: Math.min(360, buttonRef.current.clientWidth || 360),
     });
   }, [ready, signingIn]);
-
-  const handleDemoSignIn = async () => {
-    setSigningIn(true);
-    setError(null);
-    try {
-      await signInAsDemoAgent();
-      navigate(from, { replace: true });
-    } catch (err) {
-      setError((err as Error).message);
-      setSigningIn(false);
-    }
-  };
 
   return (
     <div className="relative flex min-h-screen bg-slate-950 text-slate-100 overflow-hidden">
@@ -214,40 +199,8 @@ export function LoginPage() {
               </p>
             </div>
 
-            {/* Quick Demo Access Option */}
-            <div className="space-y-3">
-              <Button
-                type="button"
-                onClick={handleDemoSignIn}
-                disabled={signingIn}
-                className="w-full h-11 bg-white text-slate-950 hover:bg-slate-100 font-bold text-xs shadow-xl flex items-center justify-center gap-2 rounded-xl border border-white/20 active:scale-[0.99] transition-all"
-              >
-                {signingIn ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin text-slate-950" />
-                    <span>Launching Workspace...</span>
-                  </>
-                ) : (
-                  <>
-                    <Zap className="h-4 w-4 text-sky-600 fill-sky-500" />
-                    <span>Instant Demo Agent Sign-In</span>
-                    <ArrowRight className="h-3.5 w-3.5 ml-auto text-slate-500" />
-                  </>
-                )}
-              </Button>
-
-              <div className="relative flex items-center justify-center">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-white/15" />
-                </div>
-                <span className="relative bg-slate-950 px-3 text-[11px] uppercase tracking-wider font-mono text-slate-400">
-                  or Google SSO
-                </span>
-              </div>
-            </div>
-
             {/* Google OAuth Render Container */}
-            <div className="flex min-h-[44px] justify-center items-center py-1">
+            <div className="flex min-h-[48px] justify-center items-center py-2">
               {signingIn ? (
                 <div className="flex items-center gap-2 text-xs font-medium text-slate-300">
                   <Loader2 className="h-4 w-4 animate-spin text-sky-400" />
@@ -257,7 +210,7 @@ export function LoginPage() {
                 <div ref={buttonRef} className="flex w-full justify-center" />
               ) : (
                 !error && (
-                  <div className="h-10 w-full animate-pulse rounded-xl bg-white/10 flex items-center justify-center text-xs text-slate-300">
+                  <div className="h-11 w-full animate-pulse rounded-xl bg-white/10 flex items-center justify-center text-xs text-slate-300">
                     Initializing Google SSO...
                   </div>
                 )
