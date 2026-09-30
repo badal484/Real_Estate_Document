@@ -153,27 +153,27 @@ export function ChatWindow({
   ];
 
   return (
-    <div className="flex flex-col h-full bg-surface rounded-lg border border-border shadow-2xs overflow-hidden">
+    <div className="flex flex-col h-full glass-panel rounded-2xl overflow-hidden shadow-sm">
       {/* Header */}
-      <div className="flex items-center justify-between px-3.5 py-2.5 bg-surface border-b border-border select-none">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-white shadow-2xs">
-            <Sparkles className="h-3.5 w-3.5" />
+      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200/70 select-none bg-white/40">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 text-white shadow-2xs ring-1 ring-white/20">
+            <Sparkles className="h-4 w-4 text-sky-400" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <h3 className="text-xs font-bold text-primary-text">
-                AI Contract Copilot
+              <h3 className="text-xs font-bold text-slate-900">
+                AI Legal Copilot
               </h3>
-              <Badge variant="neutral" className="text-[10px] px-1 py-0">
-                <ShieldCheck className="h-2.5 w-2.5 text-success mr-0.5" />
-                Verified Grounding
+              <Badge variant="neutral" className="glass-badge text-[10px] px-1.5 py-0">
+                <ShieldCheck className="h-2.5 w-2.5 text-emerald-600 mr-0.5" />
+                Verified
               </Badge>
             </div>
-            <p className="text-[10px] text-secondary-text">
+            <p className="text-[10px] text-slate-500">
               {isIndexing ? (
-                <span className="text-warning flex items-center gap-1 font-medium">
-                  <Loader2 className="h-2.5 w-2.5 animate-spin" /> Indexing contract documents&hellip;
+                <span className="text-amber-600 flex items-center gap-1 font-medium">
+                  <Loader2 className="h-2.5 w-2.5 animate-spin" /> Indexing documents&hellip;
                 </span>
               ) : (
                 'Contract-verified Q&A with exact PDF source citations'
@@ -184,14 +184,14 @@ export function ChatWindow({
 
         {/* Tab switch & actions */}
         <div className="flex items-center gap-1.5">
-          <div className="flex rounded-md bg-secondary p-0.5 text-xs font-medium">
+          <div className="flex rounded-xl glass-badge p-0.5 text-xs font-medium">
             <button
               type="button"
               onClick={() => setActiveTab('chat')}
-              className={`flex items-center gap-1 rounded px-2 py-0.5 transition-all text-[11px] ${
+              className={`flex items-center gap-1 rounded-lg px-2.5 py-1 transition-all text-[11px] ${
                 activeTab === 'chat'
-                  ? 'bg-surface text-primary-text shadow-2xs font-semibold'
-                  : 'text-secondary-text hover:text-primary-text'
+                  ? 'bg-slate-900 text-white shadow-xs font-semibold'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <MessageSquare className="h-3 w-3" />
@@ -200,10 +200,10 @@ export function ChatWindow({
             <button
               type="button"
               onClick={() => setActiveTab('summary')}
-              className={`flex items-center gap-1 rounded px-2 py-0.5 transition-all text-[11px] ${
+              className={`flex items-center gap-1 rounded-lg px-2.5 py-1 transition-all text-[11px] ${
                 activeTab === 'summary'
-                  ? 'bg-surface text-primary-text shadow-2xs font-semibold'
-                  : 'text-secondary-text hover:text-primary-text'
+                  ? 'bg-slate-900 text-white shadow-xs font-semibold'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <BarChart3 className="h-3 w-3" />
@@ -215,7 +215,7 @@ export function ChatWindow({
             <button
               type="button"
               onClick={onClear}
-              className="p-1 rounded-md text-secondary-text hover:text-primary-text hover:bg-secondary transition-colors"
+              className="p-1.5 rounded-xl glass-badge text-slate-500 hover:text-slate-900 transition-colors cursor-pointer"
               title="Reset conversation"
             >
               <RotateCcw className="h-3.5 w-3.5" />
@@ -233,19 +233,19 @@ export function ChatWindow({
             {/* Empty State */}
             {messages.length === 0 && (
               <div className="py-2 px-1 space-y-4">
-                <div className="text-center space-y-1 max-w-sm mx-auto">
-                  <div className="flex h-8.5 w-8.5 items-center justify-center rounded-md bg-secondary text-primary mx-auto mb-1">
-                    <Sparkles className="h-4 w-4 text-accent" />
+                <div className="text-center space-y-1.5 max-w-sm mx-auto">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl glass-card text-slate-800 mx-auto shadow-2xs">
+                    <Sparkles className="h-4.5 w-4.5 text-sky-600" />
                   </div>
-                  <h4 className="text-xs font-semibold text-primary-text">
+                  <h4 className="text-xs font-bold text-slate-900 tracking-tight">
                     Transaction Intelligence Assistant
                   </h4>
-                  <p className="text-[11px] text-secondary-text leading-relaxed">
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
                     Ask questions with full traceability to clauses, deadlines, remedies, and addenda.
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {categorizedStarters.map((item, idx) => {
                     const Icon = item.icon;
                     return (
@@ -254,13 +254,13 @@ export function ChatWindow({
                         type="button"
                         disabled={loading}
                         onClick={() => onAsk(item.prompt)}
-                        className="group p-2.5 rounded-md border border-border bg-surface hover:border-accent/40 hover:bg-secondary/40 text-left transition-all shadow-2xs cursor-pointer"
+                        className="group p-3 rounded-xl glass-card text-left transition-all cursor-pointer"
                       >
-                        <div className="flex items-center gap-1 text-[10px] font-bold text-secondary-text uppercase tracking-wide mb-1">
-                          <Icon className="h-3 w-3 text-secondary-text" />
+                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-700 uppercase tracking-wide mb-1">
+                          <Icon className="h-3.5 w-3.5 text-sky-600" />
                           <span>{item.category}</span>
                         </div>
-                        <p className="text-[11px] text-primary-text font-medium group-hover:text-primary leading-snug">
+                        <p className="text-[11px] text-slate-600 font-medium group-hover:text-slate-900 leading-snug">
                           {item.prompt}
                         </p>
                       </button>
@@ -312,7 +312,7 @@ export function ChatWindow({
 
       {/* Input Box (Chat Tab only) */}
       {activeTab === 'chat' && (
-        <div className="bg-surface border-t border-border p-2.5 space-y-2">
+        <div className="border-t border-slate-200/70 p-3 space-y-2 bg-white/50 backdrop-blur-md">
           {/* Quick Prompt Pill Strip */}
           {messages.length > 0 && (
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
@@ -322,7 +322,7 @@ export function ChatWindow({
                   type="button"
                   onClick={() => onAsk(qp)}
                   disabled={loading}
-                  className="shrink-0 rounded-full border border-border bg-secondary/50 px-2 py-0.5 text-[10px] text-secondary-text hover:border-secondary-text hover:bg-secondary hover:text-primary-text transition-colors disabled:opacity-40 cursor-pointer"
+                  className="shrink-0 rounded-full glass-badge px-2.5 py-0.5 text-[10px] text-slate-600 hover:text-slate-900 transition-colors disabled:opacity-40 cursor-pointer shadow-2xs"
                 >
                   {qp}
                 </button>
@@ -334,10 +334,10 @@ export function ChatWindow({
             <button
               type="button"
               onClick={handleToggleVoice}
-              className={`p-1.5 rounded-md border transition-all ${
+              className={`p-2 rounded-xl glass-badge transition-all cursor-pointer ${
                 isListening
-                  ? 'bg-danger text-white border-danger animate-pulse'
-                  : 'bg-secondary hover:bg-secondary text-secondary-text border-border'
+                  ? 'bg-rose-500 text-white border-rose-600 ring-2 ring-rose-300 animate-pulse'
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
               title={isListening ? 'Listening... click to stop' : 'Voice dictation'}
             >
@@ -350,7 +350,7 @@ export function ChatWindow({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               disabled={loading}
-              className="flex-1 bg-surface border border-border rounded-md px-3 py-1.5 text-xs text-primary-text placeholder:text-secondary-text/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-2xs"
+              className="flex-1 glass-input rounded-xl px-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none transition-all"
             />
 
             <Button
@@ -358,7 +358,7 @@ export function ChatWindow({
               disabled={loading || !input.trim()}
               size="sm"
               variant="default"
-              className="shrink-0 h-7.5 px-3 font-semibold"
+              className="shrink-0 h-8 px-3.5 rounded-xl shadow-xs"
             >
               {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
             </Button>

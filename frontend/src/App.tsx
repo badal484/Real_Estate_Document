@@ -25,11 +25,31 @@ function ProtectedLayout() {
   if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <Navbar />
-      <main className="flex-1 mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <Outlet />
-      </main>
+    <div className="relative min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-slate-200">
+      {/* ── Atmospheric Ambient Lighting for Glassmorphism ── */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
+      >
+        <div className="absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-sky-400/15 via-blue-500/10 to-transparent blur-3xl" />
+        <div className="absolute top-1/3 -left-40 h-[500px] w-[500px] rounded-full bg-gradient-to-tr from-indigo-400/12 via-slate-400/8 to-transparent blur-3xl" />
+        <div className="absolute -bottom-40 right-1/4 h-[550px] w-[550px] rounded-full bg-gradient-to-t from-teal-400/10 via-emerald-400/6 to-transparent blur-3xl" />
+        <div
+          className="absolute inset-0 opacity-[0.02]"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.8) 1px, transparent 0)',
+            backgroundSize: '24px 24px',
+          }}
+        />
+      </div>
+
+      <div className="relative z-10 flex min-h-screen flex-col">
+        <Navbar />
+        <main className="flex-1 mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }

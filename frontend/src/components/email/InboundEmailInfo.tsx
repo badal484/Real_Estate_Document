@@ -59,8 +59,8 @@ export function InboundEmailInfo({ dealId, inboundInfo }: Props) {
             >
               {copied ? (
                 <>
-                  <Check className="h-3.5 w-3.5 text-success" />
-                  <span className="text-success font-medium">Copied</span>
+                  <Check className="h-3.5 w-3.5 text-emerald-600" />
+                  <span className="text-emerald-700 font-medium">Copied</span>
                 </>
               ) : (
                 <>

@@ -1,27 +1,19 @@
 import type { DeadlineStatus } from '@/types';
 import { Badge } from './ui/badge';
-import { Clock, CheckCircle2, ShieldCheck, AlertCircle, Check, AlertTriangle } from 'lucide-react';
+import { Clock, CheckCircle2, ShieldCheck, AlertCircle, Check } from 'lucide-react';
 
 interface Props {
-  status: DeadlineStatus | 'NEEDS_REVIEW' | 'DUE_SOON' | 'OVERDUE';
+  status: DeadlineStatus;
   className?: string;
 }
 
 export function StatusBadge({ status, className }: Props) {
   switch (status) {
     case 'PENDING':
-    case 'NEEDS_REVIEW':
-      return (
-        <Badge variant="needs-review" className={className}>
-          <AlertTriangle className="h-3 w-3" />
-          <span>Needs Review</span>
-        </Badge>
-      );
-    case 'DUE_SOON':
       return (
         <Badge variant="warning" className={className}>
           <Clock className="h-3 w-3" />
-          <span>Due Soon</span>
+          <span>Pending Confirmation</span>
         </Badge>
       );
     case 'CONFIRMED':
@@ -35,28 +27,21 @@ export function StatusBadge({ status, className }: Props) {
       return (
         <Badge variant="success" className={className}>
           <ShieldCheck className="h-3 w-3" />
-          <span>Active Monitoring</span>
+          <span>Active &bull; Monitored</span>
         </Badge>
       );
     case 'MISSED':
-    case 'OVERDUE':
       return (
-        <Badge variant="danger" className={className}>
+        <Badge variant="destructive" className={className}>
           <AlertCircle className="h-3 w-3" />
-          <span>Overdue</span>
+          <span>Past Due &bull; Action Req.</span>
         </Badge>
       );
     case 'COMPLETED':
       return (
-        <Badge variant="success" className={className}>
+        <Badge variant="neutral" className={className}>
           <Check className="h-3 w-3" />
           <span>Completed</span>
-        </Badge>
-      );
-    default:
-      return (
-        <Badge variant="neutral" className={className}>
-          <span>Upcoming</span>
         </Badge>
       );
   }

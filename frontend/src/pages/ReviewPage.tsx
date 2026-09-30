@@ -9,12 +9,10 @@ import {
   ChevronRight,
   AlertTriangle,
   FileCheck2,
+  Clock,
   CheckCircle2,
   Loader2,
   Sparkles,
-  ArrowRight,
-  ShieldCheck,
-  FileText,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -60,82 +58,39 @@ export function ReviewPage() {
       {/* Unified Command Center Header & Tab Navigation */}
       <DealHeader deal={deal} activeTab="documents" />
 
-      {/* ── Document Verification Pipeline Visualizer ───────────────── */}
-      <div className="rounded-lg border border-border bg-surface p-4 shadow-2xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
-          <div className="space-y-0.5">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-primary">
-              Evidence-Based Verification Pipeline
-            </h2>
-            <p className="text-xs text-secondary-text">
-              Trace every computed milestone back to its binding contractual clause.
-            </p>
-          </div>
-          <Badge variant="neutral" className="text-[10px] self-start sm:self-auto font-mono">
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-primary font-mono">
+            Compliance Audit
+          </span>
+          <Badge variant="neutral" className="text-[10px]">
             {deadlines.length} Clauses Extracted
           </Badge>
         </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-3 text-center text-xs">
-          <div className="p-2 rounded bg-secondary/40 border border-border">
-            <div className="flex items-center justify-center gap-1 font-semibold text-primary-text mb-0.5">
-              <FileText className="h-3.5 w-3.5 text-secondary-text" />
-              <span>1. Contract</span>
-            </div>
-            <span className="text-[10px] text-secondary-text">Executed PDF Upload</span>
-          </div>
-
-          <div className="p-2 rounded bg-secondary/40 border border-border">
-            <div className="flex items-center justify-center gap-1 font-semibold text-primary-text mb-0.5">
-              <Sparkles className="h-3.5 w-3.5 text-accent" />
-              <span>2. Extraction</span>
-            </div>
-            <span className="text-[10px] text-secondary-text">Deterministic AI Parsing</span>
-          </div>
-
-          <div className="p-2 rounded bg-secondary/40 border border-border">
-            <div className="flex items-center justify-center gap-1 font-semibold text-primary-text mb-0.5">
-              <ShieldCheck className="h-3.5 w-3.5 text-success" />
-              <span>3. Citation</span>
-            </div>
-            <span className="text-[10px] text-secondary-text">Verbatim Text Evidence</span>
-          </div>
-
-          <div className="p-2 rounded bg-secondary/40 border border-border">
-            <div className="flex items-center justify-center gap-1 font-semibold text-primary-text mb-0.5">
-              <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
-              <span>4. Lock Date</span>
-            </div>
-            <span className="text-[10px] text-secondary-text">Agent Confirmation</span>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <h1 className="text-xl font-bold tracking-tight text-primary-text sm:text-2xl">
+        <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
           Clause &amp; Deadline Verification
         </h1>
-        <p className="mt-0.5 text-xs text-secondary-text">
+        <p className="mt-0.5 text-xs text-muted-foreground">
           Audit each AI-extracted contingency against exact verbatim contract citations. Adjust target dates or confirm to arm automated reminders.
         </p>
       </div>
 
       {loading && (
-        <div className="rounded-lg border border-border bg-surface p-12 flex items-center justify-center gap-2 text-xs text-secondary-text shadow-2xs">
+        <div className="rounded-xl border border-border/70 bg-card p-12 flex items-center justify-center gap-2 text-xs text-muted-foreground shadow-2xs">
           <Loader2 className="h-4 w-4 animate-spin text-primary" />
           <span>Loading extracted contract clauses...</span>
         </div>
       )}
 
       {error && (
-        <div className="banner-error">
+        <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-xs text-destructive">
           <AlertTriangle className="h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {confirmError && (
-        <div className="banner-error">
+        <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-xs text-destructive">
           <AlertTriangle className="h-4 w-4 shrink-0" />
           <span>{confirmError}</span>
         </div>
@@ -145,7 +100,7 @@ export function ReviewPage() {
       {pending.length > 0 && (
         <section className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-warning">
+            <h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
               <AlertTriangle className="h-4 w-4" />
               <span>Requires Agent Confirmation ({pending.length})</span>
             </h2>
@@ -163,8 +118,8 @@ export function ReviewPage() {
       {/* Confirmed / Active */}
       {confirmed.length > 0 && (
         <section className="space-y-3 pt-2">
-          <h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-secondary-text">
-            <CheckCircle2 className="h-4 w-4 text-success" />
+          <h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
             <span>Agent Confirmed Milestones ({confirmed.length})</span>
           </h2>
           <div className="space-y-3">
@@ -176,12 +131,12 @@ export function ReviewPage() {
       )}
 
       {!loading && deadlines.length === 0 && (
-        <div className="empty-state p-12">
+        <div className="rounded-xl border border-border/70 bg-card p-12 text-center text-xs text-muted-foreground shadow-2xs">
           No deadlines extracted yet. Upload a contract PDF to begin extraction.
         </div>
       )}
 
-      <div className="pt-4 flex items-center justify-between border-t border-border">
+      <div className="pt-4 flex items-center justify-between border-t border-border/60">
         <Button asChild variant="secondary" size="sm" className="gap-1 text-xs">
           <Link to={`/deals/${dealId}`}>
             <ChevronLeft className="h-3.5 w-3.5" />

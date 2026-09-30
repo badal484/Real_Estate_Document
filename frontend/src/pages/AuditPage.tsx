@@ -7,6 +7,7 @@ import {
   ClipboardList,
   History,
   ShieldCheck,
+  Building2,
   ArrowLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -34,20 +35,20 @@ export function AuditPage() {
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Header & Navigation */}
       <div>
-        <nav className="mb-2 flex items-center gap-1.5 text-xs text-secondary-text">
-          <Link to="/deals" className="hover:text-primary-text transition-colors">
-            Transactions
+        <nav className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Link to="/deals" className="hover:text-foreground transition-colors">
+            Portfolio
           </Link>
           {dealId && (
             <>
-              <ChevronRight className="h-3 w-3 text-secondary-text/50" />
-              <Link to={`/deals/${dealId}`} className="hover:text-primary-text transition-colors">
+              <ChevronRight className="h-3 w-3 text-muted-foreground/60" />
+              <Link to={`/deals/${dealId}`} className="hover:text-foreground transition-colors">
                 Transaction Workspace
               </Link>
             </>
           )}
-          <ChevronRight className="h-3 w-3 text-secondary-text/50" />
-          <span className="font-semibold text-primary-text">Immutable Audit Trail</span>
+          <ChevronRight className="h-3 w-3 text-muted-foreground/60" />
+          <span className="font-semibold text-foreground">Immutable Audit Trail</span>
         </nav>
 
         <div className="flex items-center gap-2 mb-1">
@@ -59,24 +60,24 @@ export function AuditPage() {
           </Badge>
         </div>
 
-        <h1 className="text-2xl font-bold tracking-tight text-primary-text sm:text-3xl">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
           Activity &amp; Compliance Trail
         </h1>
-        <p className="mt-1 text-xs text-secondary-text">
+        <p className="mt-1 text-xs text-muted-foreground">
           Complete, tamper-evident log of all document uploads, AI extractions, date manual overrides, and Resend delivery dispatches.
         </p>
       </div>
 
       {!dealId && (
-        <div className="empty-state">
-          <div className="flex h-10 w-10 mx-auto items-center justify-center rounded-md bg-secondary text-secondary-text mb-3">
-            <ClipboardList className="h-5 w-5" />
+        <div className="rounded-xl border border-border/70 bg-card flex flex-col items-center justify-center p-12 text-center text-xs text-muted-foreground shadow-2xs">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground border border-border/60 mb-3">
+            <ClipboardList className="h-6 w-6" />
           </div>
-          <h3 className="text-sm font-semibold text-primary-text">Select a transaction</h3>
-          <p className="mt-1 text-xs text-secondary-text max-w-xs mx-auto">
+          <h3 className="text-sm font-semibold text-foreground">Select a transaction</h3>
+          <p className="mt-1 text-xs text-muted-foreground max-w-xs">
             Audit logs are scoped to individual deal workspaces. Choose a transaction to view its event trail.
           </p>
-          <Button asChild size="sm" className="mt-4 text-xs font-semibold">
+          <Button asChild size="sm" className="mt-4 text-xs">
             <Link to="/deals">
               <span>View All Transactions</span>
             </Link>
