@@ -2,6 +2,7 @@ import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { LandingPage } from '@/pages/LandingPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { UploadPage } from '@/pages/UploadPage';
 import { DealsPage } from '@/pages/DealsPage';
@@ -10,6 +11,8 @@ import { ReviewPage } from '@/pages/ReviewPage';
 import { AuditPage } from '@/pages/AuditPage';
 import { NotificationSettingsPage } from '@/pages/NotificationSettingsPage';
 import { AssistantPage } from '@/pages/AssistantPage';
+import { AnalyticsPage } from '@/pages/AnalyticsPage';
+import { DocsPage } from '@/pages/DocsPage';
 
 function ProtectedLayout() {
   const { user, loading } = useAuth();
@@ -59,15 +62,17 @@ export default function App() {
 
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={user ? <Navigate to="/upload" replace /> : <LoginPage />} />
       <Route element={<ProtectedLayout />}>
-        <Route path="/" element={<Navigate to="/upload" replace />} />
         <Route path="/upload" element={<UploadPage />} />
         <Route path="/deals" element={<DealsPage />} />
         <Route path="/deals/:id" element={<DealDetailPage />} />
         <Route path="/deals/:id/review" element={<ReviewPage />} />
         <Route path="/deals/:id/assistant" element={<AssistantPage />} />
         <Route path="/deals/:id/notifications" element={<NotificationSettingsPage />} />
+        <Route path="/analytics" element={<AnalyticsPage />} />
+        <Route path="/docs" element={<DocsPage />} />
         <Route path="/audit" element={<AuditPage />} />
       </Route>
     </Routes>

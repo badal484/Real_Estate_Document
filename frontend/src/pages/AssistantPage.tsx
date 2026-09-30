@@ -142,7 +142,7 @@ export function AssistantPage() {
   const currentDoc = documents.find((d) => d.id === selectedDocId);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4.5rem)] max-w-[1600px] mx-auto pb-3 space-y-3">
+    <div className="flex flex-col min-h-[calc(100vh-10rem)] lg:h-[calc(100vh-10rem)] max-w-[1600px] mx-auto space-y-3">
       {/* Universal Deal Header Command Bar */}
       <DealHeader deal={deal} notifSettings={notifSettings} activeTab="assistant" />
 
@@ -156,7 +156,7 @@ export function AssistantPage() {
       {/* Main Dual-Pane Responsive Split Workspace */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 flex-1 min-h-0">
         {/* Left Pane: Interactive PDF Viewer (7 cols / 58% width) */}
-        <div className="lg:col-span-7 h-full flex flex-col min-h-[420px]">
+        <div className="lg:col-span-7 h-full flex flex-col min-h-[460px] lg:min-h-0">
           {loadingDocs ? (
             <div className="rounded-xl border border-border/70 bg-card h-full flex flex-col items-center justify-center gap-2 text-muted-foreground text-xs shadow-2xs">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -194,7 +194,7 @@ export function AssistantPage() {
         </div>
 
         {/* Right Pane: AI Assistant Chat & Deal Intelligence (5 cols / 42% width) */}
-        <div className="lg:col-span-5 h-full flex flex-col min-h-[420px]">
+        <div className="lg:col-span-5 h-full flex flex-col min-h-[460px] lg:min-h-0">
           <ChatWindow
             messages={messages}
             loading={assistantLoading}
