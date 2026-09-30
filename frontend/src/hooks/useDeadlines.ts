@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { deadlinesApi } from '@/services/api';
-import type { Deadline } from '@/types';
+import type { Deadline, ConfirmDeadlineInput } from '@/types';
 
 interface UseDeadlinesReturn {
   deadlines: Deadline[];
   loading: boolean;
   error: string | null;
   refetch: () => void;
+  confirmDeadline: (deadlineId: string, input: ConfirmDeadlineInput) => Promise<Deadline>;
 }
 
 export function useDeadlines(dealId: string): UseDeadlinesReturn {
@@ -27,5 +28,18 @@ export function useDeadlines(dealId: string): UseDeadlinesReturn {
       .finally(() => setLoading(false));
   }, [dealId, rev]);
 
-  return { deadlines, loading, error, refetch: () => setRev((r) => r + 1) };
+  const confirmDeadline = async (deadlineId: string, input: ConfirmDeadlineInput) => {
+    const updated = await deadlinesApi.confirm(dealId, deadlineId, input);
+    setRev((r) => r + 1);
+    return updated;
+  };
+
+  return {
+    deadlines,
+    loading,
+    error,
+    refetch: () => setRev((r) => r + 1),
+    confirmDeadline,
+  };
 }
+

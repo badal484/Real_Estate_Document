@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { dealsApi, notificationsApi } from '@/services/api';
 import { useNotifications } from '@/hooks/useNotifications';
 import { AlertPreferences } from '@/components/email/AlertPreferences';
@@ -7,14 +7,13 @@ import { EmailLogTable } from '@/components/email/EmailLogTable';
 import { InboundEmailInfo } from '@/components/email/InboundEmailInfo';
 import { SendTestEmailButton } from '@/components/email/SendTestEmailButton';
 import { EmailPreviewModal } from '@/components/email/EmailPreviewModal';
+import { DealHeader } from '@/components/deal/DealHeader';
 import {
-  IconChevronRight,
   IconExclamationTriangle,
   IconCheckCircle,
   IconSpinner,
   IconEye,
   IconEnvelope,
-  IconPaperAirplane,
 } from '@/components/icons';
 import type { Deal } from '@/types';
 
@@ -67,25 +66,17 @@ export function NotificationSettingsPage() {
   };
 
   return (
-    <div className="space-y-8">
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-slate-500">
-        <Link to="/deals" className="hover:text-brand-700">Deals</Link>
-        <IconChevronRight className="h-3.5 w-3.5 text-slate-300" />
-        <Link to={`/deals/${dealId}`} className="hover:text-brand-700">
-          {deal?.propertyAddress ?? 'Deal'}
-        </Link>
-        <IconChevronRight className="h-3.5 w-3.5 text-slate-300" />
-        <span className="font-medium text-slate-900">Email &amp; Alerts</span>
-      </nav>
+    <div className="space-y-6 max-w-[1600px] mx-auto px-4 sm:px-6">
+      {/* Unified Command Center Header & Tab Navigation */}
+      <DealHeader deal={deal} notifSettings={settings} activeTab="notifications" />
 
-      {/* Page Header */}
+      {/* Page Actions Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
             Email Alerts &amp; Inbound Intake
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-0.5 text-xs text-slate-500">
             Configure automated deadline reminders, preview email templates, and view delivery history.
           </p>
         </div>

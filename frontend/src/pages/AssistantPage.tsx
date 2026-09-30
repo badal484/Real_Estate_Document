@@ -182,22 +182,36 @@ export function AssistantPage() {
         </div>
 
         {/* Right Quick Nav Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <Link
+            to={`/deals/${dealId}`}
+            className="btn-secondary text-xs flex items-center gap-1.5 py-1 px-2.5"
+            title="Milestones Timeline"
+          >
+            <span>&larr; Milestones</span>
+          </Link>
           <Link
             to={`/deals/${dealId}/notifications`}
-            className="btn-secondary text-xs flex items-center gap-1.5 py-1.5 px-3"
+            className="btn-secondary text-xs flex items-center gap-1.5 py-1 px-2.5"
             title="Notification alerts"
           >
             <IconEnvelope className="h-3.5 w-3.5 text-slate-500" />
-            <span className="hidden sm:inline">Email Alerts</span>
+            <span className="hidden sm:inline">Alerts</span>
           </Link>
           <Link
             to={`/deals/${dealId}/review`}
-            className="btn-secondary text-xs flex items-center gap-1.5 py-1.5 px-3"
-            title="Review timeline & contingencies"
+            className="btn-secondary text-xs flex items-center gap-1.5 py-1 px-2.5"
+            title="Clause Verification"
           >
             <IconDocumentText className="h-3.5 w-3.5 text-slate-500" />
-            <span>Timeline</span>
+            <span className="hidden sm:inline">Clauses</span>
+          </Link>
+          <Link
+            to={`/audit?dealId=${dealId}`}
+            className="btn-secondary text-xs flex items-center gap-1.5 py-1 px-2.5"
+            title="Audit Trail"
+          >
+            <span>Audit</span>
           </Link>
         </div>
       </div>

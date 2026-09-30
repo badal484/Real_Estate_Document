@@ -1,22 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { dealsApi, auditApi, notificationsApi } from '@/services/api';
+import { dealsApi, auditApi, notificationsApi, deadlinesApi } from '@/services/api';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { Timeline } from '@/components/Timeline';
 import { ActivityHistory } from '@/components/ActivityHistory';
+import { DealHeader } from '@/components/deal/DealHeader';
+import { DealChecklist } from '@/components/deal/DealChecklist';
 import {
   IconChevronRight,
   IconExclamationTriangle,
   IconSpinner,
   IconEnvelope,
-  IconSparkles,
   IconCheckCircle,
-  IconBuilding,
-  IconDocumentText,
-  IconShieldCheck,
 } from '@/components/icons';
 import type { Deal, AuditLog, NotificationSetting } from '@/types';
-import { formatDate } from '@/utils/date';
 
 export function DealDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -30,7 +27,7 @@ export function DealDetailPage() {
   const [sendingSummary, setSendingSummary] = useState(false);
   const [summaryMessage, setSummaryMessage] = useState<string | null>(null);
 
-  const { deadlines, loading, error } = useDeadlines(dealId);
+  const { deadlines, loading, error, confirmDeadline } = useDeadlines(dealId);
 
   useEffect(() => {
     dealsApi
@@ -51,6 +48,18 @@ export function DealDetailPage() {
       .finally(() => setAuditLoading(false));
   }, [dealId]);
 
+  const handleConfirmAll = async () => {
+    const pendingDeadlines = deadlines.filter((d) => d.status === 'PENDING');
+    for (const d of pendingDeadlines) {
+      await confirmDeadline(d.id, {
+        confirmedDate: d.computedDate,
+        activate: true,
+      });
+    }
+    // Refresh deal & notifications
+    notificationsApi.getSettings(dealId).then(setNotifSettings).catch(() => {});
+  };
+
   const handleSendSummary = async () => {
     if (!notifSettings?.recipients || notifSettings.recipients.length === 0) {
       alert('Please configure at least one recipient email in Notification Settings.');
@@ -60,7 +69,7 @@ export function DealDetailPage() {
     setSummaryMessage(null);
     try {
       await notificationsApi.sendSummaryEmail(dealId, notifSettings.recipients);
-      setSummaryMessage('Executive summary dispatched to all configured recipients.');
+      setSummaryMessage('Executive summary dispatched via Resend to all configured recipients.');
       setTimeout(() => setSummaryMessage(null), 4000);
     } catch (err) {
       alert(`Failed to send summary email: ${(err as Error).message}`);
@@ -71,16 +80,8 @@ export function DealDetailPage() {
 
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto px-4 sm:px-6">
-      {/* Breadcrumb Navigation */}
-      <nav className="flex items-center gap-2 text-xs font-medium text-slate-400">
-        <Link to="/deals" className="hover:text-slate-800 transition-colors">
-          Deals
-        </Link>
-        <IconChevronRight className="h-3 w-3 text-slate-300" />
-        <span className="font-semibold text-slate-900 truncate">
-          {deal?.propertyAddress ?? 'Transaction'}
-        </span>
-      </nav>
+      {/* Unified Command Center Header & Tab Navigation */}
+      <DealHeader deal={deal} notifSettings={notifSettings} activeTab="milestones" />
 
       {dealError && (
         <div className="banner-error">
@@ -96,74 +97,15 @@ export function DealDetailPage() {
         </div>
       )}
 
-      {/* Property Hero Banner */}
-      {deal && (
-        <div className="card p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-5 bg-gradient-to-br from-white via-slate-50/40 to-brand-50/20">
-          <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-xs shrink-0">
-              <IconBuilding className="h-6 w-6 text-brand-300" />
-            </div>
+      {/* 4-Step Transaction Compliance Checklist */}
+      <DealChecklist
+        dealId={dealId}
+        deadlines={deadlines}
+        notifSettings={notifSettings}
+        onConfirmAll={handleConfirmAll}
+      />
 
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-                  {deal.propertyAddress}
-                </h1>
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
-                  <IconShieldCheck className="h-3 w-3 text-emerald-600" />
-                  {deal.status}
-                </span>
-              </div>
-
-              <div className="mt-2 flex flex-wrap gap-4 text-xs text-slate-500">
-                {deal.acceptanceDate && (
-                  <span className="font-mono">
-                    Contract Acceptance: <strong className="text-slate-800">{formatDate(deal.acceptanceDate)}</strong>
-                  </span>
-                )}
-                {deal.buyerName && (
-                  <span>
-                    Buyer: <strong className="text-slate-800">{deal.buyerName}</strong>
-                  </span>
-                )}
-                {deal.sellerName && (
-                  <span>
-                    Seller: <strong className="text-slate-800">{deal.sellerName}</strong>
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
-            <Link
-              to={`/deals/${dealId}/assistant`}
-              className="btn-primary text-xs py-2 px-3.5 flex items-center gap-1.5"
-            >
-              <IconSparkles className="h-4 w-4 text-brand-300" />
-              <span>Ask AI Copilot</span>
-            </Link>
-
-            <Link
-              to={`/deals/${dealId}/review`}
-              className="btn-secondary text-xs py-2 px-3.5 flex items-center gap-1.5"
-            >
-              <IconDocumentText className="h-4 w-4 text-slate-500" />
-              <span>Review Deadlines</span>
-            </Link>
-
-            <Link
-              to={`/deals/${dealId}/notifications`}
-              className="btn-secondary text-xs py-2 px-3.5 flex items-center gap-1.5"
-            >
-              <IconEnvelope className="h-4 w-4 text-slate-500" />
-              <span>Email Alerts</span>
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {/* Automated Email Alerts Summary Bar */}
+      {/* Automated Email Alerts Bar */}
       <div className="card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-slate-200/90 bg-white">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700 border border-brand-100">
@@ -171,12 +113,12 @@ export function DealDetailPage() {
           </div>
           <div>
             <h3 className="text-xs font-bold text-slate-900">
-              Automated Deadline Dispatches
+              Automated Deadline Reminders (Resend Engine)
             </h3>
             <p className="text-[11px] text-slate-500">
-              {notifSettings?.enabled
-                ? `${notifSettings.recipients?.length ?? 0} active recipient(s) &bull; Automated dispatches at 3d, 1d, and day-of deadlines.`
-                : 'Email reminders are currently paused for this transaction.'}
+              {notifSettings?.enabled && (notifSettings.recipients?.length ?? 0) > 0
+                ? `${notifSettings.recipients.length} active recipient(s) &bull; Automated dispatches at 3d, 1d, and day-of deadlines.`
+                : 'Alerts need recipient setup. Add agent & coordinator emails in settings.'}
             </p>
           </div>
         </div>
@@ -200,7 +142,7 @@ export function DealDetailPage() {
             to={`/deals/${dealId}/notifications`}
             className="btn-secondary text-xs inline-flex items-center gap-1 py-1.5 px-3"
           >
-            <span>Configure</span>
+            <span>Alert Settings</span>
             <IconChevronRight className="h-3 w-3" />
           </Link>
         </div>
@@ -259,4 +201,5 @@ export function DealDetailPage() {
     </div>
   );
 }
+
 

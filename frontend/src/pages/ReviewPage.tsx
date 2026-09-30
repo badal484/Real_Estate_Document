@@ -1,17 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useDeadlines } from '@/hooks/useDeadlines';
-import { deadlinesApi } from '@/services/api';
+import { deadlinesApi, dealsApi } from '@/services/api';
 import { DeadlineCard } from '@/components/DeadlineCard';
+import { DealHeader } from '@/components/deal/DealHeader';
 import { IconChevronLeft, IconChevronRight, IconExclamationTriangle } from '@/components/icons';
-import type { Deadline } from '@/types';
+import type { Deadline, Deal } from '@/types';
 
 export function ReviewPage() {
   const { id } = useParams<{ id: string }>();
   const dealId = id!;
+  const [deal, setDeal] = useState<Deal | null>(null);
   const { deadlines, loading, error, refetch } = useDeadlines(dealId);
   const [confirming, setConfirming] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
+
+  useEffect(() => {
+    dealsApi
+      .get(dealId)
+      .then(setDeal)
+      .catch(() => {});
+  }, [dealId]);
 
   // Quick-confirm with the computed date as-is
   async function handleConfirm(deadline: Deadline) {
@@ -34,20 +43,16 @@ export function ReviewPage() {
   const confirmed = deadlines.filter((d) => d.status !== 'PENDING');
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <nav className="mb-6 flex items-center gap-2 text-sm text-slate-500">
-        <Link to="/deals" className="hover:text-brand-700">Deals</Link>
-        <IconChevronRight className="h-3.5 w-3.5 text-slate-300" />
-        <Link to={`/deals/${dealId}`} className="hover:text-brand-700">Timeline</Link>
-        <IconChevronRight className="h-3.5 w-3.5 text-slate-300" />
-        <span className="font-medium text-slate-900">Review Deadlines</span>
-      </nav>
+    <div className="mx-auto max-w-4xl space-y-6">
+      {/* Unified Command Center Header & Tab Navigation */}
+      <DealHeader deal={deal} activeTab="documents" />
 
-      <p className="page-eyebrow">Confirmation</p>
-      <h1 className="mt-1 text-2xl font-bold text-slate-900">Review &amp; Confirm Deadlines</h1>
-      <p className="mb-8 mt-2 text-sm text-slate-500">
-        Verify each AI-extracted deadline. Edit the date if needed, then confirm to activate alerts.
-      </p>
+      <div>
+        <h1 className="text-xl font-bold text-slate-900 tracking-tight">Clause &amp; Deadline Verification</h1>
+        <p className="mt-0.5 text-xs text-slate-500">
+          Verify each AI-extracted deadline and source quotation. Edit the date if needed, then confirm to lock in monitoring.
+        </p>
+      </div>
 
       {loading && <p className="text-sm text-slate-400">Loading&hellip;</p>}
       {error && (
