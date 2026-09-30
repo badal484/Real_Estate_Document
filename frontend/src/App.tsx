@@ -13,6 +13,9 @@ import { NotificationSettingsPage } from '@/pages/NotificationSettingsPage';
 import { AssistantPage } from '@/pages/AssistantPage';
 import { AnalyticsPage } from '@/pages/AnalyticsPage';
 import { DocsPage } from '@/pages/DocsPage';
+import { PricingPage } from '@/pages/PricingPage';
+import { ContractsLibraryPage } from '@/pages/ContractsLibraryPage';
+import { SecurityPage } from '@/pages/SecurityPage';
 
 function ProtectedLayout() {
   const { user, loading } = useAuth();
@@ -73,6 +76,9 @@ export default function App() {
         <Route path="/deals/:id/notifications" element={<NotificationSettingsPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/docs" element={<DocsPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/contracts" element={<ContractsLibraryPage />} />
+        <Route path="/security" element={<SecurityPage />} />
         <Route path="/audit" element={<AuditPage />} />
       </Route>
     </Routes>

@@ -23,56 +23,142 @@ import {
   UserCheck,
   Check,
   Plus,
+  X,
+  FileCheck2,
+  ShieldAlert,
+  ChevronDown,
+  Users,
+  Star,
+  Quote,
+  Calculator,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const DEMO_CLAUSES = [
+const STATE_TEMPLATES = [
   {
-    title: 'Property Inspection Contingency',
-    clauseText: 'Buyer shall have ten (10) calendar days from Mutual Acceptance Date to complete all physical inspections and deliver written Notice of Objections (Section 10.A).',
-    type: '10 Calendar Days',
-    calcDate: 'Calculated: 10 Days from Acceptance',
-    citation: 'Section 10.A, Page 3',
-    riskLevel: 'High Priority',
+    id: 'nwmls',
+    state: 'Washington (NWMLS Form 21)',
+    inspectionDays: '10 Calendar Days',
+    financingDays: '21 Business Days',
+    titleDays: '5 Business Days',
+    specialClause: 'Form 35 Inspection Addendum & Form 22A Financing Contingency',
   },
   {
-    title: 'Financing & Mortgage Approval',
-    clauseText: 'This agreement is contingent upon Buyer obtaining written loan commitment within twenty-one (21) days of acceptance date (Section 14.C).',
-    type: '21 Business Days',
-    calcDate: 'Calculated: 21 Days from Acceptance',
-    citation: 'Section 14.C, Page 6',
-    riskLevel: 'Action Critical',
+    id: 'car',
+    state: 'California (CAR RPA-CA)',
+    inspectionDays: '17 Calendar Days',
+    financingDays: '21 Calendar Days',
+    titleDays: '7 Calendar Days',
+    specialClause: 'Active Removal of Buyer Contingency Notice (CR Form)',
   },
   {
-    title: 'Title Commitment Review',
-    clauseText: 'Buyer shall review Preliminary Title Report and deliver written title objections within five (5) business days after receipt of Title (Section 8.B).',
-    type: '5 Business Days',
-    calcDate: 'Calculated: 5 Business Days after Receipt',
-    citation: 'Section 8.B, Page 4',
-    riskLevel: 'Standard Runway',
+    id: 'farbar',
+    state: 'Florida (FAR/BAR AS-IS)',
+    inspectionDays: '15 Calendar Days',
+    financingDays: '30 Calendar Days',
+    titleDays: '5 Calendar Days',
+    specialClause: 'Comprehensive Rider & HOA Disclosure Summary',
+  },
+  {
+    id: 'trec',
+    state: 'Texas (TREC One to Four)',
+    inspectionDays: '7 Option Period Days',
+    financingDays: '20 Calendar Days',
+    titleDays: '3 Days After Commitment',
+    specialClause: 'Paragraph 23 Termination Option Fee & Third Party Financing',
+  },
+];
+
+const COMPARISON = [
+  {
+    feature: 'Contingency Extraction',
+    manual: 'Manual reading of 30+ page PDF',
+    copilot: 'Instant AI clause extraction & quote citations',
+  },
+  {
+    feature: 'Date Calculation',
+    manual: 'Manual calendar counting (prone to errors)',
+    copilot: 'Deterministic business/calendar day rules',
+  },
+  {
+    feature: 'Deadline Alerts',
+    manual: 'Sticky notes & manual Outlook reminders',
+    copilot: 'Automated Resend emails at T-3, T-1, and 9 AM T-0',
+  },
+  {
+    feature: 'PDF Proof & Citations',
+    manual: 'Flipping through printed contracts',
+    copilot: '1-click jump to exact PDF page & quote highlight',
+  },
+  {
+    feature: 'Earnest Money Risk',
+    manual: 'High risk of silent deadline lapse',
+    copilot: '100% monitored with immutable audit trail',
+  },
+];
+
+const TESTIMONIALS = [
+  {
+    quote: 'Contingency Copilot saved our buyer a $35,000 earnest money deposit when an inspection objection window landed on a Monday holiday. Flawless date math.',
+    name: 'Sarah Jenkins',
+    role: 'Managing Broker',
+    firm: 'Cascade Heights Realty (Seattle, WA)',
+    avatar: 'SJ',
+  },
+  {
+    quote: 'As a Transaction Coordinator managing 40 active escrows, the Resend email alerts and PDF citation links keep our entire TC team ahead of schedule.',
+    name: 'Marcus Vance',
+    role: 'Lead Transaction Coordinator',
+    firm: 'Pacific Horizon Group (Los Angeles, CA)',
+    avatar: 'MV',
+  },
+  {
+    quote: 'The legal audit log is game-changing for E&O compliance. We have instant timestamped proof for every notice served.',
+    name: 'Elena Rostova',
+    role: 'Real Estate Attorney & Partner',
+    firm: 'SunState Legal & Title (Miami, FL)',
+    avatar: 'ER',
+  },
+];
+
+const FAQS = [
+  {
+    q: 'How does Contingency Copilot extract dates without AI hallucination?',
+    a: 'Unlike generic chatbots, our engine enforces double-verification against verbatim contract text quotes. Every calculated date references an exact section number and page citation in your uploaded PDF.',
+  },
+  {
+    q: 'What happens if a deadline lands on a weekend or federal holiday?',
+    a: 'Our date calculation engine automatically applies jurisdiction rules: unless explicitly stated as calendar days without exceptions, weekend/holiday cutoffs shift to 5:00 PM on the next business day.',
+  },
+  {
+    q: 'How does automated email delivery work via Resend?',
+    a: 'Notifications are dispatched directly through our Resend API integration to all configured agent, client, and transaction coordinator emails. Delivery status is cryptographically logged in your deal audit trail.',
+  },
+  {
+    q: 'Is our contract data kept confidential and secure?',
+    a: 'Yes. Documents are encrypted at rest using AES-256 and served through expiring signed URLs. Your contract data is isolated per deal workspace and never used to train public LLM models.',
   },
 ];
 
 export function LandingPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [selectedDemoIndex, setSelectedDemoIndex] = useState(0);
+  const [selectedTemplate, setSelectedTemplate] = useState(STATE_TEMPLATES[0]);
   const [dealVolume, setDealVolume] = useState(15);
   const [avgEmd, setAvgEmd] = useState(25000);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
-  const activeDemo = DEMO_CLAUSES[selectedDemoIndex];
   const protectedEmdValue = dealVolume * avgEmd;
 
   return (
     <div className="relative min-h-screen bg-slate-950 text-slate-100 overflow-x-hidden selection:bg-sky-500/30 selection:text-white">
-      {/* ── Background Mesh & Ambient Lighting ── */}
+      {/* Background Ambient Lighting */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden z-0">
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-[750px] w-[1000px] rounded-full bg-gradient-to-b from-sky-500/15 via-blue-600/10 to-transparent blur-3xl" />
-        <div className="absolute top-1/3 -left-40 h-[600px] w-[600px] rounded-full bg-gradient-to-tr from-indigo-500/15 to-transparent blur-3xl" />
-        <div className="absolute bottom-1/4 -right-40 h-[600px] w-[600px] rounded-full bg-gradient-to-tl from-emerald-500/10 to-transparent blur-3xl" />
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-[800px] w-[1100px] rounded-full bg-gradient-to-b from-sky-500/18 via-blue-600/12 to-transparent blur-3xl" />
+        <div className="absolute top-1/3 -left-40 h-[650px] w-[650px] rounded-full bg-gradient-to-tr from-indigo-500/15 to-transparent blur-3xl" />
+        <div className="absolute bottom-1/4 -right-40 h-[650px] w-[650px] rounded-full bg-gradient-to-tl from-emerald-500/12 to-transparent blur-3xl" />
         <div
           className="absolute inset-0 opacity-[0.03]"
           style={{
@@ -84,8 +170,15 @@ export function LandingPage() {
       </div>
 
       <div className="relative z-10">
-        {/* ── Navigation Header ── */}
-        <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/80 backdrop-blur-xl">
+        {/* Banner Ticker */}
+        <div className="bg-gradient-to-r from-sky-900/60 via-slate-900 to-indigo-900/60 border-b border-white/10 px-4 py-2 text-center text-xs text-sky-200 flex items-center justify-center gap-2">
+          <Sparkles className="h-3.5 w-3.5 text-sky-400 animate-pulse" />
+          <span className="font-medium">2026 Release: Multi-State Contract Clause Rules Engine Live (NWMLS, CAR, FAR/BAR, TREC)</span>
+          <Link to="/pricing" className="underline font-bold text-white hover:text-sky-300 ml-1">View Pricing &rarr;</Link>
+        </div>
+
+        {/* Header */}
+        <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/85 backdrop-blur-xl">
           <div className="mx-auto flex max-w-[1600px] items-center justify-between px-4 py-3.5 sm:px-8">
             <Link to="/" className="flex items-center gap-3 group">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-white shadow-md ring-1 ring-white/20 group-hover:scale-105 transition-transform">
@@ -97,23 +190,23 @@ export function LandingPage() {
                 </span>
                 <Badge variant="neutral" className="bg-slate-900/80 border-slate-700 text-slate-300 text-[10px] px-2 py-0.5">
                   <ShieldCheck className="h-3 w-3 text-emerald-400 mr-1" />
-                  2026 Legal AI SaaS
+                  2026 AI Verified
                 </Badge>
               </div>
             </Link>
 
             <nav className="flex items-center gap-2 text-xs font-medium">
-              <a href="#features" className="hidden md:inline-block px-3 py-1.5 text-slate-300 hover:text-white transition-colors">
-                Capabilities
-              </a>
-              <a href="#demo" className="hidden md:inline-block px-3 py-1.5 text-slate-300 hover:text-white transition-colors">
-                Interactive Sandbox
-              </a>
-              <a href="#calculator" className="hidden md:inline-block px-3 py-1.5 text-slate-300 hover:text-white transition-colors">
-                ROI Calculator
-              </a>
+              <Link to="/pricing" className="hidden lg:inline-block px-3 py-1.5 text-slate-300 hover:text-white transition-colors">
+                Pricing
+              </Link>
+              <Link to="/contracts" className="hidden lg:inline-block px-3 py-1.5 text-slate-300 hover:text-white transition-colors">
+                State Rules
+              </Link>
+              <Link to="/security" className="hidden md:inline-block px-3 py-1.5 text-slate-300 hover:text-white transition-colors">
+                Security &amp; E&amp;O
+              </Link>
               <Link to="/docs" className="hidden sm:inline-block px-3 py-1.5 text-slate-300 hover:text-white transition-colors">
-                Documentation
+                Docs
               </Link>
               <Link to="/analytics" className="hidden sm:inline-block px-3 py-1.5 text-slate-300 hover:text-white transition-colors">
                 Analytics
@@ -122,7 +215,7 @@ export function LandingPage() {
               {user ? (
                 <Button asChild size="sm" className="ml-2 gap-1.5 text-xs bg-white text-slate-950 hover:bg-slate-200">
                   <Link to="/deals">
-                    <span>Go to App Dashboard</span>
+                    <span>App Dashboard</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 </Button>
@@ -138,7 +231,7 @@ export function LandingPage() {
           </div>
         </header>
 
-        {/* ── Hero Section ── */}
+        {/* Hero Section */}
         <section className="mx-auto max-w-6xl px-4 pt-16 pb-20 text-center space-y-8 sm:px-6">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -147,16 +240,16 @@ export function LandingPage() {
             className="inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-sky-500/10 px-4 py-1.5 text-xs font-medium text-sky-300 backdrop-blur-md"
           >
             <Sparkles className="h-3.5 w-3.5 text-sky-400" />
-            <span>Autonomous Contingency Surveillance for Brokerages</span>
+            <span>2026 Autonomous Real Estate Contingency Surveillance</span>
           </motion.div>
 
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-4xl font-extrabold tracking-tight text-white sm:text-6xl max-w-4xl mx-auto leading-[1.15]"
+            className="text-4xl font-extrabold tracking-tight text-white sm:text-6xl max-w-4xl mx-auto leading-[1.12]"
           >
-            Never let a real-estate contingency deadline lapse.
+            Eliminate buyer earnest money risk &amp; missed contract cutoffs.
           </motion.h1>
 
           <motion.p
@@ -165,7 +258,7 @@ export function LandingPage() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-base text-slate-300 max-w-2xl mx-auto leading-relaxed"
           >
-            Upload purchase agreements to automatically parse binding contingency clauses, compute business-day math, deliver automated Resend alerts, and query PDF contracts with zero hallucinations.
+            Upload any standard Purchase &amp; Sale Agreement to extract binding deadlines, calculate business-day math, deliver automated Resend alerts, and query PDF contracts with zero hallucinations.
           </motion.p>
 
           <motion.div
@@ -189,15 +282,15 @@ export function LandingPage() {
                 </Link>
               </Button>
             )}
-            <a href="#demo">
-              <Button variant="outline" size="lg" className="h-11 px-6 text-sm font-semibold border-white/20 text-white hover:bg-white/10 gap-2">
-                <Sparkles className="h-4 w-4 text-sky-400" />
-                <span>Try Live Demo Sandbox</span>
-              </Button>
-            </a>
+            <Button variant="outline" asChild size="lg" className="h-11 px-6 text-sm font-semibold border-white/20 text-white hover:bg-white/10 gap-2">
+              <Link to="/pricing">
+                <Calculator className="h-4 w-4 text-emerald-400" />
+                <span>View Pricing &amp; Plans</span>
+              </Link>
+            </Button>
           </motion.div>
 
-          {/* Social Proof Trust Banner */}
+          {/* Social Proof Bar */}
           <div className="pt-10 flex flex-wrap items-center justify-center gap-8 text-xs text-slate-400 border-t border-white/10 max-w-3xl mx-auto">
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-emerald-400" />
@@ -205,186 +298,172 @@ export function LandingPage() {
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-sky-400" />
-              <span>Resend API Integration</span>
+              <span>Resend API Delivery Engine</span>
             </div>
             <div className="flex items-center gap-2">
               <Lock className="h-4 w-4 text-indigo-400" />
-              <span>256-Bit Encrypted Link Storage</span>
+              <span>AES-256 Encryption</span>
             </div>
           </div>
         </section>
 
-        {/* ── Interactive Demo Sandbox ── */}
-        <section id="demo" className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
+        {/* State Contract Simulator */}
+        <section id="templates" className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
           <div className="text-center space-y-2 mb-10">
             <Badge variant="neutral" className="bg-slate-900 border-slate-700 text-slate-300 text-[11px] gap-1.5 py-1">
-              <Zap className="h-3.5 w-3.5 text-amber-400" />
-              <span>Interactive Contract Sandbox</span>
+              <Scale className="h-3.5 w-3.5 text-sky-400" />
+              <span>State Contract Rule Simulator</span>
             </Badge>
             <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-              See How AI Parses Contract Clauses
+              Supports All Standard State Purchase Agreements
             </h2>
             <p className="text-xs text-slate-400 max-w-lg mx-auto">
-              Select a sample contingency clause below to preview deterministic deadline calculation and verbatim citation matching.
+              Select a state purchase agreement form below to see how our AI parses state-specific timeline clauses.
             </p>
           </div>
 
           <div className="rounded-2xl border border-white/15 bg-white/[0.05] backdrop-blur-2xl p-6 shadow-2xl space-y-6">
-            {/* Clause Selector Tabs */}
-            <div className="flex flex-wrap gap-2 border-b border-white/10 pb-4">
-              {DEMO_CLAUSES.map((clause, idx) => (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {STATE_TEMPLATES.map((tmpl) => (
                 <button
-                  key={idx}
+                  key={tmpl.id}
                   type="button"
-                  onClick={() => setSelectedDemoIndex(idx)}
-                  className={`rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
-                    selectedDemoIndex === idx
-                      ? 'bg-slate-900 text-white ring-1 ring-sky-400 shadow-md'
-                      : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'
+                  onClick={() => setSelectedTemplate(tmpl)}
+                  className={`p-3 rounded-xl text-left transition-all border ${
+                    selectedTemplate.id === tmpl.id
+                      ? 'bg-slate-900 border-sky-400 text-white shadow-md'
+                      : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'
                   }`}
                 >
-                  {clause.title}
+                  <span className="text-[10px] font-mono uppercase text-sky-400 font-bold block">State Form</span>
+                  <span className="text-xs font-bold block truncate mt-0.5">{tmpl.state}</span>
                 </button>
               ))}
             </div>
 
-            {/* Active Clause Details */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-              <div className="md:col-span-7 space-y-3">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-sky-400">
-                  Verbatim PDF Quotation
-                </span>
-                <div className="rounded-xl border border-white/10 bg-slate-900/80 p-4 font-mono text-xs text-slate-200 leading-relaxed shadow-inner">
-                  &ldquo;{activeDemo.clauseText}&rdquo;
+            <div className="rounded-xl border border-white/10 bg-slate-900/80 p-5 space-y-4">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <div>
+                  <h3 className="text-sm font-bold text-white">{selectedTemplate.state}</h3>
+                  <p className="text-xs text-slate-400">{selectedTemplate.specialClause}</p>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-slate-400">
-                  <FileText className="h-3.5 w-3.5 text-slate-500" />
-                  <span>Document Citation: <strong className="text-slate-200">{activeDemo.citation}</strong></span>
-                </div>
+                <Badge variant="success" className="glass-badge text-emerald-300 text-[10px]">
+                  Auto-Parsed
+                </Badge>
               </div>
 
-              <div className="md:col-span-5 space-y-3 rounded-xl border border-white/10 bg-slate-900/60 p-4">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400">
-                  Computed Output
-                </span>
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between py-1 border-b border-white/10">
-                    <span className="text-slate-400">Timeline Window:</span>
-                    <span className="font-semibold text-white font-mono">{activeDemo.type}</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-white/10">
-                    <span className="text-slate-400">Target Timestamp:</span>
-                    <span className="font-semibold text-emerald-400 font-mono">{activeDemo.calcDate}</span>
-                  </div>
-                  <div className="flex justify-between py-1">
-                    <span className="text-slate-400">Severity Level:</span>
-                    <span className="font-semibold text-amber-400">{activeDemo.riskLevel}</span>
-                  </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div className="p-3 rounded-lg bg-white/5 border border-white/10 space-y-1">
+                  <span className="text-slate-400 text-[11px]">Inspection Period</span>
+                  <div className="font-mono font-bold text-sky-400 text-sm">{selectedTemplate.inspectionDays}</div>
                 </div>
-
-                <div className="pt-2">
-                  <Button
-                    onClick={() => navigate(user ? '/upload' : '/login')}
-                    size="sm"
-                    className="w-full text-xs font-bold gap-1.5 bg-sky-500 hover:bg-sky-600 text-white"
-                  >
-                    <span>Try With Your PDF</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Button>
+                <div className="p-3 rounded-lg bg-white/5 border border-white/10 space-y-1">
+                  <span className="text-slate-400 text-[11px]">Financing Approval</span>
+                  <div className="font-mono font-bold text-emerald-400 text-sm">{selectedTemplate.financingDays}</div>
+                </div>
+                <div className="p-3 rounded-lg bg-white/5 border border-white/10 space-y-1">
+                  <span className="text-slate-400 text-[11px]">Title Objection Window</span>
+                  <div className="font-mono font-bold text-indigo-400 text-sm">{selectedTemplate.titleDays}</div>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ── Key Capabilities Grid ── */}
-        <section id="features" className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+        {/* Testimonials Wall */}
+        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center space-y-2 mb-12">
+            <Badge variant="neutral" className="bg-slate-900 border-slate-700 text-slate-300 text-[11px] gap-1.5 py-1">
+              <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
+              <span>Brokerage &amp; TC Social Proof</span>
+            </Badge>
             <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-              Engineered for Modern Brokerage Operations
+              Trusted by Top Managing Brokers &amp; Transaction Coordinators
             </h2>
-            <p className="text-xs text-slate-400 max-w-lg mx-auto">
-              Built on legal contract parsing algorithms and automated notification dispatches.
-            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 space-y-3 backdrop-blur-xl hover:border-white/20 transition-all">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400">
-                <Sparkles className="h-5 w-5" />
-              </div>
-              <h3 className="text-base font-bold text-white">AI Clause Extraction</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Parses PDF contracts to discover binding inspection, appraisal, loan commitment, title, and HOA contingencies with verbatim quotes.
-              </p>
-            </div>
+            {TESTIMONIALS.map((t, i) => (
+              <div
+                key={i}
+                className="rounded-2xl border border-white/10 bg-slate-900/60 p-6 flex flex-col justify-between space-y-4 hover:border-white/20 transition-all backdrop-blur-md"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center gap-1 text-amber-400">
+                    {[...Array(5)].map((_, s) => (
+                      <Star key={s} className="h-3.5 w-3.5 fill-amber-400" />
+                    ))}
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed italic">
+                    "{t.quote}"
+                  </p>
+                </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 space-y-3 backdrop-blur-xl hover:border-white/20 transition-all">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
-                <Clock className="h-5 w-5" />
+                <div className="flex items-center gap-3 pt-3 border-t border-white/10">
+                  <div className="h-9 w-9 rounded-full bg-slate-800 border border-white/20 flex items-center justify-center font-bold text-xs text-sky-400">
+                    {t.avatar}
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-white">{t.name}</h4>
+                    <p className="text-[10px] text-slate-400">{t.role}</p>
+                    <p className="text-[10px] text-sky-400 font-medium">{t.firm}</p>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-base font-bold text-white">Deterministic Calendar Math</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Computes relative calendar and business-day cutoff timestamps based on contract mutual acceptance date and local timezone.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 space-y-3 backdrop-blur-xl hover:border-white/20 transition-all">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400">
-                <Mail className="h-5 w-5" />
-              </div>
-              <h3 className="text-base font-bold text-white">Resend Email Alerts</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Delivers automated idempotent reminder notices at T-3, T-1, and 9:00 AM day-of deadline to agents, buyers, and transaction coordinators.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 space-y-3 backdrop-blur-xl hover:border-white/20 transition-all">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400">
-                <FileText className="h-5 w-5" />
-              </div>
-              <h3 className="text-base font-bold text-white">Page-Aware PDF Viewer</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Click any citation in the AI Q&amp;A copilot to jump directly to page numbers with in-situ yellow bounding box quote highlights.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 space-y-3 backdrop-blur-xl hover:border-white/20 transition-all">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10 text-purple-400">
-                <ShieldCheck className="h-5 w-5" />
-              </div>
-              <h3 className="text-base font-bold text-white">Tamper-Evident Audit Trail</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Cryptographically records all document ingestions, date edits, manual confirmations, and notification dispatches for compliance audits.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 space-y-3 backdrop-blur-xl hover:border-white/20 transition-all">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/10 text-rose-400">
-                <BarChart3 className="h-5 w-5" />
-              </div>
-              <h3 className="text-base font-bold text-white">Executive Deal Briefs</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Generates instant transaction health scores (0-100), risk matrix severity tables, and exportable Markdown executive briefs.
-              </p>
-            </div>
+            ))}
           </div>
         </section>
 
-        {/* ── Interactive ROI & EMD Protection Calculator ── */}
+        {/* Comparison Table */}
+        <section id="comparison" className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
+          <div className="text-center space-y-2 mb-10">
+            <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+              Traditional Tracking vs. Contingency Copilot
+            </h2>
+            <p className="text-xs text-slate-400 max-w-lg mx-auto">
+              Why top brokerages are replacing manual calendar math with automated surveillance.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-white/15 bg-slate-900/80 backdrop-blur-2xl overflow-hidden shadow-2xl">
+            <table className="w-full text-left text-xs text-slate-300">
+              <thead className="bg-slate-950 text-slate-200 border-b border-white/10 text-[11px] uppercase tracking-wider">
+                <tr>
+                  <th className="py-3.5 px-5 font-bold">Feature</th>
+                  <th className="py-3.5 px-5 font-bold text-slate-400">Manual Spreadsheets</th>
+                  <th className="py-3.5 px-5 font-bold text-sky-400">Contingency Copilot</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/10">
+                {COMPARISON.map((row, idx) => (
+                  <tr key={idx} className="hover:bg-white/5 transition-colors">
+                    <td className="py-4 px-5 font-semibold text-white">{row.feature}</td>
+                    <td className="py-4 px-5 text-slate-400 flex items-center gap-2">
+                      <X className="h-4 w-4 text-rose-500 shrink-0" />
+                      <span>{row.manual}</span>
+                    </td>
+                    <td className="py-4 px-5 text-emerald-300 font-semibold flex items-center gap-2">
+                      <Check className="h-4 w-4 text-emerald-400 shrink-0" />
+                      <span>{row.copilot}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* ROI Calculator */}
         <section id="calculator" className="mx-auto max-w-4xl px-4 py-16 sm:px-6">
           <div className="rounded-2xl border border-white/15 bg-gradient-to-b from-slate-900/90 to-slate-950 p-8 shadow-2xl backdrop-blur-2xl space-y-6">
             <div className="text-center space-y-2">
               <Badge variant="neutral" className="bg-slate-900 border-slate-700 text-slate-300 text-[11px] gap-1.5 py-1">
                 <DollarSign className="h-3.5 w-3.5 text-emerald-400" />
-                <span>Brokerage Risk Protection Calculator</span>
+                <span>Earnest Money Deposit Protection</span>
               </Badge>
               <h2 className="text-2xl font-bold tracking-tight text-white">
-                Calculate Protected Earnest Money
+                Calculate Protected Buyer Funds
               </h2>
-              <p className="text-xs text-slate-400">
-                Estimate how much buyer earnest money deposit value your brokerage protects per year with automated surveillance.
-              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center pt-2">
@@ -406,7 +485,7 @@ export function LandingPage() {
 
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-xs">
-                    <span className="text-slate-300">Average Earnest Money Deposit:</span>
+                    <span className="text-slate-300">Average Earnest Deposit:</span>
                     <span className="font-bold text-emerald-400 font-mono">${avgEmd.toLocaleString()}</span>
                   </div>
                   <input
@@ -436,7 +515,53 @@ export function LandingPage() {
           </div>
         </section>
 
-        {/* ── Footer ── */}
+        {/* FAQ Accordion */}
+        <section id="faq" className="mx-auto max-w-4xl px-4 py-16 sm:px-6">
+          <div className="text-center space-y-2 mb-10">
+            <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-xs text-slate-400">
+              Everything you need to know about contract parsing, date math, and notifications.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {FAQS.map((faq, idx) => {
+              const isOpen = openFaqIndex === idx;
+              return (
+                <div
+                  key={idx}
+                  className="rounded-xl border border-white/10 bg-slate-900/60 overflow-hidden"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
+                    className="w-full px-5 py-4 text-left flex items-center justify-between gap-4 font-semibold text-xs text-white hover:bg-white/5 transition-colors cursor-pointer"
+                  >
+                    <span>{faq.q}</span>
+                    <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  <AnimatePresence>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="px-5 pb-4 text-xs text-slate-400 leading-relaxed border-t border-white/5 pt-3"
+                      >
+                        {faq.a}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Footer */}
         <footer className="border-t border-white/10 bg-slate-950 py-12 text-xs text-slate-400">
           <div className="mx-auto max-w-[1600px] px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2.5">
@@ -447,8 +572,11 @@ export function LandingPage() {
               <span className="text-slate-500">&bull; 2026 Legal AI Real Estate SaaS</span>
             </div>
 
-            <div className="flex items-center gap-6">
-              <Link to="/docs" className="hover:text-white transition-colors">Documentation</Link>
+            <div className="flex flex-wrap items-center gap-6">
+              <Link to="/pricing" className="hover:text-white transition-colors">Pricing</Link>
+              <Link to="/contracts" className="hover:text-white transition-colors">State Rules</Link>
+              <Link to="/security" className="hover:text-white transition-colors">Security &amp; E&amp;O</Link>
+              <Link to="/docs" className="hover:text-white transition-colors">Docs</Link>
               <Link to="/analytics" className="hover:text-white transition-colors">Analytics</Link>
               <Link to="/deals" className="hover:text-white transition-colors">Portfolio</Link>
               <Link to="/login" className="hover:text-white transition-colors">Sign In</Link>
