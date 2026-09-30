@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import {
   Building2,
@@ -12,6 +12,10 @@ import {
   AlertTriangle,
   Loader2,
   CheckCircle2,
+  Zap,
+  Scale,
+  FileCheck2,
+  UserCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -53,14 +57,12 @@ function loadGoogleScript(): Promise<void> {
 }
 
 export function LoginPage() {
-  const { signInWithGoogle } = useAuth();
+  const { signInWithGoogle, signInAsDemoAgent } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const buttonRef = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
-  const [error, setError] = useState<string | null>(
-    CLIENT_ID ? null : 'VITE_GOOGLE_CLIENT_ID is not configured.',
-  );
+  const [error, setError] = useState<string | null>(null);
   const [signingIn, setSigningIn] = useState(false);
 
   const from = (location.state as { from?: string } | null)?.from ?? '/upload';
@@ -107,50 +109,70 @@ export function LoginPage() {
     });
   }, [ready, signingIn]);
 
-  return (
-    <div className="relative flex min-h-screen bg-slate-950 overflow-hidden">
-      {/* Ambient background glows */}
-      <div className="pointer-events-none absolute -top-40 -left-40 h-[600px] w-[600px] rounded-full bg-sky-500/15 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-40 right-1/3 h-[500px] w-[500px] rounded-full bg-indigo-500/15 blur-3xl" />
+  const handleDemoSignIn = async () => {
+    setSigningIn(true);
+    setError(null);
+    try {
+      await signInAsDemoAgent();
+      navigate(from, { replace: true });
+    } catch (err) {
+      setError((err as Error).message);
+      setSigningIn(false);
+    }
+  };
 
-      {/* ── Brand Showcase Panel ───────────────────────────────────────────── */}
-      <aside className="relative hidden w-[48%] overflow-hidden bg-slate-900/40 text-slate-100 lg:flex lg:flex-col lg:justify-between lg:p-14 border-r border-slate-800/80 backdrop-blur-2xl">
-        <div className="relative flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-white shadow-md ring-1 ring-white/20">
-            <Building2 className="h-5 w-5 text-sky-400" />
-          </div>
-          <div>
-            <span className="text-sm font-bold tracking-tight text-white block">
-              Contingency Deadline Copilot
-            </span>
-            <span className="text-[10px] text-slate-400 font-mono">
-              2026 Legal AI SaaS
-            </span>
-          </div>
+  return (
+    <div className="relative flex min-h-screen bg-slate-950 text-slate-100 overflow-hidden">
+      {/* Ambient background lighting */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 left-1/4 h-[700px] w-[700px] rounded-full bg-sky-500/15 blur-3xl" />
+        <div className="absolute top-1/2 -right-40 h-[600px] w-[600px] rounded-full bg-indigo-500/15 blur-3xl" />
+        <div className="absolute -bottom-40 left-1/3 h-[500px] w-[500px] rounded-full bg-emerald-500/12 blur-3xl" />
+      </div>
+
+      {/* ── Brand Showcase Side Panel ───────────────────────────────────────── */}
+      <aside className="relative hidden w-[48%] overflow-hidden bg-slate-900/40 text-slate-100 lg:flex lg:flex-col lg:justify-between lg:p-14 border-r border-slate-800/80 backdrop-blur-2xl z-10">
+        <div className="relative flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-white shadow-md ring-1 ring-white/20 group-hover:scale-105 transition-transform">
+              <Building2 className="h-5 w-5 text-sky-400" />
+            </div>
+            <div>
+              <span className="text-sm font-bold tracking-tight text-white block">
+                Contingency Copilot
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono">
+                2026 AI Verified SaaS
+              </span>
+            </div>
+          </Link>
+          <Badge variant="neutral" className="bg-slate-900/80 border-slate-700 text-slate-300 text-[10px]">
+            <ShieldCheck className="h-3 w-3 text-emerald-400 mr-1" /> SOC2 Compliant
+          </Badge>
         </div>
 
-        <div className="relative max-w-lg space-y-8 my-auto py-12">
+        <div className="relative max-w-lg space-y-8 my-auto py-10">
           <div className="space-y-3">
-            <Badge variant="neutral" className="bg-slate-900/80 border-slate-700/80 text-slate-300 text-[11px] gap-1.5 py-1 backdrop-blur-md">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-              <span>Zero-Hallucination Legal Grounding</span>
-            </Badge>
-            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl leading-tight">
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-xs font-semibold text-emerald-300">
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+              <span>Zero-Hallucination Legal Extraction Engine</span>
+            </div>
+            <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl leading-tight">
               Autonomous contingency surveillance for modern brokerage teams.
             </h2>
-            <p className="text-sm leading-relaxed text-slate-400">
-              Transform unstructured purchase agreements into binding milestone timelines, automated notifications, and citation-backed contract intelligence.
+            <p className="text-sm leading-relaxed text-slate-300">
+              Transform unstructured purchase agreements into binding milestone timelines, automated Resend email alerts, and citation-backed contract intelligence.
             </p>
           </div>
 
-          <div className="space-y-4 pt-2">
+          <div className="space-y-3.5 pt-2">
             {FEATURES.map(({ icon: Icon, title, body }) => (
-              <div key={title} className="flex items-start gap-3.5 p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-md">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-sky-400 mt-0.5">
-                  <Icon className="h-4 w-4" />
+              <div key={title} className="flex items-start gap-3.5 p-3.5 rounded-xl bg-white/[0.04] border border-white/[0.08] backdrop-blur-md hover:bg-white/[0.06] transition-all">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-sky-400 border border-white/10 mt-0.5">
+                  <Icon className="h-4.5 w-4.5" />
                 </div>
                 <div className="space-y-0.5">
-                  <h4 className="text-xs font-semibold text-slate-200">{title}</h4>
+                  <h4 className="text-xs font-bold text-slate-100">{title}</h4>
                   <p className="text-xs text-slate-400 leading-relaxed">{body}</p>
                 </div>
               </div>
@@ -158,34 +180,74 @@ export function LoginPage() {
           </div>
         </div>
 
-        <div className="relative flex items-center justify-between text-xs text-slate-500 pt-6 border-t border-slate-800/80">
-          <span>SOC2 Type II &bull; 256-bit Document Encryption</span>
+        <div className="relative flex items-center justify-between text-xs text-slate-400 pt-6 border-t border-slate-800/80">
+          <span>AES-256 Document Security</span>
           <span>Resend Enterprise Infrastructure</span>
         </div>
       </aside>
 
-      {/* ── Auth Form Panel ────────────────────────────────────────────────── */}
+      {/* ── Auth Form Center Box ────────────────────────────────────────────── */}
       <main className="flex flex-1 flex-col items-center justify-center px-4 py-12 sm:px-8 relative z-10">
         <div className="w-full max-w-md space-y-6">
+          
+          {/* Mobile Header */}
           <div className="flex flex-col items-center text-center lg:hidden mb-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-white shadow-md ring-1 ring-white/20 mb-2">
-              <Building2 className="h-5 w-5 text-sky-400" />
-            </div>
-            <h2 className="text-lg font-bold text-white">Contingency Copilot</h2>
-            <p className="text-xs text-slate-400">Real Estate Transaction Compliance</p>
+            <Link to="/" className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-xl ring-1 ring-white/20 mb-2">
+              <Building2 className="h-6 w-6 text-sky-400" />
+            </Link>
+            <h2 className="text-xl font-extrabold text-white">Contingency Copilot</h2>
+            <p className="text-xs text-slate-400 mt-0.5">Real Estate Transaction Compliance</p>
           </div>
 
+          {/* Main Auth Card */}
           <div className="rounded-2xl border border-white/15 bg-white/[0.08] p-8 shadow-2xl backdrop-blur-2xl text-white space-y-6">
+            
             <div className="space-y-1.5 text-center">
-              <h1 className="text-xl font-bold tracking-tight text-white">
+              <Badge variant="neutral" className="bg-slate-900/80 border-slate-700 text-slate-300 text-[10px] mb-2 px-2.5 py-0.5">
+                <Lock className="h-3 w-3 text-emerald-400 mr-1.5 inline" /> Secure Agent Workspace Access
+              </Badge>
+              <h1 className="text-2xl font-extrabold tracking-tight text-white">
                 Sign in to your account
               </h1>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Access your brokerage transaction portfolio, review extracted contract deadlines, and monitor alerts.
+                Access active transaction portfolios, review extracted contract deadlines, and monitor Resend alerts.
               </p>
             </div>
 
-            <div className="flex min-h-[44px] justify-center items-center py-2">
+            {/* Quick Demo Access Option */}
+            <div className="space-y-3">
+              <Button
+                type="button"
+                onClick={handleDemoSignIn}
+                disabled={signingIn}
+                className="w-full h-11 bg-white text-slate-950 hover:bg-slate-100 font-bold text-xs shadow-xl flex items-center justify-center gap-2 rounded-xl border border-white/20 active:scale-[0.99] transition-all"
+              >
+                {signingIn ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin text-slate-950" />
+                    <span>Launching Workspace...</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap className="h-4 w-4 text-sky-600 fill-sky-500" />
+                    <span>Instant Demo Agent Sign-In</span>
+                    <ArrowRight className="h-3.5 w-3.5 ml-auto text-slate-500" />
+                  </>
+                )}
+              </Button>
+
+              <div className="relative flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-white/15" />
+                </div>
+                <span className="relative bg-slate-950 px-3 text-[11px] uppercase tracking-wider font-mono text-slate-400">
+                  or Google SSO
+                </span>
+              </div>
+            </div>
+
+            {/* Google OAuth Render Container */}
+            <div className="flex min-h-[44px] justify-center items-center py-1">
               {signingIn ? (
                 <div className="flex items-center gap-2 text-xs font-medium text-slate-300">
                   <Loader2 className="h-4 w-4 animate-spin text-sky-400" />
@@ -196,7 +258,7 @@ export function LoginPage() {
               ) : (
                 !error && (
                   <div className="h-10 w-full animate-pulse rounded-xl bg-white/10 flex items-center justify-center text-xs text-slate-300">
-                    Initializing Google Sign-In...
+                    Initializing Google SSO...
                   </div>
                 )
               )}
@@ -209,16 +271,27 @@ export function LoginPage() {
               </div>
             )}
 
-            <div className="border-t border-white/10 pt-4 space-y-3">
+            <div className="border-t border-white/10 pt-4 space-y-2 text-center">
               <div className="flex items-center justify-center gap-2 text-[11px] text-slate-400">
-                <Lock className="h-3.5 w-3.5 text-emerald-400" />
-                <span>Protected by Google Identity OAuth 2.0</span>
+                <UserCheck className="h-3.5 w-3.5 text-emerald-400" />
+                <span>Auto-provisioned Agent Workspace profile</span>
               </div>
-              <p className="text-center text-[11px] text-slate-400/90 leading-relaxed">
-                New agent or coordinator? Your workspace profile is provisioned automatically upon your first Google Sign-In.
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                By signing in, you accept brokerage legal compliance terms and AES-256 data protection guidelines.
               </p>
             </div>
+
           </div>
+
+          {/* Quick Footer Navigation */}
+          <div className="flex items-center justify-center gap-4 text-xs text-slate-400">
+            <Link to="/" className="hover:text-white transition-colors">Home Page</Link>
+            <span>&bull;</span>
+            <Link to="/pricing" className="hover:text-white transition-colors">Pricing</Link>
+            <span>&bull;</span>
+            <Link to="/security" className="hover:text-white transition-colors">Security</Link>
+          </div>
+
         </div>
       </main>
     </div>

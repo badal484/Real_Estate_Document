@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { asyncHandler, createError } from '../../middleware/errorHandler.js';
 import { requireAuth } from '../../middleware/auth.js';
-import { signInWithGoogle } from '../../services/auth.service.js';
+import { signInWithGoogle, signInAsDemoAgent } from '../../services/auth.service.js';
 
 const router = Router();
 
@@ -18,6 +18,15 @@ router.post(
     if (!parsed.success) throw createError('Missing Google credential', 400);
 
     const session = await signInWithGoogle(parsed.data.credential);
+    res.json(session);
+  }),
+);
+
+// POST /api/auth/demo — 1-click Demo Agent login
+router.post(
+  '/demo',
+  asyncHandler(async (_req, res) => {
+    const session = await signInAsDemoAgent();
     res.json(session);
   }),
 );

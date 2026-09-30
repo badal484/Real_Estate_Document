@@ -62,6 +62,10 @@ export const authApi = {
       method: 'POST',
       body: JSON.stringify({ credential }),
     }),
+  signInAsDemoAgent: () =>
+    request<{ token: string; user: User }>('/auth/demo', {
+      method: 'POST',
+    }),
   me: () => request<{ user: User }>('/auth/me'),
 };
 

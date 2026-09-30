@@ -8,6 +8,7 @@ interface AuthState {
   /** True while an existing session token is being validated on first load. */
   loading: boolean;
   signInWithGoogle: (credential: string) => Promise<void>;
+  signInAsDemoAgent: () => Promise<void>;
   signOut: () => void;
 }
 
@@ -34,6 +35,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(session.user);
   }, []);
 
+  const signInAsDemoAgent = useCallback(async () => {
+    const session = await authApi.signInAsDemoAgent();
+    setToken(session.token);
+    setUser(session.user);
+  }, []);
+
   const signOut = useCallback(() => {
     setToken(null);
     setUser(null);
@@ -41,8 +48,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, loading, signInWithGoogle, signOut }),
-    [user, loading, signInWithGoogle, signOut],
+    () => ({ user, loading, signInWithGoogle, signInAsDemoAgent, signOut }),
+    [user, loading, signInWithGoogle, signInAsDemoAgent, signOut],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
