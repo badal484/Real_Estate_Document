@@ -14,9 +14,6 @@ import {
   Loader2,
   Eye,
   Send,
-  Mail,
-  Bell,
-  Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -71,7 +68,7 @@ export function NotificationSettingsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-[1600px] mx-auto">
+    <div className="space-y-6 max-w-[1400px] mx-auto">
       {/* Unified Command Center Header & Tab Navigation */}
       <DealHeader deal={deal} notifSettings={settings} activeTab="notifications" />
 
@@ -86,10 +83,10 @@ export function NotificationSettingsPage() {
               Resend Verified
             </Badge>
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+          <h1 className="text-xl font-bold tracking-tight text-primary-text sm:text-2xl">
             Email Alerts &amp; Inbound Intake
           </h1>
-          <p className="mt-0.5 text-xs text-muted-foreground">
+          <p className="mt-0.5 text-xs text-secondary-text">
             Configure automated milestone reminders, preview dynamic templates, and inspect cryptographic delivery logs.
           </p>
         </div>
@@ -102,7 +99,7 @@ export function NotificationSettingsPage() {
             onClick={() => setPreviewOpen(true)}
             className="gap-1.5 h-8 text-xs"
           >
-            <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+            <Eye className="h-3.5 w-3.5 text-secondary-text" />
             <span>Preview Templates</span>
           </Button>
 
@@ -117,7 +114,7 @@ export function NotificationSettingsPage() {
             {sendingSummary ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
             ) : (
-              <Send className="h-3.5 w-3.5 text-muted-foreground" />
+              <Send className="h-3.5 w-3.5 text-secondary-text" />
             )}
             <span>Send Summary Now</span>
           </Button>
@@ -131,29 +128,29 @@ export function NotificationSettingsPage() {
       </div>
 
       {dealError && (
-        <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-xs text-destructive">
+        <div className="banner-error">
           <AlertTriangle className="h-4 w-4 shrink-0" />
           <span>{dealError}</span>
         </div>
       )}
 
       {error && (
-        <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-xs text-destructive">
+        <div className="banner-error">
           <AlertTriangle className="h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {successMessage && (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-50/80 dark:bg-emerald-950/40 p-4 text-xs text-emerald-800 dark:text-emerald-300">
-          <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+        <div className="banner-success">
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
           <span>{successMessage}</span>
         </div>
       )}
 
       {summaryStatus && (
-        <div className="flex items-center gap-2 rounded-xl border border-blue-500/20 bg-blue-50/80 dark:bg-blue-950/40 p-4 text-xs text-blue-800 dark:text-blue-300">
-          <CheckCircle2 className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
+        <div className="banner-success">
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
           <span>{summaryStatus}</span>
         </div>
       )}
@@ -163,7 +160,7 @@ export function NotificationSettingsPage() {
 
       {/* Preferences Form */}
       {loading ? (
-        <div className="rounded-xl border border-border/70 bg-card p-12 flex items-center justify-center gap-2 text-xs text-muted-foreground shadow-2xs">
+        <div className="rounded-md border border-border bg-surface p-12 flex items-center justify-center gap-2 text-xs text-secondary-text shadow-2xs">
           <Loader2 className="h-4 w-4 animate-spin text-primary" />
           <span>Loading alert preferences...</span>
         </div>

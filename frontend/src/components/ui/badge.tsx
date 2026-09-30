@@ -2,23 +2,35 @@ import React from 'react';
 import { cn } from '@/utils/cn';
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'secondary' | 'outline' | 'destructive' | 'success' | 'warning' | 'info' | 'neutral';
+  variant?: 'default' | 'secondary' | 'outline' | 'destructive' | 'success' | 'warning' | 'danger' | 'info' | 'neutral' | 'needs-review';
+}
+
+export function badgeVariants({
+  variant = 'default',
+  className = '',
+}: {
+  variant?: BadgeProps['variant'];
+  className?: string;
+} = {}) {
+  const baseStyles =
+    'inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-xs font-medium transition-colors select-none';
+
+  const variants = {
+    default: 'bg-primary text-white',
+    secondary: 'bg-secondary text-primary-text border border-border',
+    outline: 'border border-border text-secondary-text bg-surface',
+    destructive: 'bg-danger-light text-danger border border-danger-border',
+    danger: 'bg-danger-light text-danger border border-danger-border',
+    success: 'bg-success-light text-success border border-success-border',
+    warning: 'bg-warning-light text-warning border border-warning-border',
+    'needs-review': 'bg-warning-light text-warning border border-warning-border font-semibold',
+    info: 'bg-info-light text-info border border-info-border',
+    neutral: 'bg-secondary text-secondary-text border border-border',
+  };
+
+  return cn(baseStyles, variants[variant], className);
 }
 
 export function Badge({ className, variant = 'default', ...props }: BadgeProps) {
-  const base =
-    'inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium tracking-tight transition-colors select-none';
-
-  const variants = {
-    default: 'border border-transparent bg-slate-900 text-white',
-    secondary: 'border border-transparent bg-slate-100 text-slate-800',
-    outline: 'border border-slate-200 text-slate-700 bg-white',
-    destructive: 'border border-rose-200 bg-rose-50 text-rose-800',
-    success: 'border border-emerald-200 bg-emerald-50 text-emerald-800',
-    warning: 'border border-amber-200 bg-amber-50 text-amber-800',
-    info: 'border border-blue-200 bg-blue-50 text-blue-800',
-    neutral: 'border border-slate-200 bg-slate-50 text-slate-600',
-  };
-
-  return <div className={cn(base, variants[variant], className)} {...props} />;
+  return <div className={badgeVariants({ variant, className })} {...props} />;
 }

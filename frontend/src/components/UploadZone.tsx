@@ -51,8 +51,8 @@ export function UploadZone({ dealId, onSuccess }: Props) {
       onClick={() => inputRef.current?.click()}
       className={`cursor-pointer rounded-xl border-2 border-dashed p-10 text-center transition-all ${
         dragging
-          ? 'border-slate-900 bg-slate-50'
-          : 'border-slate-200 bg-white hover:border-slate-400 hover:bg-slate-50/50'
+          ? 'border-primary bg-primary/5'
+          : 'border-border bg-card hover:border-primary/50 hover:bg-muted/30'
       }`}
     >
       <input
@@ -69,10 +69,10 @@ export function UploadZone({ dealId, onSuccess }: Props) {
       <div
         className={`mx-auto flex h-11 w-11 items-center justify-center rounded-xl transition-colors ${
           success
-            ? 'bg-emerald-100 text-emerald-700'
+            ? 'bg-success/10 text-success border border-success/20'
             : uploading
-            ? 'bg-slate-100 text-slate-700'
-            : 'bg-slate-100 text-slate-700'
+            ? 'bg-primary/10 text-primary border border-primary/20'
+            : 'bg-muted text-muted-foreground border border-border'
         }`}
       >
         {success ? (
@@ -85,20 +85,20 @@ export function UploadZone({ dealId, onSuccess }: Props) {
       </div>
 
       {uploading ? (
-        <p className="mt-3 text-xs font-semibold text-slate-900">Uploading &amp; indexing document&hellip;</p>
+        <p className="mt-3 text-xs font-semibold text-foreground">Uploading &amp; indexing document&hellip;</p>
       ) : success ? (
-        <p className="mt-3 text-xs font-semibold text-emerald-700">Upload and ingestion successful.</p>
+        <p className="mt-3 text-xs font-semibold text-success">Upload and ingestion successful.</p>
       ) : (
         <>
-          <p className="mt-3 text-xs font-semibold text-slate-900">
-            Drag and drop your contract PDF here, or <span className="underline">browse</span>
+          <p className="mt-3 text-xs font-semibold text-foreground">
+            Drag and drop your contract PDF here, or <span className="underline text-primary">browse</span>
           </p>
-          <p className="mt-1 text-[11px] text-slate-400">PDF contracts, counter offers, and addenda up to 50 MB</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">PDF contracts, counter offers, and addenda up to 50 MB</p>
         </>
       )}
 
       {error && (
-        <p className="mt-2.5 flex items-center justify-center gap-1 text-xs font-medium text-rose-600">
+        <p className="mt-2.5 flex items-center justify-center gap-1 text-xs font-medium text-destructive">
           <AlertTriangle className="h-3.5 w-3.5" />
           <span>{error}</span>
         </p>

@@ -3,7 +3,6 @@ import { notificationsApi } from '@/services/api';
 import { Eye, X, Loader2, AlertTriangle, Mail, Code2, Sparkles, CheckCircle2 } from 'lucide-react';
 import type { EmailPreviewResponse } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Props {
@@ -39,29 +38,29 @@ export function EmailPreviewModal({ dealId, isOpen, onClose }: Props) {
           // Fallback realistic preview
           setPreview({
             subject: `[Contingency Notice] Inspection Contingency Deadline approaching in 3 Days`,
-            html: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 24px; color: #0f172a; max-width: 580px; margin: auto; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
-              <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 16px;">
-                <span style="font-size: 11px; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 0.05em;">Contingency Deadline Copilot</span>
-                <span style="font-size: 11px; color: #64748b;">Deal Reference: ${dealId.slice(0, 8)}</span>
+            html: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 24px; color: #171A19; max-width: 580px; margin: auto; border: 1px solid #E5E8E5; border-radius: 8px; background: #ffffff;">
+              <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #E5E8E5; padding-bottom: 12px; margin-bottom: 16px;">
+                <span style="font-size: 11px; font-weight: 700; color: #173F35; text-transform: uppercase; letter-spacing: 0.05em;">Contingency Deadline Copilot</span>
+                <span style="font-size: 11px; color: #66706B;">Deal Reference: ${dealId.slice(0, 8)}</span>
               </div>
-              <h2 style="color: #0f172a; font-size: 18px; margin: 0 0 8px 0; font-weight: 700;">Action Required: Inspection Deadline</h2>
-              <p style="font-size: 13px; line-height: 1.5; color: #475569; margin: 0 0 16px 0;">This is an automated compliance alert for your purchase agreement. The <strong>Property Inspection & Objection Window</strong> is approaching its expiration date.</p>
+              <h2 style="color: #171A19; font-size: 18px; margin: 0 0 8px 0; font-weight: 700;">Action Required: Inspection Deadline</h2>
+              <p style="font-size: 13px; line-height: 1.5; color: #66706B; margin: 0 0 16px 0;">This is an automated compliance alert for your purchase agreement. The <strong>Property Inspection & Objection Window</strong> is approaching its expiration date.</p>
               
-              <div style="background-color: #f8fafc; border-radius: 8px; padding: 14px 16px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
-                <div style="font-size: 12px; color: #64748b; margin-bottom: 4px;">Milestone Status</div>
-                <div style="font-size: 14px; font-weight: 600; color: #0f172a; margin-bottom: 10px;">Inspection Contingency &bull; 3 Calendar Days Remaining</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; padding-top: 8px; border-top: 1px dashed #cbd5e1;">
-                  <div><span style="color: #64748b;">Contract Reference:</span> Section 10(A)</div>
-                  <div><span style="color: #64748b;">Audit Status:</span> Agent Confirmed</div>
+              <div style="background-color: #F7F8F6; border-radius: 6px; padding: 14px 16px; border: 1px solid #E5E8E5; margin-bottom: 20px;">
+                <div style="font-size: 12px; color: #66706B; margin-bottom: 4px;">Milestone Status</div>
+                <div style="font-size: 14px; font-weight: 600; color: #171A19; margin-bottom: 10px;">Inspection Contingency &bull; 3 Calendar Days Remaining</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; padding-top: 8px; border-top: 1px dashed #D1D6D2;">
+                  <div><span style="color: #66706B;">Contract Reference:</span> Section 10(A)</div>
+                  <div><span style="color: #66706B;">Audit Status:</span> Agent Confirmed</div>
                 </div>
               </div>
 
-              <div style="font-size: 12px; color: #64748b; line-height: 1.5; margin-bottom: 20px;">
-                Failure to provide written notice or request an extension prior to 5:00 PM local time may constitute a waiver of your buyer contingency rights and place earnest money deposits at risk.
+              <div style="font-size: 12px; color: #66706B; line-height: 1.5; margin-bottom: 20px;">
+                Failure to provide written notice or request an extension prior to 5:00 PM local time may constitute a waiver of buyer contingency rights and place earnest money deposits at risk.
               </div>
 
-              <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 20px 0;" />
-              <p style="font-size: 11px; color: #94a3b8; margin: 0;">Dispatched via Resend Enterprise Delivery Network &bull; Automated Real Estate Transaction Safeguard.</p>
+              <hr style="border: none; border-top: 1px solid #E5E8E5; margin: 20px 0;" />
+              <p style="font-size: 11px; color: #66706B; margin: 0;">Dispatched via Resend Enterprise Delivery Network &bull; Automated Real Estate Transaction Safeguard.</p>
             </div>`,
             text: `[Contingency Notice] Inspection Contingency Deadline approaching in 3 Days\n\nAction Required: Inspection Deadline\nMilestone: Inspection Contingency (3 Calendar Days Remaining)\nContract Reference: Section 10(A)\nStatus: Agent Confirmed\n\nFailure to provide written notice prior to 5:00 PM local time may constitute a waiver of contingency rights.`,
           });
@@ -74,47 +73,47 @@ export function EmailPreviewModal({ dealId, isOpen, onClose }: Props) {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-xs">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-2xs">
         <motion.div
           initial={{ opacity: 0, scale: 0.96, y: 8 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 8 }}
           transition={{ duration: 0.15 }}
-          className="rounded-xl border border-border/70 bg-card max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl"
+          className="rounded-lg border border-border bg-surface max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-xl"
         >
           {/* Modal Header */}
-          <div className="flex items-center justify-between border-b border-border/60 px-6 py-4 bg-muted/20">
+          <div className="flex items-center justify-between border-b border-border px-6 py-3.5 bg-secondary/30">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <div className="flex h-7.5 w-7.5 items-center justify-center rounded-md bg-secondary text-primary">
                 <Eye className="h-4 w-4" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-foreground tracking-tight">Transactional Email Preview</h3>
-                <p className="text-xs text-muted-foreground">Preview exact HTML layout rendered by Resend API</p>
+                <h3 className="text-xs font-semibold text-primary-text tracking-tight">Transactional Email Preview</h3>
+                <p className="text-[11px] text-secondary-text">Preview exact HTML layout rendered by Resend API</p>
               </div>
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              className="h-7 w-7 text-secondary-text hover:text-primary-text"
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
 
           {/* Template Selector Tabs */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/60 bg-muted/30 px-6 py-2.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border bg-secondary/20 px-6 py-2.5">
             <div className="flex flex-wrap gap-1.5">
               {TEMPLATES.map((tmpl) => (
                 <button
                   key={tmpl.id}
                   type="button"
                   onClick={() => setSelectedTemplate(tmpl.id)}
-                  className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
+                  className={`rounded px-2.5 py-1 text-xs font-medium transition-all ${
                     selectedTemplate === tmpl.id
-                      ? 'bg-primary text-primary-foreground shadow-2xs font-semibold'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                      ? 'bg-primary text-white shadow-2xs font-semibold'
+                      : 'text-secondary-text hover:bg-secondary hover:text-primary-text'
                   }`}
                 >
                   {tmpl.label}
@@ -122,26 +121,26 @@ export function EmailPreviewModal({ dealId, isOpen, onClose }: Props) {
               ))}
             </div>
 
-            <div className="flex items-center rounded-lg bg-muted/80 p-0.5 text-xs self-end sm:self-auto border border-border/50">
+            <div className="flex items-center rounded bg-secondary p-0.5 text-xs self-end sm:self-auto border border-border">
               <button
                 type="button"
                 onClick={() => setViewMode('html')}
-                className={`flex items-center gap-1 rounded-md px-2.5 py-1 font-medium transition-colors ${
+                className={`flex items-center gap-1 rounded px-2.5 py-1 font-medium transition-colors ${
                   viewMode === 'html'
-                    ? 'bg-background text-foreground shadow-2xs'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-surface text-primary-text shadow-2xs font-semibold'
+                    : 'text-secondary-text hover:text-primary-text'
                 }`}
               >
                 <Sparkles className="h-3 w-3" />
-                <span>Rendered HTML</span>
+                <span>HTML</span>
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode('text')}
-                className={`flex items-center gap-1 rounded-md px-2.5 py-1 font-medium transition-colors ${
+                className={`flex items-center gap-1 rounded px-2.5 py-1 font-medium transition-colors ${
                   viewMode === 'text'
-                    ? 'bg-background text-foreground shadow-2xs'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-surface text-primary-text shadow-2xs font-semibold'
+                    : 'text-secondary-text hover:text-primary-text'
                 }`}
               >
                 <Code2 className="h-3 w-3" />
@@ -153,14 +152,14 @@ export function EmailPreviewModal({ dealId, isOpen, onClose }: Props) {
           {/* Content Area */}
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {loading && (
-              <div className="flex flex-col items-center justify-center py-20 gap-3 text-xs text-muted-foreground">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <div className="flex flex-col items-center justify-center py-20 gap-3 text-xs text-secondary-text">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
                 <span>Compiling responsive email template...</span>
               </div>
             )}
 
             {error && (
-              <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
+              <div className="banner-error">
                 <AlertTriangle className="h-4 w-4 shrink-0" />
                 <span>{error}</span>
               </div>
@@ -168,23 +167,23 @@ export function EmailPreviewModal({ dealId, isOpen, onClose }: Props) {
 
             {!loading && preview && (
               <div className="space-y-4">
-                <div className="rounded-lg bg-muted/40 p-3.5 text-xs border border-border/60 flex items-start gap-2">
+                <div className="rounded-md bg-secondary/30 p-3 text-xs border border-border flex items-start gap-2">
                   <Mail className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-semibold text-foreground">Subject: </span>
-                    <span className="text-foreground/90 font-mono text-[11px]">{preview.subject}</span>
+                    <span className="font-semibold text-primary-text">Subject: </span>
+                    <span className="text-primary-text/90 font-mono text-[11px]">{preview.subject}</span>
                   </div>
                 </div>
 
                 {viewMode === 'html' ? (
-                  <div className="rounded-xl border border-border/70 bg-slate-100/50 dark:bg-slate-900/50 p-6 flex justify-center">
+                  <div className="rounded-md border border-border bg-background p-6 flex justify-center">
                     <div
-                      className="w-full max-w-[600px] shadow-sm rounded-lg overflow-hidden"
+                      className="w-full max-w-[580px] shadow-sm rounded overflow-hidden"
                       dangerouslySetInnerHTML={{ __html: preview.html }}
                     />
                   </div>
                 ) : (
-                  <pre className="rounded-xl border border-border/70 bg-slate-950 p-4 text-xs font-mono text-slate-100 whitespace-pre-wrap leading-relaxed">
+                  <pre className="rounded-md border border-border bg-secondary/70 p-4 text-xs font-mono text-primary-text whitespace-pre-wrap leading-relaxed">
                     {preview.text}
                   </pre>
                 )}
@@ -193,10 +192,10 @@ export function EmailPreviewModal({ dealId, isOpen, onClose }: Props) {
           </div>
 
           {/* Footer */}
-          <div className="border-t border-border/60 px-6 py-3.5 bg-muted/20 flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-              <span>Tested for Apple Mail, Outlook & Gmail client rendering</span>
+          <div className="border-t border-border px-6 py-3 bg-secondary/30 flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-xs text-secondary-text">
+              <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+              <span>Tested for Apple Mail, Outlook &amp; Gmail client rendering</span>
             </div>
             <Button type="button" variant="secondary" size="sm" onClick={onClose} className="text-xs">
               Close Preview

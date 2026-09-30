@@ -45,7 +45,7 @@ function StatusBadge({ status }: { status: EmailLog['status'] }) {
       );
     case 'BOUNCED':
       return (
-        <Badge variant="destructive" className="gap-1 text-[11px] font-medium">
+        <Badge variant="danger" className="gap-1 text-[11px] font-medium">
           <XCircle className="h-3 w-3" />
           <span>Bounced</span>
         </Badge>
@@ -69,14 +69,14 @@ function StatusBadge({ status }: { status: EmailLog['status'] }) {
 
 export function EmailLogTable({ logs, loading, onRefresh }: Props) {
   return (
-    <div className="rounded-xl border border-border/70 bg-card overflow-hidden shadow-sm">
-      <div className="flex items-center justify-between border-b border-border/60 px-6 py-4 bg-muted/20">
+    <div className="rounded-md border border-border bg-surface overflow-hidden shadow-2xs">
+      <div className="flex items-center justify-between border-b border-border px-6 py-3.5 bg-secondary/30">
         <div>
-          <h3 className="text-sm font-semibold text-foreground tracking-tight flex items-center gap-2">
-            <Mail className="h-4 w-4 text-primary" />
-            Email Dispatch Audit Log
+          <h3 className="text-xs font-semibold text-primary-text tracking-tight flex items-center gap-2">
+            <Mail className="h-3.5 w-3.5 text-primary" />
+            <span>Email Dispatch Audit Log</span>
           </h3>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="text-[11px] text-secondary-text mt-0.5">
             Cryptographically tracked delivery log for all compliance notices sent via Resend API.
           </p>
         </div>
@@ -84,24 +84,24 @@ export function EmailLogTable({ logs, loading, onRefresh }: Props) {
           <Button
             type="button"
             variant="outline"
-            size="sm"
+            size="xs"
             onClick={onRefresh}
             disabled={loading}
-            className="h-8 px-2.5 text-xs gap-1.5"
+            className="h-7.5 px-2.5 text-xs gap-1.5"
           >
-            <RotateCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <RotateCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
           </Button>
         )}
       </div>
 
       {logs.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted/60 text-muted-foreground border border-border/60 mb-3">
+        <div className="flex flex-col items-center justify-center py-14 px-4 text-center">
+          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-secondary text-secondary-text mb-2.5">
             <Mail className="h-5 w-5" />
           </div>
-          <h4 className="text-sm font-semibold text-foreground">No email alerts dispatched yet</h4>
-          <p className="mt-1 max-w-sm text-xs text-muted-foreground">
+          <h4 className="text-xs font-semibold text-primary-text">No email alerts dispatched yet</h4>
+          <p className="mt-1 max-w-sm text-[11px] text-secondary-text">
             When contingency deadlines trigger their reminder windows, full audit delivery logs will be recorded here.
           </p>
         </div>
@@ -119,19 +119,19 @@ export function EmailLogTable({ logs, loading, onRefresh }: Props) {
           <TableBody>
             {logs.map((log) => (
               <TableRow key={log.id}>
-                <TableCell className="font-mono text-xs font-medium text-foreground">
+                <TableCell className="font-mono text-xs font-medium text-primary-text">
                   {log.recipient}
                 </TableCell>
-                <TableCell className="text-xs text-foreground font-medium">
+                <TableCell className="text-xs text-primary-text font-medium">
                   {TEMPLATE_NAMES[log.template] ?? log.template}
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground">
+                <TableCell className="text-xs text-secondary-text">
                   {log.deadline?.label ?? 'General Transaction Notice'}
                 </TableCell>
                 <TableCell>
                   <StatusBadge status={log.status} />
                 </TableCell>
-                <TableCell className="text-right text-xs font-mono text-muted-foreground whitespace-nowrap">
+                <TableCell className="text-right text-xs font-mono text-secondary-text whitespace-nowrap">
                   {formatAuditTimestamp(log.sentAt)}
                 </TableCell>
               </TableRow>

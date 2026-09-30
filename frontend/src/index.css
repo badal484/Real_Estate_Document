@@ -8,100 +8,82 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 210 20% 98%;
-    --foreground: 222 47% 11%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-
-    --primary: 222 47% 11%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222 47% 11%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222 47% 11%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222 47% 11%;
-
-    --radius: 0.625rem;
-  }
-
   html {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    background-color: #F7F8F6;
+    color: #171A19;
   }
 
   body {
-    @apply bg-slate-50 text-slate-900 antialiased selection:bg-slate-200 selection:text-slate-900;
+    background-color: #F7F8F6;
+    color: #171A19;
     min-height: 100vh;
+    margin: 0;
+    padding: 0;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply tracking-tight font-semibold text-slate-900;
+    color: #171A19;
+    letter-spacing: -0.015em;
+    font-weight: 600;
   }
 
   /* Custom Slim Enterprise Scrollbars */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-slate-300/80 rounded-full hover:bg-slate-400 transition-colors;
+    background-color: #D1D6D2;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: #A3ACA5;
+  }
+
+  /* Focus ring style */
+  :focus-visible {
+    outline: 2px solid #173F35;
+    outline-offset: 1px;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50;
-  }
-  .btn-brand {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-brand-800 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-700 focus:ring-offset-2 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-primary px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-medium text-primary-text shadow-2xs transition-colors hover:bg-secondary hover:border-secondary-text/30 focus:outline-none focus:ring-2 focus:ring-primary/20 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition-all hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium text-secondary-text transition-colors hover:bg-secondary hover:text-primary-text active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50;
   }
   .card {
-    @apply rounded-xl border border-slate-200/80 bg-white shadow-sm transition-all;
-  }
-  .card-hover {
-    @apply rounded-xl border border-slate-200/80 bg-white shadow-sm transition-all hover:border-slate-300 hover:shadow-md;
+    @apply rounded-lg border border-border bg-surface shadow-2xs;
   }
   .input-base {
-    @apply w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-900 focus:border-slate-900 shadow-sm transition-all;
+    @apply w-full rounded-md border border-border bg-surface px-3 py-1.5 text-xs text-primary-text placeholder:text-secondary-text/60 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-2xs transition-colors;
   }
   .label-base {
-    @apply mb-1.5 block text-xs font-semibold text-slate-700;
+    @apply mb-1.5 block text-xs font-semibold text-primary-text;
   }
   .banner-error {
-    @apply flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50/90 px-3.5 py-2.5 text-xs text-rose-800 shadow-sm;
+    @apply flex items-start gap-2 rounded-md border border-danger-border bg-danger-light px-3.5 py-2.5 text-xs text-danger shadow-2xs;
   }
   .banner-success {
-    @apply flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50/90 px-3.5 py-2.5 text-xs text-emerald-800 shadow-sm;
+    @apply flex items-start gap-2 rounded-md border border-success-border bg-success-light px-3.5 py-2.5 text-xs text-success shadow-2xs;
+  }
+  .banner-warning {
+    @apply flex items-start gap-2 rounded-md border border-warning-border bg-warning-light px-3.5 py-2.5 text-xs text-warning shadow-2xs;
   }
   .empty-state {
-    @apply rounded-xl border border-dashed border-slate-200 bg-white/70 p-10 text-center;
+    @apply rounded-lg border border-dashed border-border bg-surface/80 p-10 text-center;
   }
 }
 
@@ -112,5 +94,14 @@
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

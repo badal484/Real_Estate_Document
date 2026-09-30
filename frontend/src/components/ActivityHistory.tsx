@@ -76,8 +76,8 @@ function parseEventDetails(log: AuditLog): EventView {
       const address = (next['propertyAddress'] as string) || (prev['propertyAddress'] as string);
       return {
         Icon: Building2,
-        iconBgClass: 'bg-emerald-50 dark:bg-emerald-950/50 ring-emerald-200 dark:ring-emerald-800',
-        iconTextClass: 'text-emerald-700 dark:text-emerald-400',
+        iconBgClass: 'bg-success/10 ring-success/30',
+        iconTextClass: 'text-success',
         title: 'Deal Ingested',
         description: address ? `Transaction workspace initialized for ${address}` : 'Transaction initialized',
         actorText,
@@ -88,8 +88,8 @@ function parseEventDetails(log: AuditLog): EventView {
       const filename = (next['filename'] as string) || (next['originalname'] as string) || note || 'document.pdf';
       return {
         Icon: FileText,
-        iconBgClass: 'bg-blue-50 dark:bg-blue-950/50 ring-blue-200 dark:ring-blue-800',
-        iconTextClass: 'text-blue-700 dark:text-blue-400',
+        iconBgClass: 'bg-info/10 ring-info/30',
+        iconTextClass: 'text-info',
         title: 'Contract Uploaded',
         description: filename,
         actorText,
@@ -99,8 +99,8 @@ function parseEventDetails(log: AuditLog): EventView {
     case 'EXTRACTION_STARTED': {
       return {
         Icon: Search,
-        iconBgClass: 'bg-amber-50 dark:bg-amber-950/50 ring-amber-200 dark:ring-amber-800',
-        iconTextClass: 'text-amber-700 dark:text-amber-400',
+        iconBgClass: 'bg-warning/10 ring-warning/30',
+        iconTextClass: 'text-warning',
         title: 'Clause Extraction Initiated',
         description: 'AI model scanning PDF text layers for contingency timelines',
         actorText,
@@ -111,8 +111,8 @@ function parseEventDetails(log: AuditLog): EventView {
       const clausesCount = (next['clauses'] as number) ?? (next['count'] as number) ?? 3;
       return {
         Icon: Sparkles,
-        iconBgClass: 'bg-purple-50 dark:bg-purple-950/50 ring-purple-200 dark:ring-purple-800',
-        iconTextClass: 'text-purple-700 dark:text-purple-400',
+        iconBgClass: 'bg-primary/10 ring-primary/30',
+        iconTextClass: 'text-primary',
         title: 'Extraction Completed',
         description: `AI discovered ${clausesCount} binding contingency clause${clausesCount === 1 ? '' : 's'} with verified citations`,
         actorText,
@@ -126,8 +126,8 @@ function parseEventDetails(log: AuditLog): EventView {
       const formattedTarget = targetDateIso ? formatShortDate(targetDateIso) : '';
       return {
         Icon: CheckCircle2,
-        iconBgClass: 'bg-emerald-50 dark:bg-emerald-950/50 ring-emerald-200 dark:ring-emerald-800',
-        iconTextClass: 'text-emerald-700 dark:text-emerald-400',
+        iconBgClass: 'bg-success/10 ring-success/30',
+        iconTextClass: 'text-success',
         title: 'Deadline Confirmed',
         description: formattedTarget ? `${label} confirmed for ${formattedTarget}` : `${label} confirmed`,
         actorText,
@@ -148,8 +148,8 @@ function parseEventDetails(log: AuditLog): EventView {
 
       return {
         Icon: Edit3,
-        iconBgClass: 'bg-amber-50 dark:bg-amber-950/50 ring-amber-200 dark:ring-amber-800',
-        iconTextClass: 'text-amber-700 dark:text-amber-400',
+        iconBgClass: 'bg-warning/10 ring-warning/30',
+        iconTextClass: 'text-warning',
         title: 'Deadline Adjusted',
         description: `${label} date modified manually`,
         changeDiff,
@@ -162,8 +162,8 @@ function parseEventDetails(log: AuditLog): EventView {
       const label = formatDeadlineLabel(rawLabel);
       return {
         Icon: CheckCircle2,
-        iconBgClass: 'bg-emerald-50 dark:bg-emerald-950/50 ring-emerald-200 dark:ring-emerald-800',
-        iconTextClass: 'text-emerald-700 dark:text-emerald-400',
+        iconBgClass: 'bg-success/10 ring-success/30',
+        iconTextClass: 'text-success',
         title: 'Alert Dispatch Armed',
         description: `${label} reminders armed for automated distribution`,
         actorText,
@@ -176,8 +176,8 @@ function parseEventDetails(log: AuditLog): EventView {
       const recipient = (next['recipient'] as string) || (prev['recipient'] as string);
       return {
         Icon: Send,
-        iconBgClass: 'bg-indigo-50 dark:bg-indigo-950/50 ring-indigo-200 dark:ring-indigo-800',
-        iconTextClass: 'text-indigo-700 dark:text-indigo-400',
+        iconBgClass: 'bg-info/10 ring-info/30',
+        iconTextClass: 'text-info',
         title: 'Email Alert Dispatched',
         description: recipient ? `${label} notice delivered to ${recipient}` : `Reminder sent for ${label}`,
         actorText,
@@ -188,8 +188,8 @@ function parseEventDetails(log: AuditLog): EventView {
       const recipient = (next['to'] as string) || 'test recipient';
       return {
         Icon: Send,
-        iconBgClass: 'bg-indigo-50 dark:bg-indigo-950/50 ring-indigo-200 dark:ring-indigo-800',
-        iconTextClass: 'text-indigo-700 dark:text-indigo-400',
+        iconBgClass: 'bg-info/10 ring-info/30',
+        iconTextClass: 'text-info',
         title: 'Test Alert Dispatched',
         description: `Sample reminder delivered to ${recipient}`,
         actorText,
@@ -200,8 +200,8 @@ function parseEventDetails(log: AuditLog): EventView {
       const from = (next['from'] as string) || 'inbound sender';
       return {
         Icon: Inbox,
-        iconBgClass: 'bg-emerald-50 dark:bg-emerald-950/50 ring-emerald-200 dark:ring-emerald-800',
-        iconTextClass: 'text-emerald-700 dark:text-emerald-400',
+        iconBgClass: 'bg-success/10 ring-success/30',
+        iconTextClass: 'text-success',
         title: 'Inbound Document Received',
         description: `Forwarded contract package from ${from}`,
         actorText,
@@ -213,8 +213,8 @@ function parseEventDetails(log: AuditLog): EventView {
       const docType = (next['docType'] as string)?.replace(/_/g, ' ') || 'Document';
       return {
         Icon: Database,
-        iconBgClass: 'bg-purple-50 dark:bg-purple-950/50 ring-purple-200 dark:ring-purple-800',
-        iconTextClass: 'text-purple-700 dark:text-purple-400',
+        iconBgClass: 'bg-primary/10 ring-primary/30',
+        iconTextClass: 'text-primary',
         title: 'Vector Index Updated',
         description: `${docType} indexed into ${chunksCount} citation-ready page embeddings`,
         actorText,
@@ -225,7 +225,7 @@ function parseEventDetails(log: AuditLog): EventView {
       const citationsCount = (next['citationsCount'] as number) ?? 0;
       return {
         Icon: Sparkles,
-        iconBgClass: 'bg-primary/10 ring-primary/20',
+        iconBgClass: 'bg-primary/10 ring-primary/30',
         iconTextClass: 'text-primary',
         title: 'AI Copilot Query',
         description: `Assistant answered question with ${citationsCount} verified contract citation${citationsCount === 1 ? '' : 's'}`,
@@ -338,7 +338,7 @@ export function ActivityHistory({
                         {event.description}
                       </p>
                       {event.changeDiff && (
-                        <div className="mt-1.5 inline-flex items-center rounded-md border border-amber-500/20 bg-amber-50/50 dark:bg-amber-950/30 px-2 py-0.5 font-mono text-[11px] text-amber-800 dark:text-amber-300">
+                        <div className="mt-1.5 inline-flex items-center rounded-md border border-warning/30 bg-warning/10 px-2 py-0.5 font-mono text-[11px] text-warning">
                           <span className="mr-1.5 font-semibold">Change:</span>
                           {event.changeDiff}
                         </div>

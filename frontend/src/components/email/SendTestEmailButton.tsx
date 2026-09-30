@@ -98,12 +98,12 @@ export function SendTestEmailButton({ dealId, defaultRecipient = '', onSent }: P
                 <div
                   className={`flex items-start gap-2 rounded-lg p-2.5 text-xs ${
                     status.type === 'success'
-                      ? 'border border-emerald-500/20 bg-emerald-50/80 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
-                      : 'border border-destructive/20 bg-destructive/10 text-destructive'
+                      ? 'border border-success/30 bg-success/10 text-success'
+                      : 'border border-destructive/30 bg-destructive/10 text-destructive'
                   }`}
                 >
                   {status.type === 'success' ? (
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-success mt-0.5" />
                   ) : (
                     <AlertCircle className="h-4 w-4 shrink-0 text-destructive mt-0.5" />
                   )}

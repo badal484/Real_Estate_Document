@@ -10,7 +10,6 @@ import {
   ChevronDown,
   ChevronUp,
   ArrowRight,
-  ShieldAlert,
 } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -54,24 +53,24 @@ export function DealChecklist({ dealId, deadlines, notifSettings, onConfirmAll }
   };
 
   return (
-    <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm">
+    <div className="rounded-lg border border-border bg-surface p-4 shadow-2xs">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
         <div className="flex items-center gap-3">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-900 text-white font-bold text-xs">
+          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-white font-bold text-xs">
             {completedCount}/4
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-xs font-bold text-slate-900 tracking-tight">
-                Transaction Setup &amp; Compliance Checklist
+              <h3 className="text-xs font-bold text-primary-text tracking-tight">
+                Transaction Setup &amp; Verification Pipeline
               </h3>
               <Badge variant={percentage === 100 ? 'success' : 'neutral'}>
-                {percentage}% Ready
+                {percentage}% Configured
               </Badge>
             </div>
-            <p className="text-[11px] text-slate-500 mt-0.5">
-              Verify deadlines, arm automated reminders, and inspect transaction legal terms.
+            <p className="text-[11px] text-secondary-text mt-0.5">
+              Verify deadlines, arm automated reminders, and review contractual remedies.
             </p>
           </div>
         </div>
@@ -79,9 +78,9 @@ export function DealChecklist({ dealId, deadlines, notifSettings, onConfirmAll }
         <button
           type="button"
           onClick={() => setCollapsed(!collapsed)}
-          className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-slate-900 self-end sm:self-center"
+          className="inline-flex items-center gap-1 text-[11px] font-medium text-secondary-text hover:text-primary-text self-end sm:self-center transition-colors"
         >
-          <span>{collapsed ? 'Expand Checklist' : 'Collapse'}</span>
+          <span>{collapsed ? 'Expand Pipeline' : 'Collapse'}</span>
           {collapsed ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />}
         </button>
       </div>
@@ -89,45 +88,45 @@ export function DealChecklist({ dealId, deadlines, notifSettings, onConfirmAll }
       {!collapsed && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3.5">
           {/* Step 1: Upload */}
-          <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-3 flex flex-col justify-between">
+          <div className="rounded-md border border-border bg-secondary/30 p-3 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Step 1</span>
-                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                <span className="text-[10px] font-bold uppercase tracking-wider text-secondary-text">Step 1</span>
+                <CheckCircle2 className="h-4 w-4 text-success" />
               </div>
-              <h4 className="text-xs font-bold text-slate-900 mt-1">Contract Ingested</h4>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                PDF parsed, text indexed, and clauses identified by AI.
+              <h4 className="text-xs font-semibold text-primary-text mt-1">Contract Ingested</h4>
+              <p className="text-[11px] text-secondary-text mt-0.5">
+                PDF parsed, text indexed, and clauses identified.
               </p>
             </div>
-            <span className="mt-2 text-[10px] font-semibold text-emerald-700">Verified &bull; Complete</span>
+            <span className="mt-2 text-[10px] font-semibold text-success">Verified &bull; Ready</span>
           </div>
 
           {/* Step 2: Milestone Confirmation */}
           <div
-            className={`rounded-lg border p-3 flex flex-col justify-between ${
-              step2 ? 'border-slate-200 bg-slate-50/50' : 'border-amber-200 bg-amber-50/30'
+            className={`rounded-md border p-3 flex flex-col justify-between ${
+              step2 ? 'border-border bg-secondary/30' : 'border-warning-border bg-warning-light'
             }`}
           >
             <div>
               <div className="flex items-center justify-between">
                 <span
                   className={`text-[10px] font-bold uppercase tracking-wider ${
-                    step2 ? 'text-slate-500' : 'text-amber-800'
+                    step2 ? 'text-secondary-text' : 'text-warning'
                   }`}
                 >
                   Step 2
                 </span>
                 {step2 ? (
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                 ) : (
-                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  <AlertTriangle className="h-4 w-4 text-warning" />
                 )}
               </div>
-              <h4 className="text-xs font-bold text-slate-900 mt-1">
+              <h4 className="text-xs font-semibold text-primary-text mt-1">
                 {step2 ? 'Deadlines Confirmed' : 'Confirm Deadlines'}
               </h4>
-              <p className="text-[11px] text-slate-500 mt-0.5">
+              <p className="text-[11px] text-secondary-text mt-0.5">
                 {confirmedDeadlines} of {totalDeadlines} milestones verified.
               </p>
             </div>
@@ -138,7 +137,7 @@ export function DealChecklist({ dealId, deadlines, notifSettings, onConfirmAll }
                 size="xs"
                 onClick={handleConfirmAllClick}
                 disabled={confirmingAll}
-                className="mt-2 w-full"
+                className="mt-2 w-full font-semibold"
               >
                 {confirmingAll ? (
                   <Loader2 className="h-3 w-3 animate-spin mr-1" />
@@ -148,29 +147,29 @@ export function DealChecklist({ dealId, deadlines, notifSettings, onConfirmAll }
                 <span>Confirm All ({totalDeadlines - confirmedDeadlines})</span>
               </Button>
             ) : (
-              <span className="mt-2 text-[10px] font-semibold text-emerald-700">All Dates Locked</span>
+              <span className="mt-2 text-[10px] font-semibold text-success">All Dates Confirmed</span>
             )}
           </div>
 
           {/* Step 3: Alerts Setup */}
           <div
-            className={`rounded-lg border p-3 flex flex-col justify-between ${
-              step3 ? 'border-slate-200 bg-slate-50/50' : 'border-slate-200 bg-white'
+            className={`rounded-md border p-3 flex flex-col justify-between ${
+              step3 ? 'border-border bg-secondary/30' : 'border-border bg-surface'
             }`}
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Step 3</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-secondary-text">Step 3</span>
                 {step3 ? (
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                 ) : (
-                  <Mail className="h-4 w-4 text-slate-400" />
+                  <Mail className="h-4 w-4 text-secondary-text" />
                 )}
               </div>
-              <h4 className="text-xs font-bold text-slate-900 mt-1">
+              <h4 className="text-xs font-semibold text-primary-text mt-1">
                 {step3 ? 'Alerts Armed' : 'Configure Alerts'}
               </h4>
-              <p className="text-[11px] text-slate-500 mt-0.5">
+              <p className="text-[11px] text-secondary-text mt-0.5">
                 {hasRecipients
                   ? `${notifSettings?.recipients?.length} recipient(s) monitoring.`
                   : 'Add Agent &amp; TC email for 3d/1d reminders.'}
@@ -179,23 +178,23 @@ export function DealChecklist({ dealId, deadlines, notifSettings, onConfirmAll }
 
             <Link
               to={`/deals/${dealId}/notifications`}
-              className="mt-2 text-[10px] font-semibold text-slate-900 hover:text-brand-800 inline-flex items-center gap-1"
+              className="mt-2 text-[10px] font-semibold text-primary hover:underline inline-flex items-center gap-1"
             >
-              <span>{step3 ? 'Manage Settings' : 'Add Recipients'}</span>
+              <span>{step3 ? 'Manage Recipients' : 'Add Recipients'}</span>
               <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
 
           {/* Step 4: AI Legal Copilot */}
-          <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-3 flex flex-col justify-between">
+          <div className="rounded-md border border-border bg-secondary/30 p-3 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Step 4</span>
-                <Sparkles className="h-4 w-4 text-slate-600" />
+                <span className="text-[10px] font-bold uppercase tracking-wider text-secondary-text">Step 4</span>
+                <Sparkles className="h-4 w-4 text-accent" />
               </div>
-              <h4 className="text-xs font-bold text-slate-900 mt-1">AI Legal Review</h4>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                Inspect buyer remedies, HOA clauses, and health score.
+              <h4 className="text-xs font-semibold text-primary-text mt-1">AI Legal Review</h4>
+              <p className="text-[11px] text-secondary-text mt-0.5">
+                Inspect buyer remedies, HOA clauses, and transaction risk.
               </p>
             </div>
 
@@ -203,7 +202,7 @@ export function DealChecklist({ dealId, deadlines, notifSettings, onConfirmAll }
               to={`/deals/${dealId}/assistant`}
               className="mt-2 btn-secondary text-[10px] py-1 px-2 flex items-center justify-center gap-1"
             >
-              <Sparkles className="h-3 w-3" />
+              <Sparkles className="h-3 w-3 text-accent" />
               <span>Open AI Copilot</span>
             </Link>
           </div>
