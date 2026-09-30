@@ -1,35 +1,163 @@
 /**
- * Alert Service — STUB
- *
- * Will send deadline reminders via:
- *   - Twilio SMS
- *   - SendGrid / AWS SES email
- *   - node-cron or BullMQ scheduling
- *
- * v1: stub only — logs the would-be alert but makes no real API calls.
+ * Alert Service — Automated deadline alert evaluation, Resend email dispatch, and cron scheduler.
  */
 
+import { PrismaClient } from '@prisma/client';
+import cron from 'node-cron';
 import { logger } from '../utils/logger.js';
+import { sendEmail, generateTemplate } from './email.service.js';
+
+const prisma = new PrismaClient();
 
 export interface AlertPayload {
-  to: string;            // phone number (SMS) or email address
+  to: string;
   dealId: string;
   deadlineLabel: string;
   deadlineDate: Date;
   daysUntilDeadline: number;
 }
 
-export async function sendSmsAlert(payload: AlertPayload): Promise<void> {
-  logger.info(`[Alert stub] Would SMS ${payload.to}: "${payload.deadlineLabel}" due ${payload.deadlineDate.toDateString()}`);
-  // TODO: implement with Twilio SDK
+/**
+ * Checks all active deals and dispatches reminders for matching windows (3d, 1d, dayOf, missed).
+ */
+export async function checkAndDispatchAlerts(): Promise<{ processed: number; sent: number }> {
+  logger.info('[Alert Service] Running scheduled contingency alert evaluation...');
+  let sentCount = 0;
+
+  try {
+    const deals = await prisma.deal.findMany({
+      where: { status: 'ACTIVE' },
+      include: {
+        notificationSettings: true,
+        deadlines: {
+          where: {
+            status: { in: ['CONFIRMED', 'ACTIVE', 'PENDING'] },
+          },
+        },
+      },
+    });
+
+    const now = new Date();
+
+    for (const deal of deals) {
+      const settings = deal.notificationSettings;
+      if (!settings || !settings.enabled) continue;
+
+      const recipients = (settings.recipients as string[]) || [];
+      if (recipients.length === 0) continue;
+
+      for (const deadline of deal.deadlines) {
+        const targetDate = deadline.confirmedDate ?? deadline.computedDate;
+        const diffMs = targetDate.getTime() - now.getTime();
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+        let templateToSend: '3d' | '1d' | 'dayOf' | 'missed' | null = null;
+
+        if (diffDays === 3 && settings.window3d) {
+          templateToSend = '3d';
+        } else if (diffDays === 1 && settings.window1d) {
+          templateToSend = '1d';
+        } else if (diffDays === 0 && settings.windowDayOf) {
+          templateToSend = 'dayOf';
+        } else if (diffDays < 0 && settings.windowMissed && deadline.status !== 'COMPLETED') {
+          templateToSend = 'missed';
+        }
+
+        if (!templateToSend) continue;
+
+        // Check if alert for this deadline and window was already sent
+        const existingLog = await prisma.emailLog.findFirst({
+          where: {
+            deadlineId: deadline.id,
+            template: templateToSend,
+          },
+        });
+
+        if (existingLog) continue;
+
+        const dateFormatted = targetDate.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        });
+
+        const emailContent = generateTemplate(templateToSend, {
+          dealAddress: deal.propertyAddress,
+          deadlineLabel: deadline.label,
+          dueDate: dateFormatted,
+          dealId: deal.id,
+        });
+
+        // Dispatch to all recipients
+        for (const recipient of recipients) {
+          const result = await sendEmail({
+            to: recipient,
+            subject: emailContent.subject,
+            html: emailContent.html,
+            text: emailContent.text,
+          });
+
+          await prisma.emailLog.create({
+            data: {
+              dealId: deal.id,
+              deadlineId: deadline.id,
+              recipient,
+              template: templateToSend,
+              status: result.success ? 'SENT' : 'BOUNCED',
+              providerMessageId: result.messageId ?? null,
+              errorMessage: result.error ?? null,
+            },
+          });
+
+          if (result.success) {
+            sentCount++;
+            logger.info(`[Alert Sent] Dispatched ${templateToSend} for ${deadline.label} to ${recipient}`);
+          }
+        }
+
+        // Update deadline status to MISSED if overdue
+        if (templateToSend === 'missed') {
+          await prisma.deadline.update({
+            where: { id: deadline.id },
+            data: { status: 'MISSED' },
+          });
+        }
+
+        // Log audit trail
+        await prisma.auditLog.create({
+          data: {
+            dealId: deal.id,
+            action: 'ALERT_SENT',
+            entityType: 'Deadline',
+            entityId: deadline.id,
+            actor: 'system',
+            note: `Automated ${templateToSend} deadline alert dispatched via Resend to ${recipients.join(', ')}`,
+          },
+        });
+      }
+    }
+
+    logger.info(`[Alert Service] Evaluation completed. Dispatched ${sentCount} notifications.`);
+    return { processed: deals.length, sent: sentCount };
+  } catch (err) {
+    logger.error(`[Alert Service Error] ${err instanceof Error ? err.message : 'Unknown error'}`);
+    return { processed: 0, sent: sentCount };
+  }
 }
 
-export async function sendEmailAlert(payload: AlertPayload): Promise<void> {
-  logger.info(`[Alert stub] Would email ${payload.to}: "${payload.deadlineLabel}" due ${payload.deadlineDate.toDateString()}`);
-  // TODO: implement with SendGrid / AWS SES
+/**
+ * Initializes the background cron job for deadline alerts.
+ */
+export function initAlertCron(): void {
+  const cronExpr = process.env['ALERT_CRON'] ?? '0 * * * *'; // hourly
+  logger.info(`[Alert Scheduler] Initialized with cron schedule: "${cronExpr}"`);
+
+  cron.schedule(cronExpr, async () => {
+    await checkAndDispatchAlerts();
+  });
 }
 
-export async function scheduleAlerts(_dealId: string): Promise<void> {
-  logger.info('[Alert stub] Alert scheduling not yet implemented (node-cron / BullMQ)');
-  // TODO: schedule T-3 day, T-1 day, day-of alerts
+export async function scheduleAlerts(dealId: string): Promise<void> {
+  logger.info(`[Alert Service] Triggering immediate check for activated deal: ${dealId}`);
+  await checkAndDispatchAlerts();
 }

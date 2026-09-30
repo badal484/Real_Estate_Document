@@ -235,7 +235,8 @@ router.get(
       const arrayBuffer = await remoteRes.arrayBuffer();
       res.setHeader('Content-Type', document.mimeType || 'application/pdf');
       res.setHeader('Content-Disposition', `inline; filename="${document.filename}"`);
-      return res.send(Buffer.from(arrayBuffer));
+      res.send(Buffer.from(arrayBuffer));
+      return;
     }
 
     const resolvedPath = path.resolve(document.storagePath);
