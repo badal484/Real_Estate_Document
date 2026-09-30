@@ -4,6 +4,10 @@ const config: Config = {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      borderColor: {
+        DEFAULT: '#E5E8E5',
+        border: '#E5E8E5',
+      },
       colors: {
         background: '#F7F8F6',
         surface: '#FFFFFF',
