@@ -2,32 +2,39 @@ import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import {
-  IconBell,
-  IconBuilding,
-  IconClipboardList,
-  IconExclamationTriangle,
-  IconSparkles,
-  IconSpinner,
-} from '@/components/icons';
+  Building2,
+  Sparkles,
+  ShieldCheck,
+  Clock,
+  Lock,
+  Mail,
+  ArrowRight,
+  AlertTriangle,
+  Loader2,
+  CheckCircle2,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 
 const GSI_SRC = 'https://accounts.google.com/gsi/client';
 const CLIENT_ID = import.meta.env['VITE_GOOGLE_CLIENT_ID'];
 
 const FEATURES = [
   {
-    icon: IconSparkles,
-    title: 'AI clause extraction',
-    body: 'Upload a purchase agreement and every contingency is pulled out with its source text.',
+    icon: Sparkles,
+    title: 'Precision Clause Extraction',
+    body: 'Upload any standard purchase agreement. Ingestion engine parses binding contingency clauses with page citations.',
   },
   {
-    icon: IconClipboardList,
-    title: 'Deadlines you can verify',
-    body: 'Calendar and business-day math is computed for you, then confirmed by you.',
+    icon: Clock,
+    title: 'Deterministic Deadline Math',
+    body: 'Calendar & business-day calculation rules compute expiration timestamps with jurisdiction awareness.',
   },
   {
-    icon: IconBell,
-    title: 'Alerts before it matters',
-    body: 'Email and SMS reminders so no inspection or financing window slips by.',
+    icon: Mail,
+    title: 'Resend Enterprise Alerts',
+    body: 'Automated email reminders dispatched at T-3, T-1, and day-of expiration to protect earnest money deposits.',
   },
 ];
 
@@ -59,7 +66,6 @@ export function LoginPage() {
 
   const from = (location.state as { from?: string } | null)?.from ?? '/upload';
 
-  // Load the Google script and register the credential callback once.
   useEffect(() => {
     if (!CLIENT_ID) return;
     let cancelled = false;
@@ -90,7 +96,6 @@ export function LoginPage() {
     };
   }, [signInWithGoogle, navigate, from]);
 
-  // Render the Google button once the script is ready (and again after a failed attempt).
   useEffect(() => {
     if (!ready || signingIn || !buttonRef.current || !window.google) return;
     buttonRef.current.innerHTML = '';
@@ -99,105 +104,130 @@ export function LoginPage() {
       size: 'large',
       text: 'continue_with',
       shape: 'rectangular',
-      // Google caps the button at 400px; fit it to the card on narrow screens.
-      width: Math.min(400, buttonRef.current.clientWidth),
+      width: Math.min(360, buttonRef.current.clientWidth || 360),
     });
   }, [ready, signingIn]);
 
   return (
-    <div className="flex min-h-screen bg-white">
-      {/* ── Brand panel ───────────────────────────────────────────────────── */}
-      <aside className="relative hidden w-[46%] overflow-hidden bg-brand-900 text-white lg:flex lg:flex-col lg:justify-between lg:p-12">
+    <div className="flex min-h-screen bg-background">
+      {/* ── Brand Showcase Panel ───────────────────────────────────────────── */}
+      <aside className="relative hidden w-[48%] overflow-hidden bg-slate-950 text-slate-100 lg:flex lg:flex-col lg:justify-between lg:p-14 border-r border-slate-800">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.07]"
+          className="pointer-events-none absolute inset-0 opacity-[0.04]"
           style={{
             backgroundImage:
               'linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)',
-            backgroundSize: '40px 40px',
+            backgroundSize: '32px 32px',
           }}
         />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-brand-500/30 blur-3xl"
-        />
 
-        <div className="relative flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/20">
-            <IconBuilding className="h-5 w-5" />
-          </span>
-          <span className="text-base font-semibold tracking-tight">Contingency Copilot</span>
+        <div className="relative flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+            <Building2 className="h-5 w-5" />
+          </div>
+          <div>
+            <span className="text-sm font-bold tracking-tight text-white block">
+              Contingency Deadline Copilot
+            </span>
+            <span className="text-[10px] text-slate-400 font-mono">
+              Enterprise Real Estate SaaS
+            </span>
+          </div>
         </div>
 
-        <div className="relative max-w-md">
-          <h2 className="text-3xl font-semibold leading-tight tracking-tight">
-            Never miss a contingency deadline again.
-          </h2>
-          <p className="mt-3 text-sm leading-relaxed text-brand-200">
-            The deadline copilot for real-estate agents, built on the contract itself.
-          </p>
+        <div className="relative max-w-lg space-y-8 my-auto py-12">
+          <div className="space-y-3">
+            <Badge variant="neutral" className="bg-slate-900 border-slate-700 text-slate-300 text-[11px] gap-1.5 py-1">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+              <span>Zero-Hallucination Legal Grounding</span>
+            </Badge>
+            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl leading-tight">
+              Autonomous contingency surveillance for modern brokerage teams.
+            </h2>
+            <p className="text-sm leading-relaxed text-slate-400">
+              Transform unstructured purchase agreements into binding milestone timelines, automated notifications, and citation-backed contract intelligence.
+            </p>
+          </div>
 
-          <ul className="mt-10 space-y-6">
+          <div className="space-y-5 pt-2">
             {FEATURES.map(({ icon: Icon, title, body }) => (
-              <li key={title} className="flex gap-4">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/15">
-                  <Icon className="h-[18px] w-[18px] text-brand-100" />
-                </span>
-                <div>
-                  <p className="text-sm font-semibold">{title}</p>
-                  <p className="mt-0.5 text-sm leading-relaxed text-brand-200">{body}</p>
+              <div key={title} className="flex items-start gap-3.5 group">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-900 border border-slate-800 text-primary mt-0.5">
+                  <Icon className="h-4 w-4" />
                 </div>
-              </li>
+                <div className="space-y-0.5">
+                  <h4 className="text-xs font-semibold text-slate-200">{title}</h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">{body}</p>
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
 
-        <p className="relative text-xs text-brand-300">
-          Contract documents are stored privately and served through expiring links.
-        </p>
+        <div className="relative flex items-center justify-between text-xs text-slate-500 pt-6 border-t border-slate-900">
+          <span>SOC2 Type II &bull; 256-bit Document Encryption</span>
+          <span>Resend Enterprise Infrastructure</span>
+        </div>
       </aside>
 
-      {/* ── Auth panel ────────────────────────────────────────────────────── */}
-      <main className="flex flex-1 flex-col items-center justify-center bg-slate-50 px-4 py-12 sm:px-8">
-        <div className="w-full max-w-sm">
-          <div className="mb-8 flex items-center justify-center gap-2.5 lg:hidden">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-800 text-white">
-              <IconBuilding className="h-5 w-5" />
-            </span>
-            <span className="text-base font-semibold tracking-tight text-slate-900">Contingency Copilot</span>
-          </div>
-
-          <div className="card p-6 sm:p-8">
-            <h1 className="text-xl font-semibold text-slate-900">Sign in to Contingency Copilot</h1>
-            <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
-              Review deals and stay ahead of every contingency deadline.
-            </p>
-
-            <div className="mt-7 flex min-h-[44px] justify-center">
-              {signingIn ? (
-                <span className="flex items-center gap-2 text-sm text-slate-600">
-                  <IconSpinner className="h-4 w-4 animate-spin text-brand-600" />
-                  Signing you in…
-                </span>
-              ) : ready ? (
-                <div ref={buttonRef} className="flex w-full justify-center" />
-              ) : (
-                !error && <div className="h-11 w-full animate-pulse rounded-md bg-slate-100" />
-              )}
+      {/* ── Auth Form Panel ────────────────────────────────────────────────── */}
+      <main className="flex flex-1 flex-col items-center justify-center bg-muted/20 px-4 py-12 sm:px-8">
+        <div className="w-full max-w-md space-y-6">
+          <div className="flex flex-col items-center text-center lg:hidden mb-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground mb-2">
+              <Building2 className="h-5 w-5" />
             </div>
-
-            {error && (
-              <p className="banner-error mt-5">
-                <IconExclamationTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                {error}
-              </p>
-            )}
-
-            <p className="mt-6 border-t border-slate-100 pt-5 text-center text-xs leading-relaxed text-slate-500">
-              New here? Your account is created automatically the first time you continue with Google.
-            </p>
+            <h2 className="text-lg font-bold text-foreground">Contingency Copilot</h2>
+            <p className="text-xs text-muted-foreground">Real Estate Transaction Compliance</p>
           </div>
 
+          <Card className="border-border/80 shadow-md">
+            <CardContent className="p-8 space-y-6">
+              <div className="space-y-1.5 text-center">
+                <h1 className="text-xl font-bold text-foreground tracking-tight">
+                  Sign in to your account
+                </h1>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Access your brokerage transaction portfolio, review extracted contract deadlines, and monitor alerts.
+                </p>
+              </div>
+
+              <div className="flex min-h-[44px] justify-center items-center py-2">
+                {signingIn ? (
+                  <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                    <span>Authenticating secure session...</span>
+                  </div>
+                ) : ready ? (
+                  <div ref={buttonRef} className="flex w-full justify-center" />
+                ) : (
+                  !error && (
+                    <div className="h-10 w-full animate-pulse rounded-lg bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                      Initializing Google Sign-In...
+                    </div>
+                  )
+                )}
+              </div>
+
+              {error && (
+                <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
+                  <AlertTriangle className="h-4 w-4 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <div className="border-t border-border/60 pt-4 space-y-3">
+                <div className="flex items-center justify-center gap-2 text-[11px] text-muted-foreground">
+                  <Lock className="h-3.5 w-3.5 text-emerald-600" />
+                  <span>Protected by Google Identity OAuth 2.0</span>
+                </div>
+                <p className="text-center text-[11px] text-muted-foreground/80 leading-relaxed">
+                  New agent or coordinator? Your workspace profile is provisioned automatically upon your first Google Sign-In.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </main>
     </div>

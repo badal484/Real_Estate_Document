@@ -3,17 +3,19 @@ import { Link, useLocation } from 'react-router-dom';
 import type { Deal, NotificationSetting } from '@/types';
 import { formatDate } from '@/utils/date';
 import {
-  IconBuilding,
-  IconChevronRight,
-  IconShieldCheck,
-  IconSparkles,
-  IconEnvelope,
-  IconDocumentText,
-  IconHistory,
-  IconBookOpen,
-  IconCalendar,
-} from '../icons';
+  Building2,
+  ChevronRight,
+  ShieldCheck,
+  Sparkles,
+  Mail,
+  FileCheck,
+  History,
+  BookOpen,
+  Calendar,
+  AlertTriangle,
+} from 'lucide-react';
 import { AgentPlaybookModal } from './AgentPlaybookModal';
+import { Badge } from '../ui/badge';
 
 interface Props {
   deal: Deal | null;
@@ -41,50 +43,51 @@ export function DealHeader({ deal, notifSettings, activeTab }: Props) {
 
   return (
     <>
-      <div className="space-y-4">
-        {/* Breadcrumb Navigation */}
-        <nav className="flex items-center gap-2 text-xs font-medium text-slate-400">
+      <div className="space-y-3">
+        {/* Breadcrumbs */}
+        <nav className="flex items-center gap-1.5 text-xs text-slate-400">
           <Link to="/deals" className="hover:text-slate-800 transition-colors">
             Portfolio
           </Link>
-          <IconChevronRight className="h-3 w-3 text-slate-300" />
+          <ChevronRight className="h-3 w-3 text-slate-300" />
           <span className="font-semibold text-slate-900 truncate">
             {deal.propertyAddress}
           </span>
         </nav>
 
-        {/* Hero Card */}
-        <div className="card border-slate-200 bg-white p-5 shadow-xs transition-all">
+        {/* Command Center Card */}
+        <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="flex items-start gap-3.5">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-white shadow-xs shrink-0">
-                <IconBuilding className="h-5 w-5 text-brand-300" />
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900 text-white shadow-2xs shrink-0">
+                <Building2 className="h-5 w-5 text-slate-100" />
               </div>
 
               <div>
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <h1 className="text-lg font-bold text-slate-900 tracking-tight">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-base font-bold text-slate-900 tracking-tight">
                     {deal.propertyAddress}
                   </h1>
-                  
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
-                    <IconShieldCheck className="h-3 w-3 text-emerald-600" />
+
+                  <Badge variant="success">
+                    <ShieldCheck className="h-3 w-3 mr-0.5" />
                     <span>{deal.status}</span>
-                  </span>
+                  </Badge>
 
                   {alertsActive ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-bold text-brand-700 border border-brand-200">
-                      <IconEnvelope className="h-3 w-3 text-brand-600" />
-                      <span>Resend Alerts Armed ({notifSettings?.recipients?.length})</span>
-                    </span>
+                    <Badge variant="info">
+                      <Mail className="h-3 w-3 mr-0.5" />
+                      <span>Resend Alerts Active ({notifSettings?.recipients?.length})</span>
+                    </Badge>
                   ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200">
-                      <span>⚠️ Alerts Not Armed</span>
-                    </span>
+                    <Badge variant="warning">
+                      <AlertTriangle className="h-3 w-3 mr-0.5" />
+                      <span>Alerts Inactive</span>
+                    </Badge>
                   )}
                 </div>
 
-                <div className="mt-1.5 flex flex-wrap gap-4 text-xs text-slate-500">
+                <div className="mt-1 flex flex-wrap gap-4 text-xs text-slate-500">
                   {deal.acceptanceDate && (
                     <span>
                       Acceptance: <strong className="font-mono text-slate-800">{formatDate(deal.acceptanceDate)}</strong>
@@ -104,54 +107,54 @@ export function DealHeader({ deal, notifSettings, activeTab }: Props) {
               </div>
             </div>
 
-            {/* Quick Action Playbook Trigger */}
+            {/* Playbook Button */}
             <div className="flex items-center gap-2 self-start lg:self-center shrink-0">
               <button
                 type="button"
                 onClick={() => setPlaybookOpen(true)}
-                className="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5 text-slate-700 hover:text-slate-900"
+                className="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5"
               >
-                <IconBookOpen className="h-3.5 w-3.5 text-brand-600" />
-                <span>Agent Playbook (DOs &amp; DON'Ts)</span>
+                <BookOpen className="h-3.5 w-3.5 text-slate-600" />
+                <span>Agent Playbook</span>
               </button>
             </div>
           </div>
 
           {/* Unified Sub-Navigation Sticky Tab Bar */}
-          <div className="mt-4 -mb-1 flex items-center gap-1 overflow-x-auto border-t border-slate-100 pt-3 no-scrollbar text-xs font-semibold">
+          <div className="mt-3.5 -mb-0.5 flex items-center gap-1 overflow-x-auto border-t border-slate-100 pt-2.5 no-scrollbar text-xs font-medium">
             <Link
               to={`/deals/${deal.id}`}
               className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 transition-all ${
                 currentTab === 'milestones'
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  ? 'bg-slate-900 text-white font-semibold shadow-2xs'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <IconCalendar className="h-3.5 w-3.5" />
-              <span>Milestones &amp; Timeline</span>
+              <Calendar className="h-3.5 w-3.5" />
+              <span>Milestones</span>
             </Link>
 
             <Link
               to={`/deals/${deal.id}/assistant`}
               className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 transition-all ${
                 currentTab === 'assistant'
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  ? 'bg-slate-900 text-white font-semibold shadow-2xs'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <IconSparkles className="h-3.5 w-3.5 text-brand-300" />
-              <span>AI Legal Copilot</span>
+              <Sparkles className="h-3.5 w-3.5 text-slate-400" />
+              <span>AI Copilot</span>
             </Link>
 
             <Link
               to={`/deals/${deal.id}/notifications`}
               className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 transition-all ${
                 currentTab === 'notifications'
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  ? 'bg-slate-900 text-white font-semibold shadow-2xs'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <IconEnvelope className="h-3.5 w-3.5" />
+              <Mail className="h-3.5 w-3.5" />
               <span>Email &amp; Alerts</span>
             </Link>
 
@@ -159,11 +162,11 @@ export function DealHeader({ deal, notifSettings, activeTab }: Props) {
               to={`/deals/${deal.id}/review`}
               className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 transition-all ${
                 currentTab === 'documents'
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  ? 'bg-slate-900 text-white font-semibold shadow-2xs'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <IconDocumentText className="h-3.5 w-3.5" />
+              <FileCheck className="h-3.5 w-3.5" />
               <span>Clause Verification</span>
             </Link>
 
@@ -171,12 +174,12 @@ export function DealHeader({ deal, notifSettings, activeTab }: Props) {
               to={`/audit?dealId=${deal.id}`}
               className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 transition-all ${
                 currentTab === 'audit'
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  ? 'bg-slate-900 text-white font-semibold shadow-2xs'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <IconHistory className="h-3.5 w-3.5" />
-              <span>Audit Trail</span>
+              <History className="h-3.5 w-3.5" />
+              <span>Audit History</span>
             </Link>
           </div>
         </div>

@@ -1,25 +1,48 @@
 import type { DeadlineStatus } from '@/types';
-
-const CONFIG: Record<DeadlineStatus, { label: string; textClass: string; dotClass: string }> = {
-  PENDING: { label: 'Pending', textClass: 'text-amber-800 bg-amber-50 ring-amber-600/20', dotClass: 'bg-amber-500' },
-  CONFIRMED: { label: 'Confirmed', textClass: 'text-blue-800 bg-blue-50 ring-blue-600/20', dotClass: 'bg-blue-500' },
-  ACTIVE: { label: 'Active', textClass: 'text-emerald-800 bg-emerald-50 ring-emerald-600/20', dotClass: 'bg-emerald-500' },
-  MISSED: { label: 'Missed', textClass: 'text-red-800 bg-red-50 ring-red-600/20', dotClass: 'bg-red-500' },
-  COMPLETED: { label: 'Completed', textClass: 'text-slate-600 bg-slate-100 ring-slate-500/20', dotClass: 'bg-slate-400' },
-};
+import { Badge } from './ui/badge';
+import { Clock, CheckCircle2, ShieldCheck, AlertCircle, Check } from 'lucide-react';
 
 interface Props {
   status: DeadlineStatus;
+  className?: string;
 }
 
-export function StatusBadge({ status }: Props) {
-  const { label, textClass, dotClass } = CONFIG[status];
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${textClass}`}
-    >
-      <span className={`h-1.5 w-1.5 rounded-full ${dotClass}`} />
-      {label}
-    </span>
-  );
+export function StatusBadge({ status, className }: Props) {
+  switch (status) {
+    case 'PENDING':
+      return (
+        <Badge variant="warning" className={className}>
+          <Clock className="h-3 w-3" />
+          <span>Pending Confirmation</span>
+        </Badge>
+      );
+    case 'CONFIRMED':
+      return (
+        <Badge variant="info" className={className}>
+          <CheckCircle2 className="h-3 w-3" />
+          <span>Confirmed</span>
+        </Badge>
+      );
+    case 'ACTIVE':
+      return (
+        <Badge variant="success" className={className}>
+          <ShieldCheck className="h-3 w-3" />
+          <span>Active &bull; Monitored</span>
+        </Badge>
+      );
+    case 'MISSED':
+      return (
+        <Badge variant="destructive" className={className}>
+          <AlertCircle className="h-3 w-3" />
+          <span>Past Due &bull; Action Req.</span>
+        </Badge>
+      );
+    case 'COMPLETED':
+      return (
+        <Badge variant="neutral" className={className}>
+          <Check className="h-3 w-3" />
+          <span>Completed</span>
+        </Badge>
+      );
+  }
 }

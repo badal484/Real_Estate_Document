@@ -1,6 +1,6 @@
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
-import { IconSpinner } from '@/components/icons';
+import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { LoginPage } from '@/pages/LoginPage';
 import { UploadPage } from '@/pages/UploadPage';
@@ -17,20 +17,20 @@ function ProtectedLayout() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <IconSpinner className="h-6 w-6 animate-spin text-slate-400" />
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
   if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
 
   return (
-    <>
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Navbar />
-      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <main className="flex-1 mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <Outlet />
       </main>
-    </>
+    </div>
   );
 }
 

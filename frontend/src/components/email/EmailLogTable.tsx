@@ -1,6 +1,16 @@
 import type { EmailLog } from '@/types';
 import { formatAuditTimestamp } from '@/utils/date';
-import { IconEnvelope, IconArrowPath } from '../icons';
+import { Mail, RotateCw, CheckCircle2, Send, AlertTriangle, XCircle, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table';
 
 interface Props {
   logs: EmailLog[];
@@ -9,115 +19,125 @@ interface Props {
 }
 
 const TEMPLATE_NAMES: Record<string, string> = {
-  '3d': '3-Day Reminder',
-  '1d': '1-Day Urgent',
+  '3d': '3-Day Prior Reminder',
+  '1d': '1-Day Urgent Notice',
   'dayOf': 'Day-Of Expiration',
-  'missed': 'Past Due / Missed',
-  'summary': 'Executive Summary',
-  'docs_received': 'Documents Received',
+  'missed': 'Past Due Breach Notice',
+  'summary': 'Executive Deal Brief',
+  'docs_received': 'Contract Received Notice',
 };
 
 function StatusBadge({ status }: { status: EmailLog['status'] }) {
   switch (status) {
     case 'DELIVERED':
       return (
-        <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
-          Delivered
-        </span>
+        <Badge variant="success" className="gap-1 text-[11px] font-medium">
+          <CheckCircle2 className="h-3 w-3" />
+          <span>Delivered</span>
+        </Badge>
       );
     case 'SENT':
       return (
-        <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-blue-200">
-          Dispatched
-        </span>
+        <Badge variant="info" className="gap-1 text-[11px] font-medium">
+          <Send className="h-3 w-3" />
+          <span>Dispatched</span>
+        </Badge>
       );
     case 'BOUNCED':
       return (
-        <span className="inline-flex items-center rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700 ring-1 ring-rose-200">
-          Bounced
-        </span>
+        <Badge variant="destructive" className="gap-1 text-[11px] font-medium">
+          <XCircle className="h-3 w-3" />
+          <span>Bounced</span>
+        </Badge>
       );
     case 'DROPPED':
       return (
-        <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-amber-200">
-          Dropped
-        </span>
+        <Badge variant="warning" className="gap-1 text-[11px] font-medium">
+          <AlertTriangle className="h-3 w-3" />
+          <span>Dropped</span>
+        </Badge>
       );
     default:
       return (
-        <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
-          {status}
-        </span>
+        <Badge variant="neutral" className="gap-1 text-[11px] font-medium">
+          <Clock className="h-3 w-3" />
+          <span>{status}</span>
+        </Badge>
       );
   }
 }
 
 export function EmailLogTable({ logs, loading, onRefresh }: Props) {
   return (
-    <div className="card overflow-hidden">
-      <div className="flex items-center justify-between border-b border-slate-100 p-5">
+    <div className="rounded-xl border border-border/70 bg-card overflow-hidden shadow-sm">
+      <div className="flex items-center justify-between border-b border-border/60 px-6 py-4 bg-muted/20">
         <div>
-          <h3 className="text-base font-semibold text-slate-900">Email Dispatch History</h3>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Idempotent log of all automated deadline notices and summary reports sent for this deal.
+          <h3 className="text-sm font-semibold text-foreground tracking-tight flex items-center gap-2">
+            <Mail className="h-4 w-4 text-primary" />
+            Email Dispatch Audit Log
+          </h3>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Cryptographically tracked delivery log for all compliance notices sent via Resend API.
           </p>
         </div>
         {onRefresh && (
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={onRefresh}
-            className="btn-secondary flex items-center gap-1.5 text-xs"
             disabled={loading}
+            className="h-8 px-2.5 text-xs gap-1.5"
           >
-            <IconArrowPath className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <RotateCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
-          </button>
+          </Button>
         )}
       </div>
 
       {logs.length === 0 ? (
-        <div className="empty-state py-12">
-          <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 shadow-sm">
-            <IconEnvelope className="h-5 w-5" />
-          </span>
-          <h4 className="mt-2 text-sm font-semibold text-slate-900">No email alerts sent yet</h4>
-          <p className="mx-auto mt-1 max-w-xs text-xs text-slate-500">
-            When contingency deadlines approach, scheduled alerts will be logged here.
+        <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted/60 text-muted-foreground border border-border/60 mb-3">
+            <Mail className="h-5 w-5" />
+          </div>
+          <h4 className="text-sm font-semibold text-foreground">No email alerts dispatched yet</h4>
+          <p className="mt-1 max-w-sm text-xs text-muted-foreground">
+            When contingency deadlines trigger their reminder windows, full audit delivery logs will be recorded here.
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-600">
-            <thead className="bg-slate-50 text-slate-700 border-b border-slate-100">
-              <tr>
-                <th className="py-3 px-4 font-semibold">Recipient</th>
-                <th className="py-3 px-4 font-semibold">Alert Type</th>
-                <th className="py-3 px-4 font-semibold">Associated Deadline</th>
-                <th className="py-3 px-4 font-semibold">Status</th>
-                <th className="py-3 px-4 font-semibold text-right">Sent At</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {logs.map((log) => (
-                <tr key={log.id} className="hover:bg-slate-50/70 transition-colors">
-                  <td className="py-3 px-4 font-medium text-slate-900">{log.recipient}</td>
-                  <td className="py-3 px-4 text-slate-700">
-                    {TEMPLATE_NAMES[log.template] ?? log.template}
-                  </td>
-                  <td className="py-3 px-4 text-slate-600">
-                    {log.deadline?.label ?? 'General Deal Summary'}
-                  </td>
-                  <td className="py-3 px-4">
-                    <StatusBadge status={log.status} />
-                  </td>
-                  <td className="py-3 px-4 text-right whitespace-nowrap text-slate-400">
-                    {formatAuditTimestamp(log.sentAt)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[30%]">Recipient</TableHead>
+              <TableHead className="w-[25%]">Notice Type</TableHead>
+              <TableHead className="w-[20%]">Associated Milestone</TableHead>
+              <TableHead className="w-[12%]">Status</TableHead>
+              <TableHead className="text-right">Sent At</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {logs.map((log) => (
+              <TableRow key={log.id}>
+                <TableCell className="font-mono text-xs font-medium text-foreground">
+                  {log.recipient}
+                </TableCell>
+                <TableCell className="text-xs text-foreground font-medium">
+                  {TEMPLATE_NAMES[log.template] ?? log.template}
+                </TableCell>
+                <TableCell className="text-xs text-muted-foreground">
+                  {log.deadline?.label ?? 'General Transaction Notice'}
+                </TableCell>
+                <TableCell>
+                  <StatusBadge status={log.status} />
+                </TableCell>
+                <TableCell className="text-right text-xs font-mono text-muted-foreground whitespace-nowrap">
+                  {formatAuditTimestamp(log.sentAt)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       )}
     </div>
   );

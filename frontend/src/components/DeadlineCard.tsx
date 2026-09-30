@@ -1,7 +1,9 @@
 import type { Deadline } from '@/types';
 import { StatusBadge } from './StatusBadge';
 import { formatDate, urgencyLabel, isOverdue } from '@/utils/date';
-import { IconCheckCircle } from './icons';
+import { CheckCircle2, Calendar, FileText, Clock, AlertTriangle } from 'lucide-react';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
 
 interface Props {
   deadline: Deadline;
@@ -14,53 +16,64 @@ export function DeadlineCard({ deadline, onConfirm }: Props) {
 
   return (
     <div
-      className={`card-hover p-4 flex flex-col sm:flex-row sm:items-start justify-between gap-4 ${
-        overdue ? 'border-l-4 border-l-rose-500 bg-rose-50/20' : 'bg-white'
+      className={`rounded-xl border p-4 transition-all ${
+        overdue
+          ? 'border-rose-300 bg-rose-50/20 shadow-xs'
+          : 'border-slate-200/80 bg-white shadow-xs hover:border-slate-300'
       }`}
     >
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="truncate text-xs font-bold text-slate-900 tracking-tight">
-            {deadline.label}
-          </span>
-          <StatusBadge status={deadline.status} />
-          {overdue && (
-            <span className="rounded-full bg-rose-100 px-2 py-0.2 text-[10px] font-bold text-rose-800">
-              Action Overdue
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="truncate text-xs font-bold text-slate-900 tracking-tight">
+              {deadline.label}
             </span>
-          )}
-        </div>
-
-        {deadline.clause && (
-          <div className="mt-2 border-l-2 border-slate-200 bg-slate-50/80 p-2 rounded-r text-[11px] font-mono text-slate-600 italic line-clamp-2 leading-relaxed">
-            &ldquo;{deadline.clause.rawText}&rdquo;
+            <StatusBadge status={deadline.status} />
+            {overdue && (
+              <Badge variant="destructive" className="text-[10px]">
+                <AlertTriangle className="h-2.5 w-2.5 mr-0.5" />
+                Action Required
+              </Badge>
+            )}
           </div>
-        )}
 
-        <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
-          <span className={`font-mono font-bold ${overdue ? 'text-rose-600' : 'text-slate-900'}`}>
-            {formatDate(effectiveDate)}
-          </span>
-          <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${overdue ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-slate-100 text-slate-600'}`}>
-            {urgencyLabel(effectiveDate)}
-          </span>
-          <span className="text-[11px] capitalize text-slate-400 font-medium">
-            {deadline.dayType.toLowerCase()} days
-          </span>
+          {deadline.clause && (
+            <div className="mt-2.5 border-l-2 border-slate-300 bg-slate-50 p-2.5 rounded-r-md text-[11px] font-mono text-slate-600 italic line-clamp-2 leading-relaxed">
+              &ldquo;{deadline.clause.rawText}&rdquo;
+            </div>
+          )}
+
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
+            <div className="flex items-center gap-1.5 font-mono font-semibold text-slate-900">
+              <Calendar className="h-3.5 w-3.5 text-slate-400" />
+              <span className={overdue ? 'text-rose-600 font-bold' : 'text-slate-900'}>
+                {formatDate(effectiveDate)}
+              </span>
+            </div>
+
+            <Badge variant={overdue ? 'destructive' : 'neutral'} className="text-[10px]">
+              <Clock className="h-2.5 w-2.5 mr-0.5" />
+              {urgencyLabel(effectiveDate)}
+            </Badge>
+
+            <span className="text-[11px] capitalize text-slate-400 font-medium">
+              {deadline.dayType.toLowerCase()} days
+            </span>
+          </div>
         </div>
-      </div>
 
-      {deadline.status === 'PENDING' && onConfirm && (
-        <button
-          type="button"
-          onClick={() => onConfirm(deadline)}
-          className="btn-primary shrink-0 text-xs py-1.5 px-3 self-start sm:self-center"
-        >
-          <IconCheckCircle className="h-3.5 w-3.5" />
-          <span>Confirm Date</span>
-        </button>
-      )}
+        {deadline.status === 'PENDING' && onConfirm && (
+          <Button
+            variant="default"
+            size="xs"
+            onClick={() => onConfirm(deadline)}
+            className="shrink-0 self-start sm:self-center"
+          >
+            <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+            <span>Confirm Date</span>
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
-

@@ -2,7 +2,16 @@ import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { auditApi } from '@/services/api';
 import { ActivityHistory } from '@/components/ActivityHistory';
-import { IconChevronRight, IconClipboardList } from '@/components/icons';
+import {
+  ChevronRight,
+  ClipboardList,
+  History,
+  ShieldCheck,
+  Building2,
+  ArrowLeft,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import type { AuditLog } from '@/types';
 
 export function AuditPage() {
@@ -26,44 +35,75 @@ export function AuditPage() {
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Header & Navigation */}
       <div>
-        <nav className="mb-2 flex items-center gap-2 text-sm text-slate-500">
-          <Link to="/deals" className="hover:text-brand-700">Deals</Link>
+        <nav className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Link to="/deals" className="hover:text-foreground transition-colors">
+            Portfolio
+          </Link>
           {dealId && (
             <>
-              <IconChevronRight className="h-3.5 w-3.5 text-slate-300" />
-              <Link to={`/deals/${dealId}`} className="hover:text-brand-700">Deal Dashboard</Link>
+              <ChevronRight className="h-3 w-3 text-muted-foreground/60" />
+              <Link to={`/deals/${dealId}`} className="hover:text-foreground transition-colors">
+                Transaction Workspace
+              </Link>
             </>
           )}
-          <IconChevronRight className="h-3.5 w-3.5 text-slate-300" />
-          <span className="font-medium text-slate-900">Audit History</span>
+          <ChevronRight className="h-3 w-3 text-muted-foreground/60" />
+          <span className="font-semibold text-foreground">Immutable Audit Trail</span>
         </nav>
-        <p className="page-eyebrow">Compliance</p>
-        <h1 className="mt-1 text-2xl font-bold text-slate-900">Activity History</h1>
-        <p className="mt-2 text-sm text-slate-500">
-          Complete, immutable activity log of all document uploads, AI extractions, deadline edits, and notifications.
+
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-primary font-mono">
+            Cryptographic Audit
+          </span>
+          <Badge variant="neutral" className="text-[10px]">
+            {logs.length} Events Logged
+          </Badge>
+        </div>
+
+        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          Activity &amp; Compliance Trail
+        </h1>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Complete, tamper-evident log of all document uploads, AI extractions, date manual overrides, and Resend delivery dispatches.
         </p>
       </div>
 
       {!dealId && (
-        <div className="empty-state bg-white">
-          <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 shadow-sm">
-            <IconClipboardList className="h-5 w-5" />
-          </span>
-          <p className="mt-3 text-sm text-slate-500">Select a deal to view its activity history.</p>
-          <Link to="/deals" className="btn-primary mt-4 inline-flex">
-            View All Deals
-          </Link>
+        <div className="rounded-xl border border-border/70 bg-card flex flex-col items-center justify-center p-12 text-center text-xs text-muted-foreground shadow-2xs">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground border border-border/60 mb-3">
+            <ClipboardList className="h-6 w-6" />
+          </div>
+          <h3 className="text-sm font-semibold text-foreground">Select a transaction</h3>
+          <p className="mt-1 text-xs text-muted-foreground max-w-xs">
+            Audit logs are scoped to individual deal workspaces. Choose a transaction to view its event trail.
+          </p>
+          <Button asChild size="sm" className="mt-4 text-xs">
+            <Link to="/deals">
+              <span>View All Transactions</span>
+            </Link>
+          </Button>
         </div>
       )}
 
       {dealId && (
-        <ActivityHistory
-          logs={logs}
-          loading={loading}
-          error={error}
-          initialLimit={20}
-          title="Deal Activity Log"
-        />
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Button asChild variant="secondary" size="xs" className="gap-1 text-xs">
+              <Link to={`/deals/${dealId}`}>
+                <ArrowLeft className="h-3.5 w-3.5" />
+                <span>Return to Workspace</span>
+              </Link>
+            </Button>
+          </div>
+
+          <ActivityHistory
+            logs={logs}
+            loading={loading}
+            error={error}
+            initialLimit={50}
+            title="Complete Immutable Audit Record"
+          />
+        </div>
       )}
     </div>
   );

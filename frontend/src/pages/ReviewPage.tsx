@@ -4,7 +4,18 @@ import { useDeadlines } from '@/hooks/useDeadlines';
 import { deadlinesApi, dealsApi } from '@/services/api';
 import { DeadlineCard } from '@/components/DeadlineCard';
 import { DealHeader } from '@/components/deal/DealHeader';
-import { IconChevronLeft, IconChevronRight, IconExclamationTriangle } from '@/components/icons';
+import {
+  ChevronLeft,
+  ChevronRight,
+  AlertTriangle,
+  FileCheck2,
+  Clock,
+  CheckCircle2,
+  Loader2,
+  Sparkles,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import type { Deadline, Deal } from '@/types';
 
 export function ReviewPage() {
@@ -48,33 +59,52 @@ export function ReviewPage() {
       <DealHeader deal={deal} activeTab="documents" />
 
       <div>
-        <h1 className="text-xl font-bold text-slate-900 tracking-tight">Clause &amp; Deadline Verification</h1>
-        <p className="mt-0.5 text-xs text-slate-500">
-          Verify each AI-extracted deadline and source quotation. Edit the date if needed, then confirm to lock in monitoring.
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-primary font-mono">
+            Compliance Audit
+          </span>
+          <Badge variant="neutral" className="text-[10px]">
+            {deadlines.length} Clauses Extracted
+          </Badge>
+        </div>
+        <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+          Clause &amp; Deadline Verification
+        </h1>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Audit each AI-extracted contingency against exact verbatim contract citations. Adjust target dates or confirm to arm automated reminders.
         </p>
       </div>
 
-      {loading && <p className="text-sm text-slate-400">Loading&hellip;</p>}
-      {error && (
-        <p className="banner-error mb-4">
-          <IconExclamationTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          {error}
-        </p>
+      {loading && (
+        <div className="rounded-xl border border-border/70 bg-card p-12 flex items-center justify-center gap-2 text-xs text-muted-foreground shadow-2xs">
+          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+          <span>Loading extracted contract clauses...</span>
+        </div>
       )}
+
+      {error && (
+        <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-xs text-destructive">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
       {confirmError && (
-        <p className="banner-error mb-4">
-          <IconExclamationTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          {confirmError}
-        </p>
+        <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-xs text-destructive">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          <span>{confirmError}</span>
+        </div>
       )}
 
       {/* Pending — need user action */}
       {pending.length > 0 && (
-        <section className="mb-8">
-          <h2 className="mb-3 flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wider text-amber-700">
-            <IconExclamationTriangle className="h-4 w-4" />
-            Needs Confirmation ({pending.length})
-          </h2>
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+              <AlertTriangle className="h-4 w-4" />
+              <span>Requires Agent Confirmation ({pending.length})</span>
+            </h2>
+          </div>
           <div className="space-y-3">
             {pending.map((dl) => (
               <div key={dl.id} className={confirming === dl.id ? 'pointer-events-none opacity-50' : ''}>
@@ -87,9 +117,10 @@ export function ReviewPage() {
 
       {/* Confirmed / Active */}
       {confirmed.length > 0 && (
-        <section>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500">
-            Confirmed ({confirmed.length})
+        <section className="space-y-3 pt-2">
+          <h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+            <span>Agent Confirmed Milestones ({confirmed.length})</span>
           </h2>
           <div className="space-y-3">
             {confirmed.map((dl) => (
@@ -100,22 +131,24 @@ export function ReviewPage() {
       )}
 
       {!loading && deadlines.length === 0 && (
-        <div className="empty-state p-12">
-          <p className="text-sm text-slate-500">
-            No deadlines extracted yet. Upload a contract to begin extraction.
-          </p>
+        <div className="rounded-xl border border-border/70 bg-card p-12 text-center text-xs text-muted-foreground shadow-2xs">
+          No deadlines extracted yet. Upload a contract PDF to begin extraction.
         </div>
       )}
 
-      <div className="mt-8 flex justify-between">
-        <Link to={`/deals/${dealId}`} className="btn-secondary">
-          <IconChevronLeft className="h-4 w-4" />
-          Back to Timeline
-        </Link>
-        <Link to={`/audit?dealId=${dealId}`} className="btn-secondary">
-          Audit Log
-          <IconChevronRight className="h-4 w-4" />
-        </Link>
+      <div className="pt-4 flex items-center justify-between border-t border-border/60">
+        <Button asChild variant="secondary" size="sm" className="gap-1 text-xs">
+          <Link to={`/deals/${dealId}`}>
+            <ChevronLeft className="h-3.5 w-3.5" />
+            <span>Back to Milestones</span>
+          </Link>
+        </Button>
+        <Button asChild variant="outline" size="sm" className="gap-1 text-xs">
+          <Link to={`/audit?dealId=${dealId}`}>
+            <span>Audit Trail</span>
+            <ChevronRight className="h-3.5 w-3.5" />
+          </Link>
+        </Button>
       </div>
     </div>
   );

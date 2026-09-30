@@ -4,22 +4,28 @@ import { StatusStream } from './StatusStream';
 import { SuggestedQuestions } from './SuggestedQuestions';
 import { SummaryPanel } from './SummaryPanel';
 import {
-  IconSparkles,
-  IconPaperAirplane,
-  IconSpinner,
-  IconArrowPath,
-  IconExclamationTriangle,
-  IconMicrophone,
-  IconShieldCheck,
-  IconChatBubbleLeftRight,
-  IconChartBar,
-} from '../icons';
+  Sparkles,
+  Send,
+  Loader2,
+  RotateCcw,
+  AlertTriangle,
+  Mic,
+  ShieldCheck,
+  MessageSquare,
+  BarChart3,
+  Scale,
+  FileCheck,
+  Building,
+  DollarSign,
+} from 'lucide-react';
 import type {
   AssistantMessage,
   Citation,
   DealSummaryResponse,
   IndexStatusResponse,
 } from '@/types';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
 
 interface Props {
   messages: AssistantMessage[];
@@ -67,7 +73,6 @@ export function ChatWindow({
     onAsk(q);
   };
 
-  // Voice Query (Speech to Text)
   const handleToggleVoice = () => {
     if (typeof window === 'undefined') return;
 
@@ -120,18 +125,22 @@ export function ChatWindow({
   const categorizedStarters = [
     {
       category: 'Timeline & Deadlines',
+      icon: FileCheck,
       prompt: 'What are the exact calendar deadlines for inspection, appraisal, and loan commitment?',
     },
     {
-      category: 'Inspection & Repairs',
-      prompt: 'What are the buyer inspection terms, access rights, and remedy obligations?',
+      category: 'Inspection & Access',
+      icon: Building,
+      prompt: 'What are the buyer inspection rights, access limitations, and repair notice obligations?',
     },
     {
-      category: 'Financing & Escrow',
+      category: 'Financing & Deposit',
+      icon: DollarSign,
       prompt: 'What happens to the earnest money deposit if loan approval fails?',
     },
     {
       category: 'Remedies & Default',
+      icon: Scale,
       prompt: 'What specific remedies apply to both parties in the event of contractual default?',
     },
   ];
@@ -144,28 +153,30 @@ export function ChatWindow({
   ];
 
   return (
-    <div className="flex flex-col h-full bg-slate-50/50 rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+    <div className="flex flex-col h-full bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200 select-none">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-700 to-indigo-600 text-white shadow-2xs">
-            <IconSparkles className="h-4 w-4" />
+      <div className="flex items-center justify-between px-3.5 py-2.5 bg-white border-b border-slate-200 select-none">
+        <div className="flex items-center gap-2">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-900 text-white shadow-2xs">
+            <Sparkles className="h-3.5 w-3.5" />
           </div>
           <div>
-            <h3 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-              <span>Contract Intelligence Copilot</span>
-              <span className="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.2 text-[10px] font-semibold flex items-center gap-0.5">
-                <IconShieldCheck className="h-3 w-3 text-emerald-600" />
-                Grounded
-              </span>
-            </h3>
+            <div className="flex items-center gap-1.5">
+              <h3 className="text-xs font-bold text-slate-900">
+                AI Legal Copilot
+              </h3>
+              <Badge variant="neutral" className="text-[10px] px-1 py-0">
+                <ShieldCheck className="h-2.5 w-2.5 text-emerald-600 mr-0.5" />
+                Verified Grounding
+              </Badge>
+            </div>
             <p className="text-[10px] text-slate-400">
               {isIndexing ? (
                 <span className="text-amber-600 flex items-center gap-1 font-medium">
-                  <IconSpinner className="h-3 w-3 animate-spin" /> Indexing contract documents&hellip;
+                  <Loader2 className="h-2.5 w-2.5 animate-spin" /> Indexing documents&hellip;
                 </span>
               ) : (
-                'Zero-hallucination citation-verified contract intelligence'
+                'Contract-verified Q&A with exact PDF source citations'
               )}
             </p>
           </div>
@@ -177,25 +188,25 @@ export function ChatWindow({
             <button
               type="button"
               onClick={() => setActiveTab('chat')}
-              className={`flex items-center gap-1 rounded-md px-2.5 py-1 transition-all text-[11px] ${
+              className={`flex items-center gap-1 rounded-md px-2 py-0.5 transition-all text-[11px] ${
                 activeTab === 'chat'
                   ? 'bg-white text-slate-900 shadow-2xs font-semibold'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <IconChatBubbleLeftRight className="h-3.5 w-3.5" />
-              <span>Chat Q&amp;A</span>
+              <MessageSquare className="h-3 w-3" />
+              <span>Q&amp;A Chat</span>
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('summary')}
-              className={`flex items-center gap-1 rounded-md px-2.5 py-1 transition-all text-[11px] ${
+              className={`flex items-center gap-1 rounded-md px-2 py-0.5 transition-all text-[11px] ${
                 activeTab === 'summary'
                   ? 'bg-white text-slate-900 shadow-2xs font-semibold'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <IconChartBar className="h-3.5 w-3.5" />
+              <BarChart3 className="h-3 w-3" />
               <span>Deal Brief</span>
             </button>
           </div>
@@ -204,10 +215,10 @@ export function ChatWindow({
             <button
               type="button"
               onClick={onClear}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+              className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
               title="Reset conversation"
             >
-              <IconArrowPath className="h-3.5 w-3.5" />
+              <RotateCcw className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
@@ -219,15 +230,15 @@ export function ChatWindow({
           <SummaryPanel summary={summary} loading={loading && !summary} />
         ) : (
           <>
-            {/* Empty State with Structured Category Starters */}
+            {/* Empty State */}
             {messages.length === 0 && (
-              <div className="py-4 px-1 space-y-5">
-                <div className="text-center space-y-1.5 max-w-sm mx-auto">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-50 text-brand-700 mx-auto shadow-2xs ring-1 ring-brand-100">
-                    <IconSparkles className="h-5 w-5" />
+              <div className="py-2 px-1 space-y-4">
+                <div className="text-center space-y-1 max-w-sm mx-auto">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700 mx-auto shadow-2xs">
+                    <Sparkles className="h-4 w-4" />
                   </div>
-                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
-                    Legal Contract Intelligence
+                  <h4 className="text-xs font-bold text-slate-900 tracking-tight">
+                    Transaction Intelligence Assistant
                   </h4>
                   <p className="text-[11px] text-slate-500 leading-relaxed">
                     Ask questions with full traceability to clauses, deadlines, remedies, and addenda.
@@ -235,22 +246,26 @@ export function ChatWindow({
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {categorizedStarters.map((item, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      disabled={loading}
-                      onClick={() => onAsk(item.prompt)}
-                      className="group p-3 rounded-xl border border-slate-200 bg-white hover:border-brand-400 hover:bg-brand-50/40 text-left transition-all shadow-2xs cursor-pointer"
-                    >
-                      <span className="text-[10px] font-bold text-brand-700 uppercase tracking-wide block mb-1">
-                        {item.category}
-                      </span>
-                      <p className="text-xs text-slate-700 font-medium group-hover:text-slate-900 leading-snug">
-                        {item.prompt}
-                      </p>
-                    </button>
-                  ))}
+                  {categorizedStarters.map((item, idx) => {
+                    const Icon = item.icon;
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        disabled={loading}
+                        onClick={() => onAsk(item.prompt)}
+                        className="group p-2.5 rounded-lg border border-slate-200 bg-white hover:border-slate-400 hover:bg-slate-50/50 text-left transition-all shadow-2xs cursor-pointer"
+                      >
+                        <div className="flex items-center gap-1 text-[10px] font-bold text-slate-700 uppercase tracking-wide mb-1">
+                          <Icon className="h-3 w-3 text-slate-500" />
+                          <span>{item.category}</span>
+                        </div>
+                        <p className="text-[11px] text-slate-600 font-medium group-hover:text-slate-900 leading-snug">
+                          {item.prompt}
+                        </p>
+                      </button>
+                    );
+                  })}
                 </div>
 
                 {suggestions.length > 0 && (
@@ -285,7 +300,7 @@ export function ChatWindow({
             {/* Error Banner */}
             {error && (
               <div className="banner-error text-xs">
-                <IconExclamationTriangle className="h-4 w-4 shrink-0" />
+                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
@@ -297,17 +312,17 @@ export function ChatWindow({
 
       {/* Input Box (Chat Tab only) */}
       {activeTab === 'chat' && (
-        <div className="bg-white border-t border-slate-200/90 shadow-2xs">
+        <div className="bg-white border-t border-slate-200 p-2.5 space-y-2">
           {/* Quick Prompt Pill Strip */}
           {messages.length > 0 && (
-            <div className="px-3 pt-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
               {quickPrompts.map((qp, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => onAsk(qp)}
                   disabled={loading}
-                  className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[10px] text-slate-600 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-800 transition-colors disabled:opacity-40 cursor-pointer"
+                  className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] text-slate-600 hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900 transition-colors disabled:opacity-40 cursor-pointer"
                 >
                   {qp}
                 </button>
@@ -315,22 +330,18 @@ export function ChatWindow({
             </div>
           )}
 
-          <form
-            onSubmit={handleSubmit}
-            className="p-3 flex items-center gap-2"
-          >
-            {/* Microphone Voice Button */}
+          <form onSubmit={handleSubmit} className="flex items-center gap-2">
             <button
               type="button"
               onClick={handleToggleVoice}
-              className={`p-2.5 rounded-xl border transition-all ${
+              className={`p-1.5 rounded-lg border transition-all ${
                 isListening
                   ? 'bg-rose-500 text-white border-rose-600 ring-2 ring-rose-300 animate-pulse'
                   : 'bg-slate-50 hover:bg-slate-100 text-slate-500 border-slate-200'
               }`}
               title={isListening ? 'Listening... click to stop' : 'Voice dictation'}
             >
-              <IconMicrophone className="h-4 w-4" />
+              <Mic className="h-3.5 w-3.5" />
             </button>
 
             <input
@@ -339,25 +350,21 @@ export function ChatWindow({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               disabled={loading}
-              className="w-full bg-slate-50/80 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-hidden focus:ring-1 focus:ring-brand-500 focus:bg-white transition-all shadow-2xs"
+              className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-900 focus:bg-white transition-all shadow-2xs"
             />
 
-            <button
+            <Button
               type="submit"
               disabled={loading || !input.trim()}
-              className="btn-primary flex items-center justify-center p-2.5 h-9 w-9 shrink-0 disabled:opacity-40 rounded-xl"
-              title="Ask AI Copilot"
+              size="sm"
+              variant="default"
+              className="shrink-0 h-7.5 px-3"
             >
-              {loading ? (
-                <IconSpinner className="h-4 w-4 animate-spin text-white" />
-              ) : (
-                <IconPaperAirplane className="h-4 w-4" />
-              )}
-            </button>
+              {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+            </Button>
           </form>
         </div>
       )}
     </div>
   );
 }
-
