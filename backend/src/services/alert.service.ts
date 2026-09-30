@@ -1,92 +1,163 @@
 /**
- * Alert Service
- *
- * Real email alert delivery (SendGrid) + SMS stub (Twilio).
- * Integration with scheduler and notification routes.
+ * Alert Service — Automated deadline alert evaluation, Resend email dispatch, and cron scheduler.
  */
 
 import { PrismaClient } from '@prisma/client';
-import { sendEmail } from './email.service.js';
-import { renderEmailTemplate } from './emailTemplates.js';
+import cron from 'node-cron';
 import { logger } from '../utils/logger.js';
+import { sendEmail, generateTemplate } from './email.service.js';
 
 const prisma = new PrismaClient();
 
 export interface AlertPayload {
-  to: string; // phone number (SMS) or email address
+  to: string;
   dealId: string;
-  deadlineId?: string;
   deadlineLabel: string;
   deadlineDate: Date;
-  daysUntilDeadline?: number;
-  templateName?: string;
+  daysUntilDeadline: number;
 }
 
-export async function sendSmsAlert(payload: AlertPayload): Promise<void> {
-  logger.info(`[Alert SMS stub] Would SMS ${payload.to}: "${payload.deadlineLabel}" due ${payload.deadlineDate.toDateString()}`);
-  // SMS stub untouched per instructions
+/**
+ * Checks all active deals and dispatches reminders for matching windows (3d, 1d, dayOf, missed).
+ */
+export async function checkAndDispatchAlerts(): Promise<{ processed: number; sent: number }> {
+  logger.info('[Alert Service] Running scheduled contingency alert evaluation...');
+  let sentCount = 0;
+
+  try {
+    const deals = await prisma.deal.findMany({
+      where: { status: 'ACTIVE' },
+      include: {
+        notificationSettings: true,
+        deadlines: {
+          where: {
+            status: { in: ['CONFIRMED', 'ACTIVE', 'PENDING'] },
+          },
+        },
+      },
+    });
+
+    const now = new Date();
+
+    for (const deal of deals) {
+      const settings = deal.notificationSettings;
+      if (!settings || !settings.enabled) continue;
+
+      const recipients = (settings.recipients as string[]) || [];
+      if (recipients.length === 0) continue;
+
+      for (const deadline of deal.deadlines) {
+        const targetDate = deadline.confirmedDate ?? deadline.computedDate;
+        const diffMs = targetDate.getTime() - now.getTime();
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+        let templateToSend: '3d' | '1d' | 'dayOf' | 'missed' | null = null;
+
+        if (diffDays === 3 && settings.window3d) {
+          templateToSend = '3d';
+        } else if (diffDays === 1 && settings.window1d) {
+          templateToSend = '1d';
+        } else if (diffDays === 0 && settings.windowDayOf) {
+          templateToSend = 'dayOf';
+        } else if (diffDays < 0 && settings.windowMissed && deadline.status !== 'COMPLETED') {
+          templateToSend = 'missed';
+        }
+
+        if (!templateToSend) continue;
+
+        // Check if alert for this deadline and window was already sent
+        const existingLog = await prisma.emailLog.findFirst({
+          where: {
+            deadlineId: deadline.id,
+            template: templateToSend,
+          },
+        });
+
+        if (existingLog) continue;
+
+        const dateFormatted = targetDate.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        });
+
+        const emailContent = generateTemplate(templateToSend, {
+          dealAddress: deal.propertyAddress,
+          deadlineLabel: deadline.label,
+          dueDate: dateFormatted,
+          dealId: deal.id,
+        });
+
+        // Dispatch to all recipients
+        for (const recipient of recipients) {
+          const result = await sendEmail({
+            to: recipient,
+            subject: emailContent.subject,
+            html: emailContent.html,
+            text: emailContent.text,
+          });
+
+          await prisma.emailLog.create({
+            data: {
+              dealId: deal.id,
+              deadlineId: deadline.id,
+              recipient,
+              template: templateToSend,
+              status: result.success ? 'SENT' : 'BOUNCED',
+              providerMessageId: result.messageId ?? null,
+              errorMessage: result.error ?? null,
+            },
+          });
+
+          if (result.success) {
+            sentCount++;
+            logger.info(`[Alert Sent] Dispatched ${templateToSend} for ${deadline.label} to ${recipient}`);
+          }
+        }
+
+        // Update deadline status to MISSED if overdue
+        if (templateToSend === 'missed') {
+          await prisma.deadline.update({
+            where: { id: deadline.id },
+            data: { status: 'MISSED' },
+          });
+        }
+
+        // Log audit trail
+        await prisma.auditLog.create({
+          data: {
+            dealId: deal.id,
+            action: 'ALERT_SENT',
+            entityType: 'Deadline',
+            entityId: deadline.id,
+            actor: 'system',
+            note: `Automated ${templateToSend} deadline alert dispatched via Resend to ${recipients.join(', ')}`,
+          },
+        });
+      }
+    }
+
+    logger.info(`[Alert Service] Evaluation completed. Dispatched ${sentCount} notifications.`);
+    return { processed: deals.length, sent: sentCount };
+  } catch (err) {
+    logger.error(`[Alert Service Error] ${err instanceof Error ? err.message : 'Unknown error'}`);
+    return { processed: 0, sent: sentCount };
+  }
 }
 
-export async function sendEmailAlert(payload: AlertPayload): Promise<boolean> {
-  const deal = await prisma.deal.findUnique({
-    where: { id: payload.dealId },
+/**
+ * Initializes the background cron job for deadline alerts.
+ */
+export function initAlertCron(): void {
+  const cronExpr = process.env['ALERT_CRON'] ?? '0 * * * *'; // hourly
+  logger.info(`[Alert Scheduler] Initialized with cron schedule: "${cronExpr}"`);
+
+  cron.schedule(cronExpr, async () => {
+    await checkAndDispatchAlerts();
   });
-
-  if (!deal) {
-    logger.warn(`[Alert] Cannot send email alert: Deal ${payload.dealId} not found`);
-    return false;
-  }
-
-  const templateKey = payload.templateName || (payload.daysUntilDeadline === 3 ? 'd3' : payload.daysUntilDeadline === 1 ? 'd1' : payload.daysUntilDeadline === 0 ? 'day_of' : 'd3');
-
-  const rendered = renderEmailTemplate(templateKey, {
-    dealId: deal.id,
-    propertyAddress: deal.propertyAddress,
-    deadlineLabel: payload.deadlineLabel,
-    deadlineDate: payload.deadlineDate,
-  });
-
-  const result = await sendEmail({
-    to: payload.to,
-    subject: rendered.subject,
-    text: rendered.text,
-    html: rendered.html,
-  });
-
-  // Log email to database
-  if (payload.deadlineId) {
-    await prisma.emailLog.create({
-      data: {
-        dealId: deal.id,
-        deadlineId: payload.deadlineId,
-        window: templateKey,
-        template: templateKey,
-        recipient: payload.to,
-        status: result.success ? 'DELIVERED' : 'FAILED',
-        providerMessageId: result.providerMessageId,
-        error: result.error,
-      },
-    }).catch((err) => {
-      logger.warn(`[Alert] Unique constraint or logging error on EmailLog: ${err.message}`);
-    });
-  }
-
-  if (result.success) {
-    await prisma.auditLog.create({
-      data: {
-        dealId: deal.id,
-        action: 'ALERT_SENT',
-        entityType: 'Deadline',
-        entityId: payload.deadlineId,
-        actor: 'system',
-        newValue: { recipient: payload.to, template: templateKey, providerMessageId: result.providerMessageId },
-      },
-    });
-  }
-
-  return result.success;
 }
 
 export async function scheduleAlerts(dealId: string): Promise<void> {
-  logger.info(`[Alert] Active deadline alert schedule requested for deal ${dealId}`);
+  logger.info(`[Alert Service] Triggering immediate check for activated deal: ${dealId}`);
+  await checkAndDispatchAlerts();
 }

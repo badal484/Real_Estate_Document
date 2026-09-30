@@ -62,7 +62,7 @@ router.post('/',uploadMiddleware.single('file'),
         action: 'DOCUMENT_UPLOADED',
         entityType: 'Document',
         entityId: document.id,
-        actor: 'system',
+        actor: req.user?.email ?? 'system',
         newValue: { filename: file.originalname, sizeBytes: file.size },
       },
     });
@@ -111,11 +111,91 @@ router.post('/',uploadMiddleware.single('file'),
       },
     });
 
+    // ── Background Page-Level Indexing for AI Assistant ──────────────────
+    (async () => {
+      try {
+        await prisma.document.update({
+          where: { id: document.id },
+          data: { indexStatus: 'INDEXING' },
+        });
+
+        const { extractPagesFromPdf } = await import('../../services/pdf.service.js');
+        const { classifyDocument } = await import('../../services/docClassifier.service.js');
+        const { chunkDocumentPages } = await import('../../services/chunk.service.js');
+        const { generateEmbedding } = await import('../../services/embedding.service.js');
+
+        const pages = await extractPagesFromPdf(file.path);
+        const sampleText = pages.map((p) => p.text).join('\n').slice(0, 10000);
+        const classification = await classifyDocument({ filename: file.originalname, sampleText });
+        const chunks = chunkDocumentPages(pages);
+
+        for (const chunk of chunks) {
+          const embedding = await generateEmbedding(chunk.content);
+          await prisma.documentChunk.create({
+            data: {
+              documentId: document.id,
+              dealId,
+              pageNumber: chunk.pageNumber,
+              chunkIndex: chunk.chunkIndex,
+              sectionTitle: chunk.sectionTitle,
+              content: chunk.content,
+              tokenCount: chunk.tokenCount,
+              source: chunk.source,
+              embedding: embedding as unknown as object,
+            },
+          });
+        }
+
+        await prisma.document.update({
+          where: { id: document.id },
+          data: {
+            docType: classification.docType,
+            effectiveDate: classification.effectiveDate,
+            pageCount: pages.length,
+            indexStatus: 'READY',
+            indexedAt: new Date(),
+          },
+        });
+
+        if (classification.effectiveDate && (classification.docType === 'PURCHASE_AGREEMENT' || !deal.acceptanceDate)) {
+          await prisma.deal.update({
+            where: { id: dealId },
+            data: { acceptanceDate: classification.effectiveDate },
+          });
+          const allClauses = await prisma.contingencyClause.findMany({ where: { dealId } });
+          await computeDeadlinesForDeal(dealId, classification.effectiveDate, allClauses);
+        }
+
+
+        await prisma.auditLog.create({
+          data: {
+            dealId,
+            action: 'DOCUMENT_INDEXED',
+            entityType: 'Document',
+            entityId: document.id,
+            actor: 'system',
+            newValue: {
+              docType: classification.docType,
+              pagesCount: pages.length,
+              chunksCount: chunks.length,
+            },
+          },
+        });
+        logger.info(`[Pipeline] Indexed document ${document.id}: ${chunks.length} chunks across ${pages.length} pages`);
+      } catch (indexErr) {
+        logger.error(`[Pipeline] Indexing failed for document ${document.id}: ${(indexErr as Error).message}`);
+        await prisma.document.update({
+          where: { id: document.id },
+          data: { indexStatus: 'FAILED' },
+        }).catch(() => {});
+      }
+    })();
+
     res.status(201).json({
       document,
       extractedClauses: clauses.length,
       computedDeadlines: deadlines.length,
-      message: 'Document uploaded and contingency extraction completed.',
+      message: 'Document uploaded, contingency extraction completed, indexing in progress.',
     });
   }),
 );
@@ -132,6 +212,42 @@ router.get(
 
     const url = getSignedDocumentUrl(document.storagePath);
     res.json({ url, expiresInSeconds: 900 });
+  }),
+);
+
+// ── GET /api/deals/:id/documents/:docId/file ───────────────────────────────
+// Securely streams the actual PDF file binary to the browser with CORS headers
+router.get(
+  '/:docId/file',
+  asyncHandler(async (req, res) => {
+    const { id: dealId, docId } = req.params;
+    const document = await prisma.document.findFirst({ where: { id: docId, dealId } });
+    if (!document) throw createError('Document not found', 404);
+
+    const { readFile } = await import('node:fs/promises');
+    const { existsSync } = await import('node:fs');
+    const path = await import('node:path');
+
+    if (document.storagePath.startsWith('http://') || document.storagePath.startsWith('https://')) {
+      const signedUrl = getSignedDocumentUrl(document.storagePath);
+      const remoteRes = await fetch(signedUrl);
+      if (!remoteRes.ok) throw createError('Failed to fetch remote document from storage', remoteRes.status);
+      const arrayBuffer = await remoteRes.arrayBuffer();
+      res.setHeader('Content-Type', document.mimeType || 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="${document.filename}"`);
+      res.send(Buffer.from(arrayBuffer));
+      return;
+    }
+
+    const resolvedPath = path.resolve(document.storagePath);
+    if (!existsSync(resolvedPath)) {
+      throw createError('Document file not found on local disk', 404);
+    }
+
+    const fileBuffer = await readFile(resolvedPath);
+    res.setHeader('Content-Type', document.mimeType || 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${document.filename}"`);
+    res.send(fileBuffer);
   }),
 );
 

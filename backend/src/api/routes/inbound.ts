@@ -13,7 +13,7 @@ import { PrismaClient } from '@prisma/client';
 import { storeFile } from '../../services/storage.service.js';
 import { extractClausesFromPdf } from '../../services/ai.service.js';
 import { computeDeadlinesForDeal } from '../../services/deadline.service.js';
-import { sendEmailAlert } from '../../services/alert.service.js';
+import { sendEmail, generateTemplate } from '../../services/email.service.js';
 import { logger } from '../../utils/logger.js';
 
 const router = Router();
@@ -92,8 +92,11 @@ router.post('/email', upload.array('attachments', 5), async (req, res) => {
     const senderEmail = (String(from || '').match(/<([^>]+)>/)?.[1] || String(from || '')).toLowerCase().trim();
     const settings = deal.notificationSettings;
 
-    if (settings && settings.recipients.length > 0) {
-      const isAllowed = settings.recipients.some((r) => r.toLowerCase().trim() === senderEmail);
+    const configuredRecipients = Array.isArray(settings?.recipients)
+      ? settings.recipients.filter((recipient): recipient is string => typeof recipient === 'string')
+      : [];
+    if (configuredRecipients.length > 0) {
+      const isAllowed = configuredRecipients.some((r) => r.toLowerCase().trim() === senderEmail);
       if (!isAllowed) {
         logger.warn(`[Inbound Webhook] Sender ${senderEmail} not in allowlist for deal ${deal.id}`);
         res.status(403).json({ error: 'Sender email address not authorized for this deal' });
@@ -182,14 +185,12 @@ router.post('/email', upload.array('attachments', 5), async (req, res) => {
           await computeDeadlinesForDeal(deal!.id, baseAcceptanceDate, clauses);
 
           // Send confirmation email
-          const recipient = senderEmail || settings?.recipients[0] || 'agent@contingencycopilot.com';
-          await sendEmailAlert({
-            to: recipient,
+          const recipient = senderEmail || configuredRecipients[0] || 'agent@contingencycopilot.com';
+          const email = generateTemplate('docs_received', {
+            dealAddress: deal!.propertyAddress,
             dealId: deal!.id,
-            deadlineLabel: 'New Document Uploaded',
-            deadlineDate: new Date(),
-            templateName: 'documents-received',
           });
+          await sendEmail({ to: recipient, subject: email.subject, html: email.html, text: email.text });
         } catch (err: unknown) {
           logger.error(`[Inbound Pipeline] Background extraction error for ${document.id}:`, err);
         }

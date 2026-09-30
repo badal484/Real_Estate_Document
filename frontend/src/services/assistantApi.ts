@@ -85,18 +85,16 @@ export const assistantApi = {
         conversationId: conversationId || `conv-${Date.now()}`,
         role: 'assistant',
         content: `Based on the purchase agreement for this deal, the **Inspection Contingency** is set to 17 calendar days after acceptance. The buyer must submit written notice or contingency removal by the confirmed date [^1].`,
-        found: true,
-        isDirectlyAnswerable: true,
-        confidence: 0.96,
         citations: [
           {
-            id: '1',
+            id: 1,
             sourceType: 'document',
             documentName: 'Purchase_Agreement.pdf',
             pageNumber: 3,
             section: 'Paragraph 14.A',
             quote: 'Buyer shall have 17 Days After Acceptance to inspect the Property...',
             relevanceExplanation: 'Establishes the inspection contingency timeframe.',
+            confidence: 0.96,
           },
         ],
         suggestedFollowUps: [
@@ -151,7 +149,7 @@ export const assistantApi = {
       ],
       citations: [
         {
-          id: '1',
+          id: 1,
           sourceType: 'deadline',
           deadlineId: 'd1',
           relevanceExplanation: 'Title contingency pending confirmation.',

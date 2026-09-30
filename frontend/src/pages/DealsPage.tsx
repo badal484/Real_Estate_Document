@@ -1,38 +1,43 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { dealsApi } from '@/services/api';
 import type { Deal } from '@/types';
 import { formatDate } from '@/utils/date';
 import {
-  IconChevronRight,
-  IconExclamationTriangle,
-  IconInbox,
-  IconPlus,
-  IconSpinner,
-  IconGrid,
-  IconList,
-  IconMagnifyingGlass,
-  IconShieldCheck,
-  IconClock,
-  IconDollar,
-  IconBuilding,
-  IconUser,
-  IconSparkles,
-} from '@/components/icons';
-
-const STATUS_STYLE: Record<Deal['status'], string> = {
-  ACTIVE: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
-  CLOSED: 'bg-slate-800 text-slate-400 border-slate-700',
-  CANCELLED: 'bg-rose-500/10 text-rose-400 border-rose-500/30',
-};
+  Building2,
+  Plus,
+  Search,
+  Sparkles,
+  ChevronRight,
+  ShieldCheck,
+  Clock,
+  CheckCircle2,
+  FileText,
+  Loader2,
+  AlertTriangle,
+  Inbox,
+  Bell,
+  ArrowUpRight,
+  SlidersHorizontal,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table';
 
 export function DealsPage() {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'CLOSED'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
   useEffect(() => {
     dealsApi
@@ -42,285 +47,307 @@ export function DealsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const filteredDeals = deals.filter((d) => {
-    const matchSearch =
-      d.propertyAddress.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (d.buyerName && d.buyerName.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (d.sellerName && d.sellerName.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredDeals = useMemo(() => {
+    return deals.filter((deal) => {
+      const matchesSearch =
+        deal.propertyAddress.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        deal.buyerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        deal.sellerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        deal.id.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchStatus = statusFilter === 'ALL' || d.status === statusFilter;
-    return matchSearch && matchStatus;
-  });
+      const matchesStatus = statusFilter === 'ALL' || deal.status === statusFilter;
 
-  const activeCount = deals.filter((d) => d.status === 'ACTIVE').length;
-  const totalDeadlines = deals.reduce((acc, d) => acc + (d._count?.deadlines ?? 0), 0);
+      return matchesSearch && matchesStatus;
+    });
+  }, [deals, searchQuery, statusFilter]);
+
+  const totalMilestones = useMemo(() => {
+    return deals.reduce((acc, deal) => acc + (deal._count?.deadlines ?? 0), 0);
+  }, [deals]);
+
+  const activeCount = useMemo(() => {
+    return deals.filter((d) => d.status === 'ACTIVE').length;
+  }, [deals]);
 
   return (
-    <div className="space-y-8">
-      {/* Page Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-8 max-w-[1600px] mx-auto">
+      {/* ── Page Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="page-eyebrow">Portfolio Dashboard</span>
-          <h1 className="mt-1.5 text-2xl font-bold text-white tracking-tight">Real Estate Deals</h1>
-          <p className="mt-1 text-xs text-slate-400">
-            Monitor purchase agreements, active contingencies, and earnest deposit risk across your portfolio.
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-sky-600 font-mono">
+              Portfolio Surveillance
+            </span>
+            <Badge variant="neutral" className="glass-badge font-mono text-[10px] text-slate-700">
+              {deals.length} Active Escrows
+            </Badge>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+            Transactions &amp; Contingencies
+          </h1>
+          <p className="text-xs text-slate-500 mt-1 max-w-2xl">
+            Real-time compliance surveillance, binding milestone tracking, and AI-grounded legal contract analysis.
           </p>
         </div>
-        <Link to="/upload" className="btn-primary shrink-0">
-          <IconPlus className="h-4 w-4" />
-          <span>Upload Agreement</span>
-        </Link>
-      </div>
 
-      {/* KPI Stats Overview */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="card-glow flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Deals</span>
-            <p className="mt-1 text-2xl font-bold text-white">{loading ? '…' : activeCount}</p>
-            <span className="text-[10px] text-emerald-400 font-medium">100% Extraction Coverage</span>
-          </div>
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-500/20 text-brand-400 border border-brand-500/30">
-            <IconBuilding className="h-5 w-5" />
-          </span>
-        </div>
-
-        <div className="card flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Contingency Deadlines</span>
-            <p className="mt-1 text-2xl font-bold text-white">{loading ? '…' : totalDeadlines}</p>
-            <span className="text-[10px] text-brand-400 font-medium">Tracked &amp; Calculated</span>
-          </div>
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-            <IconClock className="h-5 w-5" />
-          </span>
-        </div>
-
-        <div className="card flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Earnest Deposit Risk</span>
-            <p className="mt-1 text-2xl font-bold text-white">$200,000</p>
-            <span className="text-[10px] text-amber-400 font-medium">Escrow Protected</span>
-          </div>
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
-            <IconDollar className="h-5 w-5" />
-          </span>
-        </div>
-
-        <div className="card flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">AI Accuracy Rate</span>
-            <p className="mt-1 text-2xl font-bold text-emerald-400">98.4%</p>
-            <span className="text-[10px] text-slate-400">Clause Matching</span>
-          </div>
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-purple-500/20 text-purple-400 border border-purple-500/30">
-            <IconSparkles className="h-5 w-5" />
-          </span>
+        <div className="flex items-center gap-2">
+          <Button asChild size="sm" className="gap-1.5 h-9 text-xs shadow-sm">
+            <Link to="/upload">
+              <Plus className="h-4 w-4" />
+              <span>New Contract Ingestion</span>
+            </Link>
+          </Button>
         </div>
       </div>
 
-      {/* Toolbar: Search, Filters & View Switcher */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
-        {/* Search input */}
-        <div className="relative flex-1 max-w-md">
-          <IconMagnifyingGlass className="absolute left-3.5 top-3 h-4 w-4 text-slate-500" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search address, buyer, or seller..."
-            className="input pl-10 text-xs"
-          />
+      {/* ── KPI Stats Grid (Frosted Glass Cards) ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="glass-card p-4.5 rounded-2xl flex items-center justify-between">
+          <div className="space-y-1">
+            <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+              Active Transactions
+            </span>
+            <div className="text-2xl font-bold tracking-tight text-slate-900">
+              {loading ? '—' : activeCount}
+            </div>
+          </div>
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-white shadow-sm ring-1 ring-white/30">
+            <Building2 className="h-5 w-5 text-sky-400" />
+          </div>
         </div>
 
-        {/* Filter pills & View Switcher */}
-        <div className="flex items-center justify-between gap-3 sm:justify-end">
-          <div className="flex items-center gap-1 rounded-xl bg-slate-950 p-1 border border-slate-800 text-xs">
-            {(['ALL', 'ACTIVE', 'CLOSED'] as const).map((st) => (
+        <div className="glass-card p-4.5 rounded-2xl flex items-center justify-between">
+          <div className="space-y-1">
+            <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+              Monitored Milestones
+            </span>
+            <div className="text-2xl font-bold tracking-tight text-slate-900 font-mono">
+              {loading ? '—' : totalMilestones}
+            </div>
+          </div>
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-700 border border-emerald-500/25">
+            <Clock className="h-5 w-5" />
+          </div>
+        </div>
+
+        <div className="glass-card p-4.5 rounded-2xl flex items-center justify-between">
+          <div className="space-y-1">
+            <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+              Automated Dispatch
+            </span>
+            <div className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-1.5">
+              <span>Resend</span>
+              <span className="text-xs text-emerald-600 font-medium">● 100%</span>
+            </div>
+          </div>
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-500/15 text-sky-700 border border-sky-500/25">
+            <Bell className="h-5 w-5" />
+          </div>
+        </div>
+
+        <div className="glass-card p-4.5 rounded-2xl flex items-center justify-between">
+          <div className="space-y-1">
+            <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+              EMD Protected Rate
+            </span>
+            <div className="text-2xl font-bold tracking-tight text-slate-900 font-mono">
+              100.0%
+            </div>
+          </div>
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-500/15 text-indigo-700 border border-indigo-500/25">
+            <ShieldCheck className="h-5 w-5" />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Main Table Section (Glass Panel) ── */}
+      <div className="space-y-4">
+        {/* Filters & Search Toolbar */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search by address, buyer, seller, or deal ID..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="glass-input pl-9 h-9.5 text-xs w-full rounded-xl"
+            />
+          </div>
+
+          <div className="flex items-center gap-1.5 self-start sm:self-auto p-1 rounded-xl glass-badge">
+            {['ALL', 'ACTIVE', 'CLOSED', 'CANCELLED'].map((status) => (
               <button
-                key={st}
-                onClick={() => setStatusFilter(st)}
-                className={`rounded-lg px-3 py-1 font-medium transition-colors ${
-                  statusFilter === st
-                    ? 'bg-brand-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                key={status}
+                type="button"
+                onClick={() => setStatusFilter(status)}
+                className={`rounded-lg px-3 py-1 text-xs font-medium transition-all ${
+                  statusFilter === status
+                    ? 'bg-slate-900 text-white shadow-xs font-semibold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                 }`}
               >
-                {st === 'ALL' ? 'All Deals' : st}
+                {status === 'ALL' ? 'All' : status.charAt(0) + status.slice(1).toLowerCase()}
               </button>
             ))}
           </div>
+        </div>
 
-          <div className="flex items-center gap-1 rounded-xl bg-slate-950 p-1 border border-slate-800">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`rounded-lg p-1.5 transition-colors ${
-                viewMode === 'grid' ? 'bg-brand-600 text-white' : 'text-slate-400 hover:text-slate-200'
-              }`}
-              title="Grid View"
-            >
-              <IconGrid className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => setViewMode('table')}
-              className={`rounded-lg p-1.5 transition-colors ${
-                viewMode === 'table' ? 'bg-brand-600 text-white' : 'text-slate-400 hover:text-slate-200'
-              }`}
-              title="Table View"
-            >
-              <IconList className="h-4 w-4" />
-            </button>
+        {/* Loading / Error States */}
+        {loading && (
+          <div className="glass-panel rounded-2xl flex flex-col items-center justify-center py-20 text-xs text-slate-500">
+            <Loader2 className="h-6 w-6 animate-spin text-slate-800 mb-2" />
+            <span>Loading transaction portfolio...</span>
           </div>
-        </div>
-      </div>
+        )}
 
-      {loading && (
-        <div className="flex items-center justify-center gap-2 py-12 text-sm text-slate-400">
-          <IconSpinner className="h-5 w-5 animate-spin text-brand-500" />
-          <span>Loading real estate deals&hellip;</span>
-        </div>
-      )}
+        {error && (
+          <div className="banner-error">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
 
-      {error && (
-        <p className="banner-error">
-          <IconExclamationTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          {error}
-        </p>
-      )}
-
-      {!loading && filteredDeals.length === 0 && (
-        <div className="empty-state">
-          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900 text-slate-400 shadow-md">
-            <IconInbox className="h-6 w-6" />
-          </span>
-          <p className="mt-4 text-sm font-semibold text-slate-300">No matching real estate deals found.</p>
-          <p className="mt-1 text-xs text-slate-500">Upload a Purchase Agreement PDF to analyze your first property deal.</p>
-          <Link to="/upload" className="btn-primary mt-5 inline-flex text-xs">
-            <IconPlus className="h-4 w-4" />
-            Upload Contract PDF
-          </Link>
-        </div>
-      )}
-
-      {/* Grid View Mode */}
-      {!loading && viewMode === 'grid' && filteredDeals.length > 0 && (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredDeals.map((deal) => (
-            <div
-              key={deal.id}
-              className="card group flex flex-col justify-between hover:border-brand-500/50 transition-all duration-300 hover:shadow-2xl"
-            >
-              <div>
-                <div className="flex items-start justify-between gap-3 border-b border-slate-800/80 pb-3">
-                  <div className="min-w-0 flex-1">
-                    <span className="inline-block rounded-md bg-brand-500/10 px-2 py-0.5 text-[10px] font-semibold text-brand-400 border border-brand-500/20 mb-1">
-                      California RPA
-                    </span>
-                    <h3 className="text-base font-bold text-slate-100 group-hover:text-brand-300 transition-colors line-clamp-1">
-                      {deal.propertyAddress}
-                    </h3>
-                  </div>
-                  <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${STATUS_STYLE[deal.status]}`}>
-                    {deal.status}
-                  </span>
-                </div>
-
-                <div className="mt-4 space-y-2 text-xs text-slate-400">
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-slate-400">
-                      <IconUser className="h-3.5 w-3.5 text-slate-500" />
-                      Buyer:
-                    </span>
-                    <span className="font-semibold text-slate-200">{deal.buyerName || '—'}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-slate-400">
-                      <IconUser className="h-3.5 w-3.5 text-slate-500" />
-                      Seller:
-                    </span>
-                    <span className="font-semibold text-slate-200">{deal.sellerName || '—'}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-slate-400">
-                      <IconClock className="h-3.5 w-3.5 text-slate-500" />
-                      Accepted:
-                    </span>
-                    <span className="font-mono text-slate-300">
-                      {deal.acceptanceDate ? formatDate(deal.acceptanceDate) : '—'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 flex items-center justify-between border-t border-slate-800/80 pt-4">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-400 text-xs font-bold border border-emerald-500/30">
-                    {deal._count?.deadlines ?? 0}
-                  </span>
-                  <span className="text-xs text-slate-400 font-medium">Deadlines</span>
-                </div>
-
-                <Link
-                  to={`/deals/${deal.id}`}
-                  className="btn-secondary text-xs py-1.5 px-3 group-hover:border-brand-500/40 group-hover:bg-brand-500/10 group-hover:text-brand-300"
-                >
-                  <span>View Timeline</span>
-                  <IconChevronRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
+        {/* Empty State */}
+        {!loading && deals.length === 0 && (
+          <div className="glass-panel rounded-2xl flex flex-col items-center justify-center py-16 px-4 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl glass-badge text-slate-500 mb-3 shadow-2xs">
+              <Inbox className="h-6 w-6" />
             </div>
-          ))}
-        </div>
-      )}
-
-      {/* Table View Mode */}
-      {!loading && viewMode === 'table' && filteredDeals.length > 0 && (
-        <div className="card overflow-hidden p-0">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-800 text-xs">
-              <thead className="bg-slate-950/80">
-                <tr>
-                  <th className="px-6 py-3.5 text-left font-semibold uppercase tracking-wider text-slate-400">Property Address</th>
-                  <th className="px-6 py-3.5 text-left font-semibold uppercase tracking-wider text-slate-400">Buyer</th>
-                  <th className="px-6 py-3.5 text-left font-semibold uppercase tracking-wider text-slate-400">Acceptance Date</th>
-                  <th className="px-6 py-3.5 text-left font-semibold uppercase tracking-wider text-slate-400">Deadlines</th>
-                  <th className="px-6 py-3.5 text-left font-semibold uppercase tracking-wider text-slate-400">Status</th>
-                  <th className="px-6 py-3.5 text-right font-semibold uppercase tracking-wider text-slate-400">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60 bg-slate-900/40">
-                {filteredDeals.map((deal) => (
-                  <tr key={deal.id} className="transition-colors hover:bg-slate-800/40">
-                    <td className="max-w-xs truncate px-6 py-4 font-bold text-slate-100">{deal.propertyAddress}</td>
-                    <td className="px-6 py-4 text-slate-300">{deal.buyerName ?? '—'}</td>
-                    <td className="px-6 py-4 text-slate-400 font-mono">
-                      {deal.acceptanceDate ? formatDate(deal.acceptanceDate) : '—'}
-                    </td>
-                    <td className="px-6 py-4 font-bold text-brand-400">{deal._count?.deadlines ?? 0} clauses</td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${STATUS_STYLE[deal.status]}`}>
-                        {deal.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <Link
-                        to={`/deals/${deal.id}`}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-brand-400 hover:text-brand-300"
-                      >
-                        View Dashboard
-                        <IconChevronRight className="h-3.5 w-3.5" />
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <h3 className="text-sm font-semibold text-slate-900">No active transactions found</h3>
+            <p className="mt-1 text-xs text-slate-500 max-w-sm">
+              Upload your first purchase agreement or counter offer to automatically calculate contingency milestones and activate the AI Copilot.
+            </p>
+            <Button asChild size="sm" className="mt-4 gap-1.5 text-xs">
+              <Link to="/upload">
+                <Plus className="h-3.5 w-3.5" />
+                <span>Upload Contract PDF</span>
+              </Link>
+            </Button>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Non-empty Table */}
+        {!loading && deals.length > 0 && (
+          <div className="glass-panel rounded-2xl overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b border-slate-200/80 bg-slate-50/50">
+                  <TableHead className="w-[32%] py-3 px-4 font-semibold text-slate-700">Property &amp; ID</TableHead>
+                  <TableHead className="w-[20%] py-3 px-4 font-semibold text-slate-700">Contract Parties</TableHead>
+                  <TableHead className="w-[14%] py-3 px-4 font-semibold text-slate-700">Mutual Acceptance</TableHead>
+                  <TableHead className="w-[12%] py-3 px-4 font-semibold text-slate-700">Milestones</TableHead>
+                  <TableHead className="w-[10%] py-3 px-4 font-semibold text-slate-700">Status</TableHead>
+                  <TableHead className="text-right py-3 px-4 font-semibold text-slate-700">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredDeals.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-12 text-xs text-slate-500">
+                      No transactions match your search filter "{searchQuery}".
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredDeals.map((deal) => (
+                    <TableRow key={deal.id} className="group hover:bg-white/80 transition-colors border-b border-slate-100">
+                      <TableCell className="py-3.5 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-8.5 w-8.5 items-center justify-center rounded-xl bg-slate-900 text-white group-hover:scale-105 transition-transform shrink-0 shadow-2xs">
+                            <Building2 className="h-4 w-4 text-sky-400" />
+                          </div>
+                          <div className="min-w-0">
+                            <Link
+                              to={`/deals/${deal.id}`}
+                              className="font-semibold text-slate-900 hover:text-sky-600 transition-colors truncate block text-xs"
+                            >
+                              {deal.propertyAddress}
+                            </Link>
+                            <span className="text-[10px] text-slate-400 block font-mono">
+                              ID: {deal.id.slice(0, 12)}
+                            </span>
+                          </div>
+                        </div>
+                      </TableCell>
+
+                      <TableCell className="py-3.5 px-4">
+                        <div className="space-y-0.5 text-xs">
+                          {deal.buyerName && (
+                            <div className="text-[11px] truncate">
+                              <span className="text-slate-400 font-medium">B:</span>{' '}
+                              <span className="font-medium text-slate-800">{deal.buyerName}</span>
+                            </div>
+                          )}
+                          {deal.sellerName && (
+                            <div className="text-[11px] truncate">
+                              <span className="text-slate-400 font-medium">S:</span>{' '}
+                              <span className="text-slate-500">{deal.sellerName}</span>
+                            </div>
+                          )}
+                          {!deal.buyerName && !deal.sellerName && <span className="text-slate-400">—</span>}
+                        </div>
+                      </TableCell>
+
+                      <TableCell className="py-3.5 px-4 font-mono text-xs text-slate-800">
+                        {deal.acceptanceDate ? formatDate(deal.acceptanceDate) : '—'}
+                      </TableCell>
+
+                      <TableCell className="py-3.5 px-4">
+                        <Badge variant="neutral" className="glass-badge font-mono text-[11px] text-slate-700">
+                          {deal._count?.deadlines ?? 0} Milestones
+                        </Badge>
+                      </TableCell>
+
+                      <TableCell className="py-3.5 px-4">
+                        <Badge
+                          variant={
+                            deal.status === 'ACTIVE'
+                              ? 'success'
+                              : deal.status === 'CLOSED'
+                              ? 'neutral'
+                              : 'destructive'
+                          }
+                          className="text-[10px]"
+                        >
+                          {deal.status}
+                        </Badge>
+                      </TableCell>
+
+                      <TableCell className="text-right py-3.5 px-4">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            asChild
+                            variant="secondary"
+                            size="xs"
+                            className="gap-1 text-[11px] h-7.5 rounded-lg"
+                          >
+                            <Link to={`/deals/${deal.id}/assistant`}>
+                              <Sparkles className="h-3 w-3 text-sky-600" />
+                              <span>Copilot</span>
+                            </Link>
+                          </Button>
+
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="xs"
+                            className="gap-1 text-[11px] h-7.5 rounded-lg"
+                          >
+                            <Link to={`/deals/${deal.id}`}>
+                              <span>Open</span>
+                              <ChevronRight className="h-3 w-3 text-slate-400" />
+                            </Link>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-

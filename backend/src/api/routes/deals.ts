@@ -49,7 +49,7 @@ router.post('/',asyncHandler(async (req, res) => {
           create: {
             action: 'DEAL_CREATED',
             entityType: 'Deal',
-            actor: 'system',
+            actor: req.user?.email ?? 'system',
             newValue: { propertyAddress },
           },
         },
@@ -95,7 +95,7 @@ router.patch(
           create: {
             action: 'DEAL_UPDATED',
             entityType: 'Deal',
-            actor: 'system',
+            actor: req.user?.email ?? 'system',
             previousValue: existing as object,
             newValue: parsed.data as object,
           },

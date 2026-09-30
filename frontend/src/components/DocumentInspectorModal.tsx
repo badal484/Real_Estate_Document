@@ -85,7 +85,8 @@ export function DocumentInspectorModal({
           {/* Left Column: PdfViewer */}
           <div className="flex flex-col border-r border-slate-800 bg-slate-950/60 p-4 lg:col-span-7 overflow-hidden">
             <PdfViewer
-              page={clause?.pageNumber || 3}
+              fileUrl=""
+              initialPage={clause?.pageNumber || 3}
               highlightQuote={clause?.rawText || currentDeadline?.clause?.rawText}
             />
           </div>

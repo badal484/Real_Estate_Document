@@ -1,117 +1,79 @@
-import { useState } from 'react';
 import type { Deadline } from '@/types';
 import { StatusBadge } from './StatusBadge';
 import { formatDate, urgencyLabel, isOverdue } from '@/utils/date';
-import { IconPencilSquare, IconDocumentText, IconClock, IconSparkles } from './icons';
+import { CheckCircle2, Calendar, FileText, Clock, AlertTriangle } from 'lucide-react';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
 
 interface Props {
   deadline: Deadline;
   onConfirm?: (deadline: Deadline) => void;
-  onEdit?: (deadline: Deadline) => void;
 }
 
-export function DeadlineCard({ deadline, onConfirm, onEdit }: Props) {
-  const [expanded, setExpanded] = useState(false);
+export function DeadlineCard({ deadline, onConfirm }: Props) {
   const effectiveDate = deadline.confirmedDate ?? deadline.computedDate;
   const overdue = isOverdue(effectiveDate) && deadline.status !== 'COMPLETED';
-  const urgency = urgencyLabel(effectiveDate);
 
   return (
     <div
-      className={`card relative overflow-hidden transition-all duration-300 hover:shadow-2xl ${
+      className={`rounded-xl border p-4 transition-all ${
         overdue
-          ? 'border-l-4 border-l-rose-500 border-rose-500/30 bg-gradient-to-r from-rose-950/20 to-slate-900'
-          : deadline.status === 'PENDING'
-          ? 'border-l-4 border-l-amber-500 border-amber-500/30'
-          : 'border-l-4 border-l-emerald-500 border-slate-800'
+          ? 'border-rose-300 bg-rose-50/20 shadow-xs'
+          : 'border-slate-200/80 bg-white shadow-xs hover:border-slate-300'
       }`}
     >
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          {/* Header Row */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            <h3 className="text-base font-bold text-slate-100 tracking-tight">{deadline.label}</h3>
-            <StatusBadge status={deadline.status} />
-            <span className="rounded-md border border-slate-700/80 bg-slate-950 px-2 py-0.5 text-[11px] font-mono text-slate-400 capitalize">
-              {deadline.clause?.numberOfDays ?? '17'} {deadline.dayType} days
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="truncate text-xs font-bold text-slate-900 tracking-tight">
+              {deadline.label}
             </span>
+            <StatusBadge status={deadline.status} />
+            {overdue && (
+              <Badge variant="destructive" className="text-[10px]">
+                <AlertTriangle className="h-2.5 w-2.5 mr-0.5" />
+                Action Required
+              </Badge>
+            )}
           </div>
 
-          {/* Extracted Clause Preview */}
           {deadline.clause && (
-            <div className="mt-2.5 rounded-xl border border-slate-800/80 bg-slate-950/60 p-3 text-xs leading-relaxed text-slate-300">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-brand-400 flex items-center gap-1">
-                  <IconSparkles className="h-3 w-3 text-brand-400" />
-                  Clause Quote (Section {deadline.clause.clauseType || 'Standard'})
-                </span>
-                {deadline.clause.confidence && (
-                  <span className="text-[10px] text-emerald-400 font-mono">
-                    {Math.round(deadline.clause.confidence * 100)}% AI Confidence
-                  </span>
-                )}
-              </div>
-              <p className={expanded ? 'text-slate-200 font-sans' : 'line-clamp-2 text-slate-300 font-sans'}>
-                &ldquo;{deadline.clause.rawText}&rdquo;
-              </p>
-              {deadline.clause.rawText.length > 110 && (
-                <button
-                  onClick={() => setExpanded(!expanded)}
-                  className="mt-1 text-[10px] font-semibold text-brand-400 hover:text-brand-300"
-                >
-                  {expanded ? 'Show Less' : 'Read Full Clause Quote'}
-                </button>
-              )}
+            <div className="mt-2.5 border-l-2 border-slate-300 bg-slate-50 p-2.5 rounded-r-md text-[11px] font-mono text-slate-600 italic line-clamp-2 leading-relaxed">
+              &ldquo;{deadline.clause.rawText}&rdquo;
             </div>
           )}
 
-          {/* Date & Urgency Row */}
-          <div className="mt-3 flex flex-wrap items-center gap-4 text-xs">
-            <div className="flex items-center gap-1.5 text-slate-300">
-              <IconClock className={`h-4 w-4 ${overdue ? 'text-rose-400 animate-pulse' : 'text-slate-400'}`} />
-              <span className={`font-semibold ${overdue ? 'text-rose-400' : 'text-slate-200'}`}>
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
+            <div className="flex items-center gap-1.5 font-mono font-semibold text-slate-900">
+              <Calendar className="h-3.5 w-3.5 text-slate-400" />
+              <span className={overdue ? 'text-rose-600 font-bold' : 'text-slate-900'}>
                 {formatDate(effectiveDate)}
               </span>
             </div>
 
-            <span
-              className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium ${
-                overdue
-                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                  : urgency.includes('today') || urgency.includes('Tomorrow') || urgency.includes('days')
-                  ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
-                  : 'bg-slate-800 text-slate-400'
-              }`}
-            >
-              {urgency}
+            <Badge variant={overdue ? 'destructive' : 'neutral'} className="text-[10px]">
+              <Clock className="h-2.5 w-2.5 mr-0.5" />
+              {urgencyLabel(effectiveDate)}
+            </Badge>
+
+            <span className="text-[11px] capitalize text-slate-400 font-medium">
+              {deadline.dayType.toLowerCase()} days
             </span>
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex shrink-0 items-center gap-2 pt-2 sm:pt-0">
-          {onEdit && (
-            <button
-              onClick={() => onEdit(deadline)}
-              className="btn-secondary text-xs py-1.5 px-3"
-              title="Edit deadline date or day type"
-            >
-              <IconPencilSquare className="h-3.5 w-3.5" />
-              <span>Edit</span>
-            </button>
-          )}
-
-          {deadline.status === 'PENDING' && onConfirm && (
-            <button
-              onClick={() => onConfirm(deadline)}
-              className="btn-primary text-xs py-1.5 px-3.5"
-            >
-              Confirm
-            </button>
-          )}
-        </div>
+        {deadline.status === 'PENDING' && onConfirm && (
+          <Button
+            variant="default"
+            size="xs"
+            onClick={() => onConfirm(deadline)}
+            className="shrink-0 self-start sm:self-center"
+          >
+            <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+            <span>Confirm Date</span>
+          </Button>
+        )}
       </div>
     </div>
   );
 }
-

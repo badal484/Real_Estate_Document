@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { createApp } from './app.js';
 import { logger } from './utils/logger.js';
+import { initAlertCron } from './services/alert.service.js';
 
 const PORT = parseInt(process.env['PORT'] ?? '3001', 10);
 
@@ -11,4 +12,7 @@ app.listen(PORT, () => {
   logger.info(`   Health: http://localhost:${PORT}/health`);
   logger.info(`   Deals:  http://localhost:${PORT}/api/deals`);
   logger.info(`   Env:    ${process.env['NODE_ENV'] ?? 'development'}`);
+
+  // Initialize automated contingency deadline alerts
+  initAlertCron();
 });

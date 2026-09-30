@@ -11,26 +11,43 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─── User ─────────────────────────────────────────────────────────────────────
+// An agent who signs in with Google.
+model User {
+  id          String   @id @default(cuid())
+  googleId    String   @unique
+  email       String   @unique
+  name        String?
+  pictureUrl  String?
+  lastLoginAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("users")
+}
+
 // ─── Deal ─────────────────────────────────────────────────────────────────────
 // One Deal = one purchase agreement (one contract file).
 model Deal {
-  id               String    @id @default(cuid())
+  id               String      @id @default(cuid())
   propertyAddress  String
   buyerName        String?
   sellerName       String?
-  acceptanceDate   DateTime? // Contract acceptance / effective date
-  status           DealStatus @default(ACTIVE)
-  timezone         String    @default("America/Los_Angeles")
-  inboundAlias     String?   @unique
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  acceptanceDate   DateTime?   // Contract acceptance / effective date
+  status           DealStatus  @default(ACTIVE)
+  timezone         String      @default("America/New_York") // [Person A]
+  inboundAlias     String?     @unique                      // [Person A] e.g. "deal-abc123"
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
 
   documents            Document[]
   clauses              ContingencyClause[]
   deadlines            Deadline[]
   auditLogs            AuditLog[]
-  notificationSettings NotificationSetting?
-  emailLogs            EmailLog[]
+  chunks               DocumentChunk[]         // [Person B]
+  conversations        AssistantConversation[] // [Person B]
+  notificationSettings NotificationSetting?   // [Person A]
+  emailLogs            EmailLog[]              // [Person A]
 
   @@map("deals")
 }
@@ -44,18 +61,146 @@ enum DealStatus {
 // ─── Document ─────────────────────────────────────────────────────────────────
 // Uploaded PDF (or future: other doc types).
 model Document {
-  id          String   @id @default(cuid())
-  dealId      String
-  filename    String                   // original filename
-  storagePath String                   // local path or S3 key
-  mimeType    String   @default("application/pdf")
-  sizeBytes   Int?
-  uploadedAt  DateTime @default(now())
+  id            String         @id @default(cuid())
+  dealId        String
+  filename      String                     // original filename
+  storagePath   String                     // local path or S3/ImageKit key
+  mimeType      String         @default("application/pdf")
+  sizeBytes     Int?
+  docType       DocType        @default(OTHER)      // [Person B]
+  effectiveDate DateTime?                           // [Person B]
+  pageCount     Int?                                // [Person B]
+  indexStatus   IndexStatus    @default(PENDING)    // [Person B] PENDING | INDEXING | READY | FAILED
+  indexedAt     DateTime?                           // [Person B]
+  uploadedAt    DateTime       @default(now())
 
   deal    Deal                @relation(fields: [dealId], references: [id], onDelete: Cascade)
   clauses ContingencyClause[]
+  chunks  DocumentChunk[]     // [Person B]
 
   @@map("documents")
+}
+
+enum DocType {
+  PURCHASE_AGREEMENT
+  COUNTER_OFFER
+  ADDENDUM
+  INSPECTION_REPORT
+  HOA_DISCLOSURE
+  TITLE_COMMITMENT
+  OTHER
+}
+
+enum IndexStatus {
+  PENDING
+  INDEXING
+  READY
+  FAILED
+}
+
+// ─── DocumentChunk ────────────────────────────────────────────────────────────
+// [Person B] Page-level & section-boundary chunks with spatial/text metadata for RAG
+model DocumentChunk {
+  id           String      @id @default(cuid())
+  documentId   String
+  dealId       String
+  pageNumber   Int
+  chunkIndex   Int
+  sectionTitle String?
+  content      String      @db.Text
+  tokenCount   Int?
+  source       ChunkSource @default(text) // text layer or ocr fallback
+  embedding    Json?                      // Array of floats or pgvector compatibility
+  createdAt    DateTime    @default(now())
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  deal     Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([dealId, documentId])
+  @@index([dealId, pageNumber])
+  @@map("document_chunks")
+}
+
+enum ChunkSource {
+  text
+  ocr
+}
+
+// ─── AssistantConversation & Messages ─────────────────────────────────────────
+// [Person B] Conversation threads for the AI Knowledge Assistant
+model AssistantConversation {
+  id        String             @id @default(cuid())
+  dealId    String
+  userId    String?
+  title     String             @default("New Conversation")
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  deal     Deal               @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  messages AssistantMessage[]
+
+  @@index([dealId])
+  @@map("assistant_conversations")
+}
+
+model AssistantMessage {
+  id                 String                @id @default(cuid())
+  conversationId     String
+  role               String                // "user" | "assistant"
+  content            String                @db.Text
+  citations          Json?                 // Array of Citation objects
+  suggestedFollowUps Json?                 // Array of string follow-ups
+  createdAt          DateTime              @default(now())
+
+  conversation AssistantConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@map("assistant_messages")
+}
+
+// ─── NotificationSetting & EmailLog ───────────────────────────────────────────
+// [Person A Block] Email alert configurations & audit logs
+model NotificationSetting {
+  id          String   @id @default(cuid())
+  dealId      String   @unique
+  recipients  Json     // string[] email addresses
+  window3d    Boolean  @default(true)
+  window1d    Boolean  @default(true)
+  windowDayOf Boolean  @default(true)
+  windowMissed Boolean @default(true)
+  enabled     Boolean  @default(true)
+  timezone    String   @default("America/New_York")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@map("notification_settings")
+}
+
+model EmailLog {
+  id                 String      @id @default(cuid())
+  dealId             String
+  deadlineId         String?
+  recipient          String
+  template           String      // "3d" | "1d" | "dayOf" | "missed" | "summary" | "docs_received"
+  status             EmailStatus @default(SENT) // SENT | DELIVERED | BOUNCED | DROPPED
+  providerMessageId  String?
+  errorMessage       String?
+  sentAt             DateTime    @default(now())
+
+  deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@unique([deadlineId, template])
+  @@index([dealId])
+  @@map("email_logs")
+}
+
+enum EmailStatus {
+  SENT
+  DELIVERED
+  BOUNCED
+  DROPPED
 }
 
 // ─── ContingencyClause ────────────────────────────────────────────────────────
@@ -65,7 +210,7 @@ model ContingencyClause {
   dealId       String
   documentId   String
   clauseType   String      // e.g. "inspection", "financing", "appraisal"
-  rawText      String      // exact quoted text from PDF
+  rawText      String      @db.Text // exact quoted text from PDF
   pageNumber   Int?
   boundingBox  Json?       // { x, y, width, height } for pdf.js highlight
   confidence   Float?      // 0.0–1.0 from AI extraction
@@ -102,9 +247,8 @@ model Deadline {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
-  deal      Deal              @relation(fields: [dealId], references: [id], onDelete: Cascade)
-  clause    ContingencyClause @relation(fields: [clauseId], references: [id], onDelete: Cascade)
-  emailLogs EmailLog[]
+  deal   Deal              @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  clause ContingencyClause @relation(fields: [clauseId], references: [id], onDelete: Cascade)
 
   @@map("deadlines")
 }
@@ -117,52 +261,13 @@ enum DeadlineStatus {
   COMPLETED  // agent marked as done
 }
 
-// ─── NotificationSetting ──────────────────────────────────────────────────────
-model NotificationSetting {
-  id         String   @id @default(cuid())
-  dealId     String   @unique
-  recipients String[] // Array of email addresses
-  d3         Boolean  @default(true)
-  d1         Boolean  @default(true)
-  dayOf      Boolean  @default(true)
-  missed     Boolean  @default(true)
-  enabled    Boolean  @default(true)
-  timezone   String   @default("America/Los_Angeles")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
-
-  @@map("notification_settings")
-}
-
-// ─── EmailLog ─────────────────────────────────────────────────────────────────
-model EmailLog {
-  id                String   @id @default(cuid())
-  dealId            String
-  deadlineId        String?
-  window            String   // "d3" | "d1" | "day_of" | "missed" | "summary" | "inbound" | "test"
-  template          String   // template identifier
-  recipient         String
-  status            String   @default("PENDING") // PENDING | DELIVERED | BOUNCED | DROPPED | FAILED
-  providerMessageId String?
-  error             String?
-  sentAt            DateTime @default(now())
-
-  deal     Deal      @relation(fields: [dealId], references: [id], onDelete: Cascade)
-  deadline Deadline? @relation(fields: [deadlineId], references: [id], onDelete: Cascade)
-
-  @@unique([deadlineId, window])
-  @@map("email_logs")
-}
-
 // ─── AuditLog ─────────────────────────────────────────────────────────────────
 // Immutable log of every extraction, confirmation, edit, or alert event.
 model AuditLog {
   id            String      @id @default(cuid())
   dealId        String
   action        AuditAction
-  entityType    String?     // "Deadline" | "ContingencyClause" | "Deal"
+  entityType    String?     // "Deadline" | "ContingencyClause" | "Deal" | "Document" | "Assistant"
   entityId      String?
   previousValue Json?       // before-state snapshot
   newValue      Json?       // after-state snapshot
@@ -183,8 +288,10 @@ enum AuditAction {
   DEADLINE_EDITED
   DEADLINE_ACTIVATED
   ALERT_SENT
-  EMAIL_SENT_TEST
-  EMAIL_INBOUND_RECEIVED
   DEAL_CREATED
   DEAL_UPDATED
+  ASSISTANT_QUERY          // [Person B]
+  DOCUMENT_INDEXED         // [Person B]
+  EMAIL_SENT_TEST          // [Person A]
+  EMAIL_INBOUND_RECEIVED   // [Person A]
 }

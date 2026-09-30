@@ -1,20 +1,22 @@
 import type { Deadline } from '@/types';
 import { DeadlineCard } from './DeadlineCard';
-import { IconDocumentText } from './icons';
+import { FileText, Calendar } from 'lucide-react';
 
 interface Props {
   deadlines: Deadline[];
   onConfirm?: (deadline: Deadline) => void;
-  onEdit?: (deadline: Deadline) => void;
 }
 
-export function Timeline({ deadlines, onConfirm, onEdit }: Props) {
+export function Timeline({ deadlines, onConfirm }: Props) {
   if (deadlines.length === 0) {
     return (
-      <div className="empty-state">
-        <IconDocumentText className="mx-auto h-8 w-8 text-slate-500" />
-        <p className="mt-3 text-sm text-slate-400">
-          No deadlines extracted yet — upload a purchase agreement PDF to analyze contingency clauses.
+      <div className="rounded-xl border border-dashed border-slate-200 bg-white p-10 text-center">
+        <div className="flex h-10 w-10 mx-auto items-center justify-center rounded-lg bg-slate-100 text-slate-400 mb-2.5">
+          <FileText className="h-5 w-5" />
+        </div>
+        <h4 className="text-xs font-semibold text-slate-800">No Milestones Extracted Yet</h4>
+        <p className="mt-1 text-[11px] text-slate-400">
+          Upload a signed purchase agreement to automatically calculate contingency milestones.
         </p>
       </div>
     );
@@ -27,14 +29,13 @@ export function Timeline({ deadlines, onConfirm, onEdit }: Props) {
   );
 
   return (
-    <ol className="relative ml-4 space-y-6 border-l-2 border-brand-500/30">
+    <ol className="relative ml-3 border-l border-slate-200 space-y-4">
       {sorted.map((dl) => (
-        <li key={dl.id} className="relative ml-6 group">
-          <span className="absolute -left-[31px] top-4 flex h-4 w-4 items-center justify-center rounded-full bg-brand-500 ring-4 ring-slate-950 shadow-lg shadow-brand-500/50" />
-          <DeadlineCard deadline={dl} onConfirm={onConfirm} onEdit={onEdit} />
+        <li key={dl.id} className="ml-5 relative">
+          <span className="absolute -left-[25px] top-4.5 h-2.5 w-2.5 rounded-full bg-slate-900 ring-4 ring-slate-100" />
+          <DeadlineCard deadline={dl} onConfirm={onConfirm} />
         </li>
       ))}
     </ol>
   );
 }
-

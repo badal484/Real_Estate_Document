@@ -1,92 +1,97 @@
 import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { IconBuilding, IconBot, IconSparkles, IconPlus, IconMagnifyingGlass } from './icons';
-import { CopilotDrawer } from './CopilotDrawer';
+import { Link, useLocation } from 'react-router-dom';
+import { Building2, Plus, ShieldCheck, BookOpen, Layers, History, Sparkles } from 'lucide-react';
+import { UserMenu } from './UserMenu';
+import { AgentPlaybookModal } from './deal/AgentPlaybookModal';
+import { Badge } from './ui/badge';
 
-const LINKS = [
-  { href: '/upload', label: 'Upload Contract' },
-  { href: '/deals', label: 'Deals Portfolio' },
-  { href: '/audit', label: 'Audit History' },
+const NAV_LINKS = [
+  { href: '/deals', label: 'Portfolio', icon: Layers },
+  { href: '/upload', label: 'New Contract', icon: Plus, highlight: true },
+  { href: '/audit', label: 'Audit Log', icon: History },
 ];
 
 export function Navbar() {
+  const [playbookOpen, setPlaybookOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
   const pathname = location.pathname;
-  const [copilotOpen, setCopilotOpen] = useState(false);
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-slate-800/80 bg-slate-950/75 backdrop-blur-xl transition-all">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
-          {/* Logo & Brand */}
-          <div className="flex items-center gap-6">
-            <Link to="/" className="flex items-center gap-3 group">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-600 to-brand-400 text-white shadow-lg shadow-brand-500/25 ring-1 ring-white/20 transition-transform group-hover:scale-105">
-                <IconBuilding className="h-5 w-5" />
+      <header className="sticky top-0 z-40 glass-nav transition-all">
+        <div className="mx-auto flex max-w-[1600px] items-center justify-between px-4 py-2.5 sm:px-6">
+          {/* Brand Logo */}
+          <Link to="/deals" className="flex items-center gap-2.5 group">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 text-white shadow-md group-hover:bg-slate-800 transition-all ring-1 ring-white/20">
+              <Building2 className="h-4.5 w-4.5 text-sky-400" />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold tracking-tight text-slate-900">
+                Contingency Copilot
               </span>
-              <div>
-                <span className="text-base font-bold tracking-tight text-white group-hover:text-brand-300 transition-colors">
-                  Contingency Copilot
-                </span>
-                <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>Real Estate Document AI</span>
-                </div>
-              </div>
-            </Link>
+              <Badge variant="neutral" className="hidden sm:inline-flex text-[10px] px-2 py-0.5 glass-badge text-slate-700">
+                <ShieldCheck className="h-3 w-3 text-emerald-600 mr-1" />
+                2026 AI Verified
+              </Badge>
+            </div>
+          </Link>
 
-            {/* Nav Links */}
-            <nav className="hidden md:flex items-center gap-1 text-xs font-semibold">
-              {LINKS.map((link) => {
-                const active = pathname === link.href || (link.href !== '/upload' && pathname.startsWith(`${link.href}`));
+          {/* Center Navigation Links */}
+          <nav className="flex items-center gap-2 text-xs font-medium">
+            {NAV_LINKS.map((link) => {
+              const active =
+                link.href === '/deals'
+                  ? pathname === '/deals'
+                  : pathname === link.href || pathname.startsWith(`${link.href}/`);
+              const Icon = link.icon;
+
+              if (link.highlight) {
                 return (
                   <Link
                     key={link.href}
                     to={link.href}
-                    aria-current={active ? 'page' : undefined}
-                    className={`rounded-xl px-3.5 py-2 transition-all duration-200 ${
-                      active
-                        ? 'bg-brand-500/15 text-brand-300 border border-brand-500/30 shadow-sm'
-                        : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
-                    }`}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 text-white px-3 py-1.5 text-xs font-semibold shadow-sm hover:bg-slate-800 active:scale-[0.98] transition-all"
                   >
-                    {link.label}
+                    <Icon className="h-3.5 w-3.5 text-sky-400" />
+                    <span>{link.label}</span>
                   </Link>
                 );
-              })}
-            </nav>
-          </div>
+              }
 
-          {/* Action Tools */}
-          <div className="flex items-center gap-2.5">
-            {/* Ask AI Copilot Button */}
+              return (
+                <Link
+                  key={link.href}
+                  to={link.href}
+                  aria-current={active ? 'page' : undefined}
+                  className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 transition-all ${
+                    active
+                      ? 'glass-card text-slate-900 font-semibold shadow-2xs'
+                      : 'text-slate-600 hover:bg-white/60 hover:text-slate-900'
+                  }`}
+                >
+                  <Icon className={`h-3.5 w-3.5 ${active ? 'text-primary' : 'text-slate-400'}`} />
+                  <span>{link.label}</span>
+                </Link>
+              );
+            })}
+
+            <div className="h-4 w-px bg-slate-200/80 mx-1 hidden md:block" />
+
             <button
-              onClick={() => setCopilotOpen(true)}
-              className="inline-flex items-center gap-2 rounded-xl border border-brand-500/30 bg-gradient-to-r from-brand-950/80 to-slate-900 px-3.5 py-2 text-xs font-semibold text-brand-300 shadow-sm hover:border-brand-400 hover:bg-brand-500/20 hover:text-white transition-all"
+              type="button"
+              onClick={() => setPlaybookOpen(true)}
+              className="hidden md:inline-flex items-center gap-1.5 rounded-xl glass-badge px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-white/90 hover:text-slate-900 shadow-2xs transition-all cursor-pointer"
             >
-              <IconBot className="h-4 w-4 text-brand-400 animate-float" />
-              <span className="hidden sm:inline">AI Copilot</span>
+              <BookOpen className="h-3.5 w-3.5 text-slate-500" />
+              <span>Agent Playbook</span>
             </button>
 
-            {/* Upload Button */}
-            <Link
-              to="/upload"
-              className="btn-primary text-xs py-2 px-3.5 shadow-md shadow-brand-600/20"
-            >
-              <IconPlus className="h-4 w-4" />
-              <span>New Contract</span>
-            </Link>
-          </div>
+            <UserMenu />
+          </nav>
         </div>
       </header>
 
-      {/* AI Copilot Drawer */}
-      <CopilotDrawer
-        isOpen={copilotOpen}
-        onClose={() => setCopilotOpen(false)}
-      />
+      <AgentPlaybookModal isOpen={playbookOpen} onClose={() => setPlaybookOpen(false)} />
     </>
   );
 }
-

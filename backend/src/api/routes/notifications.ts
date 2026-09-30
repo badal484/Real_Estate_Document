@@ -1,19 +1,17 @@
 /**
- * /api/deals/:id/notifications — Notification Settings, Logs, Previews & Inbound Info
+ * /api/deals/:id/notifications — Notification preferences, templates, test emails, and audit delivery logs.
  */
 
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { asyncHandler, createError } from '../../middleware/errorHandler.js';
-import { sendEmail } from '../../services/email.service.js';
-import { renderEmailTemplate } from '../../services/emailTemplates.js';
-import { logger } from '../../utils/logger.js';
+import { sendEmail, generateTemplate } from '../../services/email.service.js';
 
 const router = Router({ mergeParams: true });
 const prisma = new PrismaClient();
 
-const NotificationSettingSchema = z.object({
+const UpdateSettingsSchema = z.object({
   recipients: z.array(z.string().email()),
   windows: z.object({
     d3: z.boolean(),
@@ -22,10 +20,23 @@ const NotificationSettingSchema = z.object({
     missed: z.boolean(),
   }),
   enabled: z.boolean(),
-  timezone: z.string().default('America/Los_Angeles'),
+  timezone: z.string().min(1),
 });
 
-// ── GET /api/deals/:id/notifications/settings ─────────────────────────────
+const SendTestSchema = z.object({
+  to: z.string().email(),
+});
+
+const SendSummarySchema = z.object({
+  to: z.array(z.string().email()).min(1),
+});
+
+const PreviewSchema = z.object({
+  template: z.enum(['3d', '1d', 'dayOf', 'missed', 'summary', 'docs_received']),
+  deadlineId: z.string().optional(),
+});
+
+// ── GET /settings ─────────────────────────────────────────────────────────────
 router.get(
   '/settings',
   asyncHandler(async (req, res) => {
@@ -35,16 +46,18 @@ router.get(
     });
 
     if (!settings) {
+      // Default to deal owner's email or fallback
+      const userEmail = req.user?.email ? [req.user.email] : [];
       settings = await prisma.notificationSetting.create({
         data: {
           dealId,
-          recipients: ['agent@contingencycopilot.com'],
-          d3: true,
-          d1: true,
-          dayOf: true,
-          missed: true,
+          recipients: userEmail,
+          window3d: true,
+          window1d: true,
+          windowDayOf: true,
+          windowMissed: true,
           enabled: true,
-          timezone: 'America/Los_Angeles',
+          timezone: 'America/New_York',
         },
       });
     }
@@ -52,25 +65,25 @@ router.get(
     res.json({
       id: settings.id,
       dealId: settings.dealId,
-      recipients: settings.recipients,
-      windows: {
-        d3: settings.d3,
-        d1: settings.d1,
-        dayOf: settings.dayOf,
-        missed: settings.missed,
-      },
+      recipients: (settings.recipients as string[]) || [],
+      window3d: settings.window3d,
+      window1d: settings.window1d,
+      windowDayOf: settings.windowDayOf,
+      windowMissed: settings.windowMissed,
       enabled: settings.enabled,
       timezone: settings.timezone,
+      createdAt: settings.createdAt.toISOString(),
+      updatedAt: settings.updatedAt.toISOString(),
     });
   }),
 );
 
-// ── PUT /api/deals/:id/notifications/settings ─────────────────────────────
+// ── PUT /settings ─────────────────────────────────────────────────────────────
 router.put(
   '/settings',
   asyncHandler(async (req, res) => {
     const dealId = req.params['id'];
-    const parsed = NotificationSettingSchema.safeParse(req.body);
+    const parsed = UpdateSettingsSchema.safeParse(req.body);
     if (!parsed.success) throw createError(parsed.error.message, 422);
 
     const { recipients, windows, enabled, timezone } = parsed.data;
@@ -80,262 +93,264 @@ router.put(
       create: {
         dealId,
         recipients,
-        d3: windows.d3,
-        d1: windows.d1,
-        dayOf: windows.dayOf,
-        missed: windows.missed,
+        window3d: windows.d3,
+        window1d: windows.d1,
+        windowDayOf: windows.dayOf,
+        windowMissed: windows.missed,
         enabled,
         timezone,
       },
       update: {
         recipients,
-        d3: windows.d3,
-        d1: windows.d1,
-        dayOf: windows.dayOf,
-        missed: windows.missed,
+        window3d: windows.d3,
+        window1d: windows.d1,
+        windowDayOf: windows.dayOf,
+        windowMissed: windows.missed,
         enabled,
         timezone,
       },
     });
 
-    // Also update deal timezone
-    await prisma.deal.update({
-      where: { id: dealId },
-      data: { timezone },
-    });
-
     res.json({
       id: settings.id,
       dealId: settings.dealId,
-      recipients: settings.recipients,
-      windows: {
-        d3: settings.d3,
-        d1: settings.d1,
-        dayOf: settings.dayOf,
-        missed: settings.missed,
-      },
+      recipients: (settings.recipients as string[]) || [],
+      window3d: settings.window3d,
+      window1d: settings.window1d,
+      windowDayOf: settings.windowDayOf,
+      windowMissed: settings.windowMissed,
       enabled: settings.enabled,
       timezone: settings.timezone,
+      createdAt: settings.createdAt.toISOString(),
+      updatedAt: settings.updatedAt.toISOString(),
     });
   }),
 );
 
-// ── POST /api/deals/:id/notifications/test ────────────────────────────────
+// ── POST /test ────────────────────────────────────────────────────────────────
 router.post(
   '/test',
   asyncHandler(async (req, res) => {
     const dealId = req.params['id'];
-    const { to } = req.body || {};
-
-    if (!to || typeof to !== 'string') throw createError('Recipient "to" email is required', 400);
+    const parsed = SendTestSchema.safeParse(req.body);
+    if (!parsed.success) throw createError(parsed.error.message, 422);
 
     const deal = await prisma.deal.findUnique({ where: { id: dealId } });
     if (!deal) throw createError('Deal not found', 404);
 
-    const rendered = renderEmailTemplate('3-day', {
+    const address = deal.propertyAddress;
+    const testTpl = generateTemplate('3d', {
+      dealAddress: address,
+      deadlineLabel: 'Inspection Contingency (Test Alert)',
+      dueDate: new Date(Date.now() + 3 * 86400000).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }),
       dealId,
-      propertyAddress: deal.propertyAddress,
-      deadlineLabel: 'Sample Test Contingency',
-      deadlineDate: new Date(),
     });
 
     const result = await sendEmail({
-      to,
-      subject: `[TEST ALERT] ${rendered.subject}`,
-      html: rendered.html,
-      text: rendered.text,
+      to: parsed.data.to,
+      subject: `[Test Verification] ${testTpl.subject}`,
+      html: testTpl.html,
+      text: testTpl.text,
     });
 
+    // Record email log
+    await prisma.emailLog.create({
+      data: {
+        dealId,
+        recipient: parsed.data.to,
+        template: '3d',
+        status: result.success ? 'SENT' : 'BOUNCED',
+        providerMessageId: result.messageId ?? null,
+        errorMessage: result.error ?? null,
+      },
+    });
+
+    // Record audit action
     await prisma.auditLog.create({
       data: {
         dealId,
         action: 'EMAIL_SENT_TEST',
-        entityType: 'Deal',
-        entityId: dealId,
-        actor: 'user',
-        newValue: { recipient: to, providerMessageId: result.providerMessageId, success: result.success },
+        entityType: 'EmailLog',
+        actor: req.user?.email ?? 'system',
+        note: `Test email dispatched to ${parsed.data.to} via Resend`,
       },
     });
 
-    await prisma.emailLog.create({
-      data: {
-        dealId,
-        window: 'test',
-        template: 'test-email',
-        recipient: to,
-        status: result.success ? 'DELIVERED' : 'FAILED',
-        providerMessageId: result.providerMessageId,
-        error: result.error,
-      },
-    });
+    if (!result.success) {
+      throw createError(result.error || 'Failed to dispatch test email', 500);
+    }
 
     res.json({
-      success: result.success,
-      providerMessageId: result.providerMessageId,
-      message: result.success ? `Test alert sent successfully to ${to}` : `Failed: ${result.error}`,
+      sent: true,
+      message: `Test email dispatched successfully to ${parsed.data.to}`,
+      messageId: result.messageId,
     });
   }),
 );
 
-// ── POST /api/deals/:id/notifications/summary ─────────────────────────────
+// ── POST /summary ─────────────────────────────────────────────────────────────
 router.post(
   '/summary',
   asyncHandler(async (req, res) => {
     const dealId = req.params['id'];
-    const { to } = req.body || {};
-    const recipients: string[] = Array.isArray(to) ? to : typeof to === 'string' ? [to] : [];
-
-    if (!recipients.length) throw createError('At least one recipient email in "to" is required', 400);
+    const parsed = SendSummarySchema.safeParse(req.body);
+    if (!parsed.success) throw createError(parsed.error.message, 422);
 
     const deal = await prisma.deal.findUnique({
       where: { id: dealId },
-      include: { deadlines: true, documents: true },
+      include: { deadlines: { orderBy: { computedDate: 'asc' } } },
     });
     if (!deal) throw createError('Deal not found', 404);
 
-    const rendered = renderEmailTemplate('deal-summary', {
+    const deadlines = deal.deadlines.map((d) => ({
+      label: d.label,
+      status: d.status,
+      dueDate: (d.confirmedDate ?? d.computedDate).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+    }));
+
+    const summaryTpl = generateTemplate('summary', {
+      dealAddress: deal.propertyAddress,
+      buyerName: deal.buyerName ?? undefined,
+      sellerName: deal.sellerName ?? undefined,
+      deadlines,
       dealId,
-      propertyAddress: deal.propertyAddress,
-      documentCount: deal.documents.length,
     });
 
     let sentCount = 0;
-    for (const recipient of recipients) {
+    for (const recipient of parsed.data.to) {
       const result = await sendEmail({
         to: recipient,
-        subject: rendered.subject,
-        html: rendered.html,
-        text: rendered.text,
+        subject: summaryTpl.subject,
+        html: summaryTpl.html,
+        text: summaryTpl.text,
       });
 
-      if (result.success) {
-        sentCount++;
-        await prisma.emailLog.create({
-          data: {
-            dealId,
-            window: 'summary',
-            template: 'deal-summary',
-            recipient,
-            status: 'DELIVERED',
-            providerMessageId: result.providerMessageId,
-          },
-        });
-      }
+      await prisma.emailLog.create({
+        data: {
+          dealId,
+          recipient,
+          template: 'summary',
+          status: result.success ? 'SENT' : 'BOUNCED',
+          providerMessageId: result.messageId ?? null,
+          errorMessage: result.error ?? null,
+        },
+      });
+
+      if (result.success) sentCount++;
     }
 
-    res.json({
-      sentCount,
-      recipients,
-      message: `Deal summary sent to ${sentCount} recipients`,
-    });
+    res.json({ sent: true, count: sentCount });
   }),
 );
 
-// ── POST /api/deals/:id/notifications/preview ─────────────────────────────
+// ── POST /preview ─────────────────────────────────────────────────────────────
 router.post(
   '/preview',
   asyncHandler(async (req, res) => {
     const dealId = req.params['id'];
-    const { template, deadlineId } = req.body || {};
+    const parsed = PreviewSchema.safeParse(req.body);
+    if (!parsed.success) throw createError(parsed.error.message, 422);
 
-    const deal = await prisma.deal.findUnique({ where: { id: dealId } });
+    const deal = await prisma.deal.findUnique({
+      where: { id: dealId },
+      include: { deadlines: true },
+    });
     if (!deal) throw createError('Deal not found', 404);
 
-    let deadlineLabel = 'Inspection Contingency';
-    let deadlineDate: Date = new Date();
-
-    if (deadlineId) {
-      const d = await prisma.deadline.findUnique({ where: { id: deadlineId } });
-      if (d) {
-        deadlineLabel = d.label;
-        deadlineDate = d.confirmedDate || d.computedDate;
-      }
+    let targetDeadline = deal.deadlines[0];
+    if (parsed.data.deadlineId) {
+      const found = deal.deadlines.find((d) => d.id === parsed.data.deadlineId);
+      if (found) targetDeadline = found;
     }
 
-    const rendered = renderEmailTemplate(template || '3-day', {
+    const dueDateStr = targetDeadline
+      ? (targetDeadline.confirmedDate ?? targetDeadline.computedDate).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        })
+      : new Date(Date.now() + 3 * 86400000).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        });
+
+    const preview = generateTemplate(parsed.data.template, {
+      dealAddress: deal.propertyAddress,
+      deadlineLabel: targetDeadline?.label ?? 'Inspection Contingency',
+      dueDate: dueDateStr,
+      buyerName: deal.buyerName ?? 'Jane Buyer',
+      sellerName: deal.sellerName ?? 'John Seller',
+      deadlines: deal.deadlines.map((d) => ({
+        label: d.label,
+        status: d.status,
+        dueDate: (d.confirmedDate ?? d.computedDate).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        }),
+      })),
       dealId,
-      propertyAddress: deal.propertyAddress,
-      deadlineLabel,
-      deadlineDate,
     });
 
-    res.json({
-      subject: rendered.subject,
-      html: rendered.html,
-      text: rendered.text,
-    });
+    res.json(preview);
   }),
 );
 
-// ── GET /api/deals/:id/notifications/log ──────────────────────────────────
+// ── GET /log ──────────────────────────────────────────────────────────────────
 router.get(
   '/log',
   asyncHandler(async (req, res) => {
     const dealId = req.params['id'];
     const logs = await prisma.emailLog.findMany({
       where: { dealId },
-      include: { deadline: true },
       orderBy: { sentAt: 'desc' },
+      take: 50,
     });
-    res.json(logs);
+
+    res.json(
+      logs.map((log) => ({
+        id: log.id,
+        dealId: log.dealId,
+        deadlineId: log.deadlineId,
+        recipient: log.recipient,
+        template: log.template,
+        status: log.status,
+        providerMessageId: log.providerMessageId,
+        errorMessage: log.errorMessage,
+        sentAt: log.sentAt.toISOString(),
+      })),
+    );
   }),
 );
 
-// ── GET /api/deals/:id/notifications/inbound-address ──────────────────────
+// ── GET /inbound-address ──────────────────────────────────────────────────────
 router.get(
   '/inbound-address',
   asyncHandler(async (req, res) => {
     const dealId = req.params['id'];
-    let deal = await prisma.deal.findUnique({ where: { id: dealId } });
+    const deal = await prisma.deal.findUnique({ where: { id: dealId } });
     if (!deal) throw createError('Deal not found', 404);
 
-    const domain = process.env['INBOUND_EMAIL_DOMAIN'] || 'inbound.contingencycopilot.com';
-    const shortId = deal.id.slice(-8).toLowerCase();
-
-    if (!deal.inboundAlias) {
-      deal = await prisma.deal.update({
-        where: { id: dealId },
-        data: { inboundAlias: shortId },
-      });
-    }
-
-    const alias = deal.inboundAlias || shortId;
-    const inboundAddress = `deal-${alias}@${domain}`;
+    const domain = process.env['INBOUND_EMAIL_DOMAIN'] ?? 'deals.contingencycopilot.com';
+    const alias = deal.inboundAlias ?? `deal-${deal.id.slice(-6)}`;
+    const inboundEmail = `${alias}@${domain}`;
 
     res.json({
-      inboundAddress,
-      dealId: deal.id,
-      propertyAddress: deal.propertyAddress,
-      instructions: `Forward any purchase agreement PDF to ${inboundAddress}. It will automatically extract contingencies and notify configured recipients.`,
+      inboundEmail,
+      domain,
+      dealId,
+      dealAddress: deal.propertyAddress,
+      instructions: `Forward signed counters, addenda, or inspection reports directly to ${inboundEmail} to auto-index them to this deal.`,
     });
-  }),
-);
-
-// ── POST /api/deals/notifications/webhook/events (SendGrid Event Webhook) ─
-router.post(
-  '/webhook/events',
-  asyncHandler(async (req, res) => {
-    const events = Array.isArray(req.body) ? req.body : [req.body];
-
-    for (const event of events) {
-      const { sg_message_id, event: eventType, email } = event || {};
-      if (!sg_message_id) continue;
-
-      const providerId = String(sg_message_id).split('.')[0];
-      const newStatus = eventType === 'delivered' ? 'DELIVERED' : eventType === 'bounce' ? 'BOUNCED' : eventType === 'dropped' ? 'DROPPED' : 'FAILED';
-
-      await prisma.emailLog.updateMany({
-        where: {
-          OR: [
-            { providerMessageId: providerId },
-            { recipient: email, status: 'PENDING' },
-          ],
-        },
-        data: { status: newStatus },
-      });
-    }
-
-    res.status(200).json({ received: true });
   }),
 );
 

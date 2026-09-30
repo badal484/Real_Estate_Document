@@ -11,23 +11,63 @@ import type {
   ConfirmDeadlineInput,
   AuditLog,
   PaginatedResponse,
+  User,
+  NotificationSetting,
+  UpdateNotificationSettingsInput,
+  EmailLog,
+  EmailPreviewRequest,
+  EmailPreviewResponse,
+  InboundAddressResponse,
+  AssistantAnswer,
+  AssistantConversation,
+  SuggestedQuestionsResponse,
+  DealSummaryResponse,
+  IndexStatusResponse,
 } from '@/types';
+import { authHeaders, notifyUnauthorized } from './session';
 
 const BASE_URL = import.meta.env['VITE_API_URL'] ?? 'http://localhost:3001/api';
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function send(path: string, init?: RequestInit): Promise<Response> {
   const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
     ...init,
+    headers: { ...authHeaders(), ...init?.headers },
+  }).catch(() => {
+    // fetch only rejects on network failure (server down, offline, CORS)
+    throw new Error("We couldn't reach the server. Check your connection and try again.");
   });
 
   if (!res.ok) {
+    if (res.status === 401) notifyUnauthorized();
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: { message?: string } }).error?.message ?? `HTTP ${res.status}`);
   }
 
+  return res;
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await send(path, {
+    ...init,
+    headers: { 'Content-Type': 'application/json', ...init?.headers },
+  });
   return res.json() as Promise<T>;
 }
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
+export const authApi = {
+  signInWithGoogle: (credential: string) =>
+    request<{ token: string; user: User }>('/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({ credential }),
+    }),
+  signInAsDemoAgent: () =>
+    request<{ token: string; user: User }>('/auth/demo', {
+      method: 'POST',
+    }),
+  me: () => request<{ user: User }>('/auth/me'),
+};
 
 // ── Deals ─────────────────────────────────────────────────────────────────────
 
@@ -47,15 +87,8 @@ export const documentsApi = {
   upload: async (dealId: string, file: File) => {
     const form = new FormData();
     form.append('file', file);
-    const res = await fetch(`${BASE_URL}/deals/${dealId}/documents`, {
-      method: 'POST',
-      body: form,
-      // Do NOT set Content-Type — browser sets it with boundary automatically
-    });
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      throw new Error((body as { error?: { message?: string } }).error?.message ?? `HTTP ${res.status}`);
-    }
+    // Do NOT set Content-Type — browser sets it with boundary automatically
+    const res = await send(`/deals/${dealId}/documents`, { method: 'POST', body: form });
     return res.json();
   },
 };
@@ -78,4 +111,59 @@ export const auditApi = {
     request<PaginatedResponse<AuditLog>>(
       `/deals/${dealId}/audit?page=${page}&limit=${limit}`,
     ),
+};
+
+// ── Notifications (Email Contract) ────────────────────────────────────────────
+
+export const notificationsApi = {
+  getSettings: (dealId: string) =>
+    request<NotificationSetting>(`/deals/${dealId}/notifications/settings`),
+  updateSettings: (dealId: string, data: UpdateNotificationSettingsInput) =>
+    request<NotificationSetting>(`/deals/${dealId}/notifications/settings`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  sendTestEmail: (dealId: string, to: string) =>
+    request<{ sent: boolean; message: string }>(`/deals/${dealId}/notifications/test`, {
+      method: 'POST',
+      body: JSON.stringify({ to }),
+    }),
+  sendSummaryEmail: (dealId: string, to: string[]) =>
+    request<{ sent: boolean; count: number }>(`/deals/${dealId}/notifications/summary`, {
+      method: 'POST',
+      body: JSON.stringify({ to }),
+    }),
+  previewTemplate: (dealId: string, data: EmailPreviewRequest) =>
+    request<EmailPreviewResponse>(`/deals/${dealId}/notifications/preview`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  getLogs: (dealId: string) =>
+    request<EmailLog[]>(`/deals/${dealId}/notifications/log`),
+  getInboundAddress: (dealId: string) =>
+    request<InboundAddressResponse>(`/deals/${dealId}/notifications/inbound-address`),
+};
+
+// ── Assistant (AI Knowledge Assistant Contract) ───────────────────────────────
+
+export const assistantApi = {
+  ask: (dealId: string, data: { question: string; conversationId?: string }) =>
+    request<AssistantAnswer>(`/deals/${dealId}/assistant/ask`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  getSuggestions: (dealId: string) =>
+    request<SuggestedQuestionsResponse>(`/deals/${dealId}/assistant/suggestions`),
+  getSummary: (dealId: string) =>
+    request<DealSummaryResponse>(`/deals/${dealId}/assistant/summary`),
+  listConversations: (dealId: string) =>
+    request<AssistantConversation[]>(`/deals/${dealId}/assistant/conversations`),
+  getConversation: (dealId: string, conversationId: string) =>
+    request<AssistantConversation>(`/deals/${dealId}/assistant/conversations/${conversationId}`),
+  reindex: (dealId: string) =>
+    request<{ message: string; documentCount: number }>(`/deals/${dealId}/assistant/reindex`, {
+      method: 'POST',
+    }),
+  getIndexStatus: (dealId: string) =>
+    request<IndexStatusResponse>(`/deals/${dealId}/assistant/index-status`),
 };

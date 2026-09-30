@@ -1,27 +1,27 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { dealsApi, auditApi, deadlinesApi } from '@/services/api';
+import { dealsApi, auditApi, notificationsApi } from '@/services/api';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { Timeline } from '@/components/Timeline';
 import { ActivityHistory } from '@/components/ActivityHistory';
-import { DocumentInspectorModal } from '@/components/DocumentInspectorModal';
-import { EditDeadlineModal } from '@/components/EditDeadlineModal';
+import { DealHeader } from '@/components/deal/DealHeader';
+import { DealChecklist } from '@/components/deal/DealChecklist';
 import {
-  IconChevronRight,
-  IconExclamationTriangle,
-  IconSpinner,
-  IconEye,
-  IconDownload,
-  IconClock,
-  IconShieldCheck,
-  IconDollar,
-  IconUser,
-  IconCheckCircle,
-  IconPlus,
-  IconSparkles,
-} from '@/components/icons';
-import type { Deal, AuditLog, Deadline } from '@/types';
-import { formatDate } from '@/utils/date';
+  ChevronRight,
+  AlertTriangle,
+  Loader2,
+  Mail,
+  CheckCircle2,
+  Send,
+  SlidersHorizontal,
+  History,
+  Clock,
+  Sparkles,
+  ShieldCheck,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import type { Deal, AuditLog, NotificationSetting } from '@/types';
 
 export function DealDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -31,17 +31,22 @@ export function DealDetailPage() {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [auditLoading, setAuditLoading] = useState(true);
   const [auditError, setAuditError] = useState<string | null>(null);
-  const { deadlines, loading, error, refetch } = useDeadlines(dealId);
+  const [notifSettings, setNotifSettings] = useState<NotificationSetting | null>(null);
+  const [sendingSummary, setSendingSummary] = useState(false);
+  const [summaryMessage, setSummaryMessage] = useState<string | null>(null);
 
-  // Modals state
-  const [inspectorOpen, setInspectorOpen] = useState(false);
-  const [editingDeadline, setEditingDeadline] = useState<Deadline | null>(null);
+  const { deadlines, loading, error, confirmDeadline } = useDeadlines(dealId);
 
   useEffect(() => {
     dealsApi
       .get(dealId)
       .then(setDeal)
       .catch((err: Error) => setDealError(err.message));
+
+    notificationsApi
+      .getSettings(dealId)
+      .then(setNotifSettings)
+      .catch(() => {});
 
     setAuditLoading(true);
     auditApi
@@ -51,194 +56,172 @@ export function DealDetailPage() {
       .finally(() => setAuditLoading(false));
   }, [dealId]);
 
-  // Quick Confirm handler
-  async function handleConfirm(deadline: Deadline) {
-    try {
-      await deadlinesApi.confirm(dealId, deadline.id, {
-        confirmedDate: deadline.computedDate,
-        confirmedBy: 'Agent Reviewer',
+  const handleConfirmAll = async () => {
+    const pendingDeadlines = deadlines.filter((d) => d.status === 'PENDING');
+    for (const d of pendingDeadlines) {
+      await confirmDeadline(d.id, {
+        confirmedDate: d.computedDate,
         activate: true,
       });
-      refetch();
-    } catch (err) {
-      alert((err as Error).message);
     }
-  }
+    // Refresh deal & notifications
+    notificationsApi.getSettings(dealId).then(setNotifSettings).catch(() => {});
+  };
 
-  // Generate .ics calendar download file
-  function handleExportCalendar() {
-    if (!deadlines.length) return;
-    let icsContent = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Contingency Copilot//EN\n';
-    deadlines.forEach((d) => {
-      const dt = new Date(d.confirmedDate || d.computedDate);
-      const dtStr = dt.toISOString().replace(/-|:|\.\d\d\d/g, '');
-      icsContent += `BEGIN:VEVENT\nSUMMARY:${d.label} - ${deal?.propertyAddress || 'Deal'}\nDESCRIPTION:${d.clause?.rawText || ''}\nDTSTART:${dtStr}\nDTEND:${dtStr}\nEND:VEVENT\n`;
-    });
-    icsContent += 'END:VCALENDAR';
-
-    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `deadlines-${dealId}.ics`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-  const unconfirmedCount = deadlines.filter((d) => d.status === 'PENDING').length;
+  const handleSendSummary = async () => {
+    if (!notifSettings?.recipients || notifSettings.recipients.length === 0) {
+      alert('Please configure at least one recipient email in Notification Settings.');
+      return;
+    }
+    setSendingSummary(true);
+    setSummaryMessage(null);
+    try {
+      await notificationsApi.sendSummaryEmail(dealId, notifSettings.recipients);
+      setSummaryMessage('Executive summary report dispatched via Resend to all configured recipients.');
+      setTimeout(() => setSummaryMessage(null), 4000);
+    } catch (err) {
+      alert(`Failed to send summary email: ${(err as Error).message}`);
+    } finally {
+      setSendingSummary(false);
+    }
+  };
 
   return (
-    <div className="space-y-8">
-      {/* Breadcrumb Navigation */}
-      <nav className="flex items-center gap-2 text-xs text-slate-400">
-        <Link to="/deals" className="hover:text-brand-300 transition-colors">Portfolio Deals</Link>
-        <IconChevronRight className="h-3.5 w-3.5 text-slate-600" />
-        <span className="font-semibold text-slate-100 truncate max-w-md">{deal?.propertyAddress ?? '…'}</span>
-      </nav>
+    <div className="space-y-6 max-w-[1600px] mx-auto">
+      {/* Unified Command Center Header & Tab Navigation */}
+      <DealHeader deal={deal} notifSettings={notifSettings} activeTab="milestones" />
 
       {dealError && (
-        <p className="banner-error">
-          <IconExclamationTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          {dealError}
-        </p>
-      )}
-
-      {/* Hero Deal Card */}
-      {deal && (
-        <div className="card-glow space-y-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="badge-emerald">Active Contract</span>
-                {unconfirmedCount > 0 && (
-                  <span className="badge-amber">
-                    {unconfirmedCount} Needs Confirmation
-                  </span>
-                )}
-              </div>
-              <h1 className="text-2xl font-bold text-white tracking-tight">{deal.propertyAddress}</h1>
-
-              <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-300">
-                {deal.buyerName && (
-                  <span className="flex items-center gap-1.5 rounded-lg bg-slate-950/80 px-3 py-1.5 border border-slate-800">
-                    <IconUser className="h-3.5 w-3.5 text-brand-400" />
-                    Buyer: <strong className="font-semibold text-white">{deal.buyerName}</strong>
-                  </span>
-                )}
-                {deal.sellerName && (
-                  <span className="flex items-center gap-1.5 rounded-lg bg-slate-950/80 px-3 py-1.5 border border-slate-800">
-                    <IconUser className="h-3.5 w-3.5 text-emerald-400" />
-                    Seller: <strong className="font-semibold text-white">{deal.sellerName}</strong>
-                  </span>
-                )}
-                {deal.acceptanceDate && (
-                  <span className="flex items-center gap-1.5 rounded-lg bg-slate-950/80 px-3 py-1.5 border border-slate-800">
-                    <IconClock className="h-3.5 w-3.5 text-amber-400" />
-                    Accepted: <strong className="font-mono text-white">{formatDate(deal.acceptanceDate)}</strong>
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Interactive Action Toolbar */}
-            <div className="flex flex-wrap items-center gap-2.5">
-              <Link to={`/deals/${dealId}/assistant`} className="btn-secondary text-xs py-2 px-3 border-brand-500/40 text-brand-300 hover:bg-brand-500/10">
-                <IconSparkles className="h-4 w-4 text-brand-400" />
-                <span>Ask AI Assistant</span>
-              </Link>
-
-              <button
-                onClick={() => setInspectorOpen(true)}
-                className="btn-secondary text-xs py-2 px-3"
-              >
-                <IconEye className="h-4 w-4 text-brand-400" />
-                <span>Document Reader</span>
-              </button>
-
-              <button
-                onClick={handleExportCalendar}
-                className="btn-secondary text-xs py-2 px-3"
-                title="Download iCal calendar file"
-              >
-                <IconDownload className="h-4 w-4 text-emerald-400" />
-                <span>Export iCal</span>
-              </button>
-
-              <Link to={`/deals/${dealId}/review`} className="btn-primary text-xs py-2 px-4">
-                <IconCheckCircle className="h-4 w-4" />
-                <span>Review &amp; Confirm</span>
-              </Link>
-            </div>
-          </div>
+        <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-xs text-destructive">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          <span>{dealError}</span>
         </div>
       )}
 
-      {/* Contingency Timeline */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <div>
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <IconClock className="h-5 w-5 text-brand-400" />
-              Contingency Deadline Timeline
-            </h2>
-            <p className="text-xs text-slate-400 mt-0.5">Chronological countdown &amp; status for all extracted agreement clauses.</p>
+      {summaryMessage && (
+        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-50/80 dark:bg-emerald-950/40 p-4 text-xs text-emerald-800 dark:text-emerald-300">
+          <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <span>{summaryMessage}</span>
+        </div>
+      )}
+
+      {/* 4-Step Transaction Compliance Checklist */}
+      <DealChecklist
+        dealId={dealId}
+        deadlines={deadlines}
+        notifSettings={notifSettings}
+        onConfirmAll={handleConfirmAll}
+      />
+
+      {/* Automated Email Alerts Dispatch Bar */}
+      <div className="rounded-xl border border-border/70 bg-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20">
+            <Mail className="h-4 w-4" />
           </div>
-          <span className="text-xs text-slate-400 font-mono">
-            {deadlines.length} Clauses Extracted
-          </span>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-xs font-bold text-foreground tracking-tight">
+                Automated Deadline Alerts (Resend Engine)
+              </h3>
+              <Badge variant={notifSettings?.enabled ? 'success' : 'neutral'} className="text-[10px]">
+                {notifSettings?.enabled ? 'Armed' : 'Standby'}
+              </Badge>
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              {notifSettings?.enabled && (notifSettings.recipients?.length ?? 0) > 0
+                ? `${notifSettings.recipients.length} configured recipient(s) &bull; Alerts dispatch at T-3, T-1, and 9:00 AM day-of milestone.`
+                : 'Alerts require at least one recipient email to trigger automated notifications.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleSendSummary}
+            disabled={sendingSummary}
+            className="h-8 px-3 text-xs gap-1.5"
+          >
+            {sendingSummary ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+            ) : (
+              <Send className="h-3.5 w-3.5 text-muted-foreground" />
+            )}
+            <span>Send Summary Now</span>
+          </Button>
+
+          <Button
+            asChild
+            variant="secondary"
+            size="sm"
+            className="h-8 px-3 text-xs gap-1"
+          >
+            <Link to={`/deals/${dealId}/notifications`}>
+              <SlidersHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
+              <span>Configure Alerts</span>
+              <ChevronRight className="h-3 w-3 text-muted-foreground" />
+            </Link>
+          </Button>
+        </div>
+      </div>
+
+      {/* Main Deadline Timeline */}
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-primary" />
+              <h2 className="text-sm font-bold text-foreground tracking-tight uppercase tracking-wider">
+                Contingency Milestone Schedule
+              </h2>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Deterministic deadlines calculated from contract mutual acceptance date and jurisdiction rules.
+            </p>
+          </div>
         </div>
 
         {loading && (
-          <div className="flex items-center gap-2 py-8 text-sm text-slate-400">
-            <IconSpinner className="h-5 w-5 animate-spin text-brand-500" />
-            <span>Calculating relative deadlines &amp; state holidays&hellip;</span>
+          <div className="rounded-xl border border-border/70 bg-card flex items-center justify-center gap-2 py-14 text-xs text-muted-foreground shadow-2xs">
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            <span>Computing contract timeline milestones...</span>
           </div>
         )}
 
         {error && (
-          <p className="banner-error">
-            <IconExclamationTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            {error}
-          </p>
+          <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-xs text-destructive">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            <span>{error}</span>
+          </div>
         )}
 
-        {!loading && (
-          <Timeline
-            deadlines={deadlines}
-            onConfirm={(d) => void handleConfirm(d)}
-            onEdit={(d) => setEditingDeadline(d)}
-          />
-        )}
+        {!loading && <Timeline deadlines={deadlines} />}
       </section>
 
-      {/* Activity History */}
-      <section className="pt-4">
+      {/* Activity History / Immutable Audit Trail */}
+      <section className="pt-2">
         <ActivityHistory
           logs={auditLogs}
           loading={auditLoading}
           error={auditError}
           initialLimit={5}
-          title="Deal Compliance & Audit Activity"
         />
       </section>
 
-      {/* Modals */}
-      <DocumentInspectorModal
-        isOpen={inspectorOpen}
-        onClose={() => setInspectorOpen(false)}
-        propertyAddress={deal?.propertyAddress || ''}
-        deadlines={deadlines}
-      />
-
-      <EditDeadlineModal
-        isOpen={!!editingDeadline}
-        deadline={editingDeadline}
-        dealId={dealId}
-        onClose={() => setEditingDeadline(null)}
-        onSuccess={() => refetch()}
-      />
+      {/* Full Audit Link */}
+      <div className="text-right pb-4">
+        <Link
+          to={`/audit?dealId=${dealId}`}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+        >
+          <History className="h-3.5 w-3.5" />
+          <span>View complete tamper-evident audit history</span>
+          <ChevronRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
     </div>
   );
 }
-

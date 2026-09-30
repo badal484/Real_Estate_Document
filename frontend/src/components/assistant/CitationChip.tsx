@@ -1,81 +1,85 @@
-import React from 'react';
 import type { Citation } from '@/types';
-import { IconDocumentText, IconClock, IconSparkles } from '../icons';
+import { FileText, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Badge } from '../ui/badge';
 
-interface CitationChipProps {
+interface Props {
   citation: Citation;
-  index?: number;
   onClick?: (citation: Citation) => void;
+  isActive?: boolean;
 }
 
-export function CitationChip({ citation, index, onClick }: CitationChipProps) {
+export function CitationChip({ citation, onClick, isActive = false }: Props) {
   const isDoc = citation.sourceType === 'document';
+  const isDeadline = citation.sourceType === 'deadline';
 
   return (
     <button
+      type="button"
       onClick={() => onClick?.(citation)}
-      className={`inline-flex items-center gap-1 font-mono text-[11px] px-2 py-0.5 rounded-md border transition-all cursor-pointer ${
-        isDoc
-          ? 'bg-brand-500/10 text-brand-300 border-brand-500/30 hover:bg-brand-500/20 hover:border-brand-500/60'
-          : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20 hover:border-emerald-500/60'
+      className={`group text-left p-2.5 rounded-lg border transition-all text-xs w-full block cursor-pointer ${
+        isActive
+          ? 'border-slate-900 bg-slate-50 ring-1 ring-slate-900 shadow-xs'
+          : 'border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50/50 shadow-2xs'
       }`}
-      title={citation.relevanceExplanation || citation.quote || 'Click to view citation source'}
     >
-      {isDoc ? (
-        <IconDocumentText className="h-3 w-3 text-brand-400" />
-      ) : (
-        <IconClock className="h-3 w-3 text-emerald-400" />
+      {/* Top Header Row */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 font-semibold text-slate-900 min-w-0">
+          <span className="flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded bg-slate-900 text-white font-mono text-[10px] font-bold">
+            {citation.id}
+          </span>
+          <span className="truncate text-slate-800 text-xs font-semibold">
+            {isDoc
+              ? citation.documentName || 'Contract Document'
+              : isDeadline
+              ? citation.deadlineLabel || 'Contingency Deadline'
+              : 'Deal Record'}
+          </span>
+        </div>
+
+        {citation.pageNumber && (
+          <Badge variant="neutral" className="font-mono text-[10px] px-1.5 py-0">
+            Page {citation.pageNumber}
+          </Badge>
+        )}
+      </div>
+
+      {/* Section Header */}
+      {citation.section && (
+        <div className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-slate-700">
+          <span>&sect;</span>
+          <span className="truncate">{citation.section}</span>
+        </div>
       )}
-      <span>[{index ?? 1}]</span>
-      {citation.pageNumber && <span className="opacity-75">Pg {citation.pageNumber}</span>}
+
+      {/* Quoted Text Callout */}
+      {citation.quote && (
+        <div className="mt-1.5 border-l-2 border-slate-400 bg-slate-50 p-2 rounded-r text-[11px] font-mono text-slate-700 italic line-clamp-3 leading-relaxed border border-l-slate-400 border-slate-200/60">
+          &ldquo;{citation.quote}&rdquo;
+        </div>
+      )}
+
+      {/* Bottom Status & Action */}
+      <div className="mt-2 flex items-center justify-between text-[11px] pt-1.5 border-t border-slate-100">
+        <div className="flex items-center gap-1.5">
+          {citation.isConfirmed && (
+            <Badge variant="success" className="text-[10px] px-1 py-0">
+              <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />
+              Verified Quote
+            </Badge>
+          )}
+          {citation.isOcr && (
+            <Badge variant="warning" className="text-[10px] px-1 py-0">
+              OCR
+            </Badge>
+          )}
+        </div>
+
+        <span className="text-slate-900 font-semibold group-hover:text-slate-700 flex items-center gap-1 text-[11px]">
+          <span>Jump to Page</span>
+          <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+        </span>
+      </div>
     </button>
-  );
-}
-
-export interface CitationListProps {
-  citations?: Citation[];
-  onSelectCitation?: (citation: Citation) => void;
-}
-
-export function CitationList({ citations, onSelectCitation }: CitationListProps) {
-  if (!citations || citations.length === 0) return null;
-
-  return (
-    <div className="mt-3 rounded-xl border border-slate-800 bg-slate-950/70 p-3 space-y-2">
-      <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-        <IconSparkles className="h-3.5 w-3.5 text-brand-400" />
-        <span>Verifiable Contract Citations ({citations.length})</span>
-      </div>
-
-      <div className="space-y-2">
-        {citations.map((c, idx) => (
-          <div
-            key={c.id || idx}
-            onClick={() => onSelectCitation?.(c)}
-            className="group rounded-lg border border-slate-800/80 bg-slate-900/80 p-2.5 hover:border-brand-500/50 transition-colors cursor-pointer text-xs space-y-1"
-          >
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-brand-300 flex items-center gap-1.5">
-                <CitationChip citation={c} index={idx + 1} />
-                <span className="text-slate-200">{c.documentName || c.section || 'Contract Clause'}</span>
-              </span>
-              {c.pageNumber && (
-                <span className="text-[10px] text-slate-500 font-mono">Page {c.pageNumber}</span>
-              )}
-            </div>
-
-            {c.quote && (
-              <p className="text-slate-300 font-serif text-[11px] italic bg-slate-950/50 p-1.5 rounded border border-slate-800/50">
-                &ldquo;{c.quote}&rdquo;
-              </p>
-            )}
-
-            {c.relevanceExplanation && (
-              <p className="text-[11px] text-slate-400">{c.relevanceExplanation}</p>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }

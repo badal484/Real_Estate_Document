@@ -2,7 +2,25 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { dealsApi } from '@/services/api';
 import { UploadZone } from '@/components/UploadZone';
-import { IconArrowRight, IconCheckCircle, IconExclamationTriangle, IconSparkles, IconBuilding } from '@/components/icons';
+import {
+  ArrowRight,
+  CheckCircle2,
+  AlertTriangle,
+  Building2,
+  FileText,
+  Sparkles,
+  Calendar,
+  User,
+  ShieldCheck,
+  Zap,
+  Check,
+  Loader2,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export function UploadPage() {
   const navigate = useNavigate();
@@ -11,31 +29,35 @@ export function UploadPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Form states
-  const [address, setAddress] = useState('');
-  const [buyer, setBuyer] = useState('');
-  const [seller, setSeller] = useState('');
+  // Form State
+  const [propertyAddress, setPropertyAddress] = useState('');
+  const [buyerName, setBuyerName] = useState('');
+  const [sellerName, setSellerName] = useState('');
   const [acceptanceDate, setAcceptanceDate] = useState('');
 
-  // Sample Preset Loader
-  function handleLoadSample() {
-    setAddress('12th Main Road, HAL 2nd Stage, Indiranagar, Bengaluru - 560038');
-    setBuyer('Priya Ramesh Patel');
-    setSeller('Aarav Vikram Sharma');
-    setAcceptanceDate(new Date().toISOString().split('T')[0]!);
-  }
+  const fillSampleDeal = () => {
+    setPropertyAddress('1420 Evergreen Vista Way, Bellevue, WA 98004');
+    setBuyerName('Alexander & Elena Vance');
+    setSellerName('Highland Properties Trust');
+    const today = new Date().toISOString().split('T')[0];
+    setAcceptanceDate(today);
+  };
 
-  // Step 1: Create deal
-  async function handleDealCreate(e: React.FormEvent) {
+  async function handleDealCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!propertyAddress.trim()) {
+      setError('Property address is required.');
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
 
     try {
       const deal = await dealsApi.create({
-        propertyAddress: address,
-        buyerName: buyer || undefined,
-        sellerName: seller || undefined,
+        propertyAddress: propertyAddress.trim(),
+        buyerName: buyerName.trim() || undefined,
+        sellerName: sellerName.trim() || undefined,
         acceptanceDate: acceptanceDate || undefined,
       });
       setDealId(deal.id);
@@ -48,157 +70,230 @@ export function UploadPage() {
   }
 
   const steps = [
-    { key: 'form', label: 'Agreement Details' },
-    { key: 'upload', label: 'Upload PDF Contract' },
-    { key: 'done', label: 'AI Extraction Complete' },
+    { key: 'form', label: 'Deal Entities' },
+    { key: 'upload', label: 'Contract Ingestion' },
+    { key: 'done', label: 'AI Extraction' },
   ] as const;
   const stepIndex = steps.findIndex((s) => s.key === step);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
+    <div className="mx-auto max-w-2xl px-4 py-4 space-y-8">
+      {/* Page Header */}
       <div>
-        <span className="page-eyebrow">New Contract Analysis</span>
-        <h1 className="mt-1.5 text-2xl font-bold text-white tracking-tight">Analyze Purchase Agreement</h1>
-        <p className="mt-1 text-xs text-slate-400">
-          Enter agreement details, then upload your PDF contract to extract contingency deadlines and risk metrics automatically.
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-primary font-mono">
+            Transaction Intake
+          </span>
+          <Badge variant="neutral" className="text-[10px]">
+            Step {stepIndex + 1} of 3
+          </Badge>
+        </div>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          Ingest Purchase Agreement
+        </h1>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Enter transaction counterparties and upload your executed PDF contract. Contingency calendar deadlines and citation embeddings will be generated deterministically.
         </p>
       </div>
 
-      {/* Stepper Progress */}
-      <ol className="flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-xl">
-        {steps.map((s, i) => (
-          <li key={s.key} className="flex flex-1 items-center gap-2.5">
-            <span
-              className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all ${
-                i < stepIndex
-                  ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                  : i === stepIndex
-                  ? 'bg-brand-600 text-white ring-4 ring-brand-500/20 shadow-lg shadow-brand-500/30'
-                  : 'bg-slate-800 text-slate-500'
-              }`}
-            >
-              {i < stepIndex ? <IconCheckCircle className="h-4 w-4" /> : i + 1}
-            </span>
-            <span className={`text-xs font-semibold ${i === stepIndex ? 'text-white' : 'text-slate-500'}`}>
-              {s.label}
-            </span>
-            {i < steps.length - 1 && <span className="h-px flex-1 bg-slate-800" />}
-          </li>
-        ))}
-      </ol>
+      {/* Stepper Indicator */}
+      <div className="rounded-xl border border-border/70 bg-card p-4 shadow-2xs">
+        <ol className="flex items-center justify-between gap-2 text-xs font-medium text-muted-foreground select-none">
+          {steps.map((s, i) => (
+            <li key={s.key} className="flex items-center gap-2">
+              <span
+                className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-mono font-bold transition-all ${
+                  i < stepIndex
+                    ? 'bg-primary text-primary-foreground'
+                    : i === stepIndex
+                    ? 'bg-primary/10 text-primary ring-2 ring-primary/40 font-bold'
+                    : 'bg-muted text-muted-foreground'
+                }`}
+              >
+                {i < stepIndex ? <Check className="h-3.5 w-3.5" /> : i + 1}
+              </span>
+              <span className={i === stepIndex ? 'font-semibold text-foreground' : 'text-muted-foreground'}>
+                {s.label}
+              </span>
+              {i < steps.length - 1 && <span className="hidden sm:block mx-2 h-px w-10 bg-border" />}
+            </li>
+          ))}
+        </ol>
+      </div>
 
+      {/* Step 1: Form */}
       {step === 'form' && (
-        <div className="card space-y-6">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <IconBuilding className="h-5 w-5 text-brand-400" />
-              Step 1: Property &amp; Party Details
-            </h2>
-            <button
-              type="button"
-              onClick={handleLoadSample}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/20 transition-all"
-            >
-              <IconSparkles className="h-3.5 w-3.5 text-amber-400" />
-              <span>⚡ Load Sample California RPA</span>
-            </button>
-          </div>
-
-          <form onSubmit={(e) => void handleDealCreate(e)} className="space-y-4">
-            <div>
-              <label className="label">
-                Property Address <span className="text-rose-400">*</span>
-              </label>
-              <input
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                required
-                className="input"
-                placeholder="e.g. 12th Main Road, HAL 2nd Stage, Indiranagar, Bengaluru - 560038"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Card className="border-border/70 shadow-sm">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
               <div>
-                <label className="label">Buyer Name</label>
-                <input
-                  value={buyer}
-                  onChange={(e) => setBuyer(e.target.value)}
-                  className="input"
-                  placeholder="e.g. Priya Ramesh Patel"
+                <CardTitle className="text-base font-semibold">Transaction Details</CardTitle>
+                <CardDescription className="text-xs">
+                  Primary metadata used for calculating business-day calendars and drafting reminder notices.
+                </CardDescription>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                onClick={fillSampleDeal}
+                className="gap-1 text-[11px] h-7 text-primary hover:text-primary"
+              >
+                <Zap className="h-3 w-3" />
+                <span>Auto-Fill Sample</span>
+              </Button>
+            </div>
+          </CardHeader>
+
+          <CardContent>
+            <form onSubmit={(e) => void handleDealCreate(e)} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                  Property Address <span className="text-destructive">*</span>
+                </label>
+                <Input
+                  required
+                  placeholder="e.g. 742 Evergreen Terrace, Springfield, OR 97477"
+                  value={propertyAddress}
+                  onChange={(e) => setPropertyAddress(e.target.value)}
+                  className="h-9 text-xs"
                 />
               </div>
-              <div>
-                <label className="label">Seller Name</label>
-                <input
-                  value={seller}
-                  onChange={(e) => setSeller(e.target.value)}
-                  className="input"
-                  placeholder="e.g. Aarav Vikram Sharma"
-                />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <User className="h-3.5 w-3.5 text-muted-foreground" />
+                    Buyer Full Name / Entity
+                  </label>
+                  <Input
+                    placeholder="e.g. John Martinez"
+                    value={buyerName}
+                    onChange={(e) => setBuyerName(e.target.value)}
+                    className="h-9 text-xs"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <User className="h-3.5 w-3.5 text-muted-foreground" />
+                    Seller Full Name / Entity
+                  </label>
+                  <Input
+                    placeholder="e.g. Sarah Chen"
+                    value={sellerName}
+                    onChange={(e) => setSellerName(e.target.value)}
+                    className="h-9 text-xs"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label className="label">Acceptance Date (Mutual Execution)</label>
-              <input
-                type="date"
-                value={acceptanceDate}
-                onChange={(e) => setAcceptanceDate(e.target.value)}
-                className="input"
-              />
-              <p className="mt-1 text-[11px] text-slate-400">
-                The date both parties signed. Used as Day 0 for relative contingency date calculations.
-              </p>
-            </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                  Contract Mutual Acceptance Date
+                </label>
+                <Input
+                  type="date"
+                  value={acceptanceDate}
+                  onChange={(e) => setAcceptanceDate(e.target.value)}
+                  className="h-9 text-xs font-mono"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  The date mutual acceptance was finalized. Used as Day 0 to calculate relative business/calendar day windows.
+                </p>
+              </div>
 
-            {error && (
-              <p className="banner-error">
-                <IconExclamationTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                {error}
-              </p>
-            )}
+              {error && (
+                <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
+                  <AlertTriangle className="h-4 w-4 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
 
-            <button type="submit" disabled={submitting || !address.trim()} className="btn-primary w-full py-3">
-              {submitting ? 'Creating Deal Record…' : 'Continue to Upload Contract PDF'}
-              {!submitting && <IconArrowRight className="h-4 w-4" />}
-            </button>
-          </form>
-        </div>
+              <Button type="submit" disabled={submitting} className="w-full gap-2 h-9 text-xs mt-2">
+                {submitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Creating transaction workspace...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Continue to Document Upload</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       )}
 
+      {/* Step 2: Upload Zone */}
       {step === 'upload' && dealId && (
-        <div className="space-y-4">
-          <p className="banner-success">
-            <IconCheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
-            Deal record created. Upload the Purchase Agreement PDF below to start AI clause parsing.
-          </p>
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4"
+        >
+          <div className="flex items-center gap-2.5 rounded-lg border border-emerald-500/20 bg-emerald-50/80 dark:bg-emerald-950/40 p-3.5 text-xs text-emerald-800 dark:text-emerald-300">
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            <span>Transaction workspace initialized. Upload the executed Purchase Agreement PDF below to start automatic date extraction.</span>
+          </div>
           <UploadZone dealId={dealId} onSuccess={() => setStep('done')} />
-        </div>
+        </motion.div>
       )}
 
+      {/* Step 3: Done */}
       {step === 'done' && dealId && (
-        <div className="card space-y-6 p-10 text-center">
-          <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-lg shadow-emerald-500/30">
-            <IconCheckCircle className="h-8 w-8" />
-          </span>
-          <div>
-            <h2 className="text-xl font-bold text-white">Purchase Agreement Uploaded!</h2>
-            <p className="mt-2 text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-              AI extraction process complete. Inspection, Financing, and Title contingency deadlines have been calculated.
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="rounded-xl border border-border/70 bg-card p-8 text-center shadow-sm space-y-5"
+        >
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
+            <CheckCircle2 className="h-6 w-6" />
+          </div>
+          <div className="space-y-1">
+            <h2 className="text-lg font-bold text-foreground tracking-tight">
+              Contract Uploaded &amp; Indexed
+            </h2>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
+              Automated deterministic deadline calculations, audit log, and citation embeddings are ready in your workspace.
             </p>
           </div>
-          <div className="flex justify-center gap-3 pt-2">
-            <button onClick={() => navigate(`/deals/${dealId}/review`)} className="btn-primary text-xs py-2.5 px-5">
-              Review Extracted Deadlines
-            </button>
-            <button onClick={() => navigate(`/deals/${dealId}`)} className="btn-secondary text-xs py-2.5 px-5">
-              View Deal Dashboard
-            </button>
+
+          <div className="flex flex-wrap justify-center gap-2 pt-2">
+            <Button
+              type="button"
+              onClick={() => navigate(`/deals/${dealId}/assistant`)}
+              size="sm"
+              className="gap-1.5 text-xs h-9"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Launch AI Copilot</span>
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate(`/deals/${dealId}/review`)}
+              size="sm"
+              className="gap-1.5 text-xs h-9"
+            >
+              <span>Verify Deadlines</span>
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => navigate('/deals')}
+              size="sm"
+              className="text-xs h-9"
+            >
+              <span>Portfolio View</span>
+            </Button>
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   );
 }
-

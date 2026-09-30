@@ -1,0 +1,143 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Retrieval Service — Hybrid RAG with Token-Budget Context Building
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { PrismaClient } from '@prisma/client';
+import { generateEmbedding, cosineSimilarity } from './embedding.service.js';
+import { logger } from '../utils/logger.js';
+import type { DocumentChunk, Document } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+export interface RetrievedChunk {
+  id: string;
+  documentId: string;
+  documentName: string;
+  docType: string;
+  pageNumber: number;
+  sectionTitle: string | null;
+  content: string;
+  tokenCount: number;
+  source: 'text' | 'ocr';
+  score?: number;
+}
+
+export interface RetrievalResult {
+  mode: 'full_context' | 'hybrid_retrieval';
+  chunks: RetrievedChunk[];
+  totalTokens: number;
+  documentsIncluded: string[];
+}
+
+/**
+ * Retrieves the most relevant document chunks for answering a query.
+ */
+export async function retrieveRelevantChunks(params: {
+  dealId: string;
+  query: string;
+  documents: Document[];
+}): Promise<RetrievalResult> {
+  const { dealId, query, documents } = params;
+  const fullContextBudget = parseInt(process.env['ASSISTANT_FULL_CONTEXT_TOKENS'] ?? '120000', 10);
+  const topK = parseInt(process.env['ASSISTANT_TOP_K'] ?? '6', 10);
+
+  // Fetch all chunks for this deal
+  const allDbChunks = await prisma.documentChunk.findMany({
+    where: { dealId },
+    orderBy: [{ documentId: 'asc' }, { pageNumber: 'asc' }, { chunkIndex: 'asc' }],
+  });
+
+  const docMap = new Map(documents.map(d => [d.id, d]));
+
+  const allChunks: RetrievedChunk[] = allDbChunks.map(c => {
+    const doc = docMap.get(c.documentId);
+    return {
+      id: c.id,
+      documentId: c.documentId,
+      documentName: doc?.filename ?? 'Document',
+      docType: doc?.docType ?? 'OTHER',
+      pageNumber: c.pageNumber,
+      sectionTitle: c.sectionTitle,
+      content: c.content,
+      tokenCount: c.tokenCount ?? Math.ceil(c.content.length / 4),
+      source: c.source === 'ocr' ? 'ocr' : 'text',
+    };
+  });
+
+  const totalDealTokens = allChunks.reduce((acc, c) => acc + c.tokenCount, 0);
+
+  // ── Mode 1: Full Context Injection ─────────────────────────────────────────
+  if (totalDealTokens <= fullContextBudget) {
+    logger.info(`[Retrieval] Deal tokens (${totalDealTokens}) within budget (${fullContextBudget}). Using full context mode.`);
+    return {
+      mode: 'full_context',
+      chunks: allChunks,
+      totalTokens: totalDealTokens,
+      documentsIncluded: Array.from(new Set(allChunks.map(c => c.documentName))),
+    };
+  }
+
+  // ── Mode 2: Hybrid Retrieval (Contracts in full + Bulky docs hybrid) ────────
+  logger.info(`[Retrieval] Deal tokens (${totalDealTokens}) exceed budget. Using hybrid retrieval.`);
+
+  // Core priority docs that must ALWAYS be included in full
+  const coreDocTypes = new Set(['PURCHASE_AGREEMENT', 'COUNTER_OFFER', 'ADDENDUM']);
+  const coreChunks = allChunks.filter(c => coreDocTypes.has(c.docType));
+  const bulkyChunks = allChunks.filter(c => !coreDocTypes.has(c.docType));
+
+  // Perform vector similarity over bulky chunks
+  const queryEmbedding = await generateEmbedding(query);
+  const scoredBulkyChunks: Array<{ chunk: RetrievedChunk; score: number }> = [];
+
+  for (const chunk of bulkyChunks) {
+    const dbChunk = allDbChunks.find(db => db.id === chunk.id);
+    let vectorScore = 0;
+
+    if (dbChunk?.embedding && Array.isArray(dbChunk.embedding)) {
+      vectorScore = cosineSimilarity(queryEmbedding, dbChunk.embedding as number[]);
+    }
+
+    // Keyword relevance boost (Postgres text search simulation)
+    const keywords = query.toLowerCase().split(/\s+/).filter(k => k.length > 3);
+    let keywordHits = 0;
+    const lowerContent = chunk.content.toLowerCase();
+    for (const kw of keywords) {
+      if (lowerContent.includes(kw)) keywordHits++;
+    }
+    const keywordScore = Math.min(1, keywordHits * 0.2);
+
+    // Reciprocal Rank / Combined score
+    const combinedScore = (vectorScore * 0.7) + (keywordScore * 0.3);
+    scoredBulkyChunks.push({ chunk, score: combinedScore });
+  }
+
+  // Sort bulky chunks by score descending and take topK
+  scoredBulkyChunks.sort((a, b) => b.score - a.score);
+  const topBulky = scoredBulkyChunks.slice(0, topK).map(sc => sc.chunk);
+
+  // Retrieve neighbor pages (+/- 1 page) for top bulky chunks
+  const selectedChunkIds = new Set<string>(topBulky.map(c => c.id));
+  for (const bChunk of topBulky) {
+    const neighborPages = allChunks.filter(
+      c => c.documentId === bChunk.documentId &&
+           Math.abs(c.pageNumber - bChunk.pageNumber) === 1,
+    );
+    for (const n of neighborPages) {
+      selectedChunkIds.add(n.id);
+    }
+  }
+
+  const finalChunks = [
+    ...coreChunks,
+    ...allChunks.filter(c => selectedChunkIds.has(c.id) && !coreDocTypes.has(c.docType)),
+  ];
+
+  const totalTokens = finalChunks.reduce((acc, c) => acc + c.tokenCount, 0);
+
+  return {
+    mode: 'hybrid_retrieval',
+    chunks: finalChunks,
+    totalTokens,
+    documentsIncluded: Array.from(new Set(finalChunks.map(c => c.documentName))),
+  };
+}
