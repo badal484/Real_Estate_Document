@@ -282,7 +282,7 @@ export function LandingPage() {
                 </Link>
               </Button>
             )}
-            <Button variant="outline" asChild size="lg" className="h-11 px-6 text-sm font-semibold border-white/20 text-white hover:bg-white/10 gap-2">
+            <Button variant="outline" asChild size="lg" className="h-11 px-6 text-sm font-semibold border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white gap-2">
               <Link to="/pricing">
                 <Calculator className="h-4 w-4 text-emerald-400" />
                 <span>View Pricing &amp; Plans</span>
