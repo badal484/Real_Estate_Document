@@ -10,8 +10,12 @@ import {
   IconDocumentText,
   IconExclamationTriangle,
   IconSpinner,
+  IconBuilding,
+  IconShieldCheck,
+  IconEnvelope,
 } from '@/components/icons';
 import type { Deal, Document as Doc, Citation } from '@/types';
+import { formatDate } from '@/utils/date';
 
 export function AssistantPage() {
   const { id } = useParams<{ id: string }>();
@@ -108,7 +112,6 @@ export function AssistantPage() {
     };
   }, [dealId, selectedDocId]);
 
-
   // 3. Handle citation click -> switch document & jump to page & focus quote
   const handleCitationClick = (citation: Citation) => {
     focusCitation(citation);
@@ -129,29 +132,87 @@ export function AssistantPage() {
   const currentDoc = documents.find((d) => d.id === selectedDocId);
 
   return (
-    <div className="space-y-4 max-w-7xl mx-auto h-[calc(100vh-8rem)] flex flex-col">
-      {/* Breadcrumb Navigation */}
-      <nav className="flex items-center gap-2 text-xs text-slate-500 shrink-0">
-        <Link to="/deals" className="hover:text-brand-700">Deals</Link>
-        <IconChevronRight className="h-3.5 w-3.5 text-slate-300" />
-        <Link to={`/deals/${dealId}`} className="hover:text-brand-700">
-          {deal?.propertyAddress ?? 'Deal'}
-        </Link>
-        <IconChevronRight className="h-3.5 w-3.5 text-slate-300" />
-        <span className="font-semibold text-slate-900">AI Knowledge Copilot</span>
-      </nav>
+    <div className="flex flex-col h-[calc(100vh-4.5rem)] max-w-[1600px] mx-auto px-2 sm:px-4 pb-3 space-y-2.5">
+      {/* Top Header Command Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white px-4 py-2.5 rounded-2xl border border-slate-200/80 shadow-2xs shrink-0">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-white shadow-xs shrink-0">
+            <IconBuilding className="h-5 w-5 text-brand-300" />
+          </div>
+
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <nav className="flex items-center gap-1.5 text-xs font-medium text-slate-400">
+                <Link to="/deals" className="hover:text-slate-800 transition-colors">
+                  Deals
+                </Link>
+                <IconChevronRight className="h-3 w-3 text-slate-300" />
+                <Link to={`/deals/${dealId}`} className="hover:text-slate-800 transition-colors truncate max-w-[160px]">
+                  {deal?.propertyAddress ?? 'Deal'}
+                </Link>
+                <IconChevronRight className="h-3 w-3 text-slate-300" />
+              </nav>
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+                <IconShieldCheck className="h-3 w-3 text-emerald-600" />
+                Contract AI Verified
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+              <h1 className="text-sm font-bold text-slate-900 truncate">
+                {deal?.propertyAddress || 'Transaction Workspace'}
+              </h1>
+              {deal?.acceptanceDate && (
+                <span className="text-xs text-slate-500 font-mono">
+                  Accepted: <strong className="text-slate-800">{formatDate(deal.acceptanceDate)}</strong>
+                </span>
+              )}
+              {deal?.buyerName && (
+                <span className="text-xs text-slate-500 hidden sm:inline">
+                  Buyer: <strong className="text-slate-800">{deal.buyerName}</strong>
+                </span>
+              )}
+              {deal?.sellerName && (
+                <span className="text-xs text-slate-500 hidden md:inline">
+                  Seller: <strong className="text-slate-800">{deal.sellerName}</strong>
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Quick Nav Actions */}
+        <div className="flex items-center gap-2">
+          <Link
+            to={`/deals/${dealId}/notifications`}
+            className="btn-secondary text-xs flex items-center gap-1.5 py-1.5 px-3"
+            title="Notification alerts"
+          >
+            <IconEnvelope className="h-3.5 w-3.5 text-slate-500" />
+            <span className="hidden sm:inline">Email Alerts</span>
+          </Link>
+          <Link
+            to={`/deals/${dealId}/review`}
+            className="btn-secondary text-xs flex items-center gap-1.5 py-1.5 px-3"
+            title="Review timeline & contingencies"
+          >
+            <IconDocumentText className="h-3.5 w-3.5 text-slate-500" />
+            <span>Timeline</span>
+          </Link>
+        </div>
+      </div>
 
       {error && (
-        <div className="banner-error shrink-0">
+        <div className="banner-error shrink-0 text-xs py-2 px-3">
           <IconExclamationTriangle className="h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
-      {/* Main Dual-Pane Workspace */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 min-h-0">
-        {/* Left Pane: Interactive PDF Viewer (7 cols) */}
-        <div className="lg:col-span-7 h-full flex flex-col min-h-[400px]">
+      {/* Main Dual-Pane Responsive Split Workspace */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 flex-1 min-h-0">
+        {/* Left Pane: Interactive PDF Viewer (7 cols / 58% width) */}
+        <div className="lg:col-span-7 h-full flex flex-col min-h-[420px]">
           {loadingDocs ? (
             <div className="card h-full flex items-center justify-center gap-2 text-slate-400 text-sm">
               <IconSpinner className="h-5 w-5 animate-spin text-brand-600" />
@@ -180,13 +241,13 @@ export function AssistantPage() {
               selectedDocId={selectedDocId}
               onSelectDoc={setSelectedDocId}
               onClearHighlight={() => setHighlightQuote(undefined)}
-              className="flex-1"
+              className="flex-1 shadow-xs"
             />
           )}
         </div>
 
-        {/* Right Pane: AI Assistant Chat & Deal Summary (5 cols) */}
-        <div className="lg:col-span-5 h-full flex flex-col min-h-[400px]">
+        {/* Right Pane: AI Assistant Chat & Deal Intelligence (5 cols / 42% width) */}
+        <div className="lg:col-span-5 h-full flex flex-col min-h-[420px]">
           <ChatWindow
             messages={messages}
             loading={assistantLoading}
@@ -206,3 +267,4 @@ export function AssistantPage() {
     </div>
   );
 }
+
