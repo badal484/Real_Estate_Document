@@ -7,7 +7,7 @@ const PORT = parseInt(process.env['PORT'] ?? '3001', 10);
 
 const app = createApp();
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   logger.info(`🏠 Contingency Deadline Copilot API running on http://localhost:${PORT}`);
   logger.info(`   Health: http://localhost:${PORT}/health`);
   logger.info(`   Deals:  http://localhost:${PORT}/api/deals`);
