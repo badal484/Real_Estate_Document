@@ -185,7 +185,7 @@ export function LoginPage() {
           </div>
 
           {/* Main Auth Card */}
-          <div className="rounded-2xl border border-white/15 bg-white/[0.08] p-8 shadow-2xl backdrop-blur-2xl text-white space-y-6">
+          <div className="relative overflow-hidden rounded-2xl border border-white/15 bg-white/[0.08] p-8 shadow-2xl backdrop-blur-2xl text-white space-y-6">
             
             <div className="space-y-1.5 text-center">
               <Badge variant="neutral" className="bg-slate-900/80 border-slate-700 text-slate-300 text-[10px] mb-2 px-2.5 py-0.5">
@@ -200,20 +200,23 @@ export function LoginPage() {
             </div>
 
             {/* Google OAuth Render Container */}
-            <div className="flex min-h-[48px] justify-center items-center py-2">
-              {signingIn ? (
-                <div className="flex items-center gap-2 text-xs font-medium text-slate-300">
-                  <Loader2 className="h-4 w-4 animate-spin text-sky-400" />
-                  <span>Authenticating secure session...</span>
+            <div className="flex min-h-[48px] w-full flex-col justify-center items-center py-2 overflow-hidden">
+              {signingIn && (
+                <div className="flex items-center justify-center gap-2 rounded-xl bg-slate-900/70 border border-sky-500/30 px-4 py-2.5 text-xs font-medium text-sky-200 w-full">
+                  <Loader2 className="h-4 w-4 animate-spin text-sky-400 shrink-0" />
+                  <span className="truncate">Authenticating secure session...</span>
                 </div>
-              ) : ready ? (
-                <div ref={buttonRef} className="flex w-full justify-center" />
-              ) : (
-                !error && (
-                  <div className="h-11 w-full animate-pulse rounded-xl bg-white/10 flex items-center justify-center text-xs text-slate-300">
-                    Initializing Google SSO...
-                  </div>
-                )
+              )}
+              <div
+                ref={buttonRef}
+                className={`flex w-full justify-center overflow-hidden transition-all ${
+                  signingIn ? "hidden" : "block"
+                }`}
+              />
+              {!ready && !signingIn && !error && (
+                <div className="h-11 w-full animate-pulse rounded-xl bg-white/10 flex items-center justify-center text-xs text-slate-300">
+                  Initializing Google SSO...
+                </div>
               )}
             </div>
 

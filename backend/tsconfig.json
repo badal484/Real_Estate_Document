@@ -15,7 +15,6 @@
     "declarationMap": true,
     "sourceMap": true,
     "isolatedModules": true,
-    "baseUrl": ".",
     "types": ["node", "jest"]
   },
   "include": ["src/**/*", "tests/**/*"],
