@@ -107,8 +107,16 @@ export function DealHeader({ deal, notifSettings, activeTab }: Props) {
               </div>
             </div>
 
-            {/* Playbook Trigger Button */}
+            {/* Action Buttons */}
             <div className="flex items-center gap-2 self-start lg:self-center shrink-0">
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
+              >
+                <Sparkles className="h-3.5 w-3.5 text-sky-400" />
+                <span>Export PDF Report</span>
+              </button>
               <button
                 type="button"
                 onClick={() => setPlaybookOpen(true)}

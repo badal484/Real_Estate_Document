@@ -6,6 +6,7 @@ import { Timeline } from '@/components/Timeline';
 import { ActivityHistory } from '@/components/ActivityHistory';
 import { DealHeader } from '@/components/deal/DealHeader';
 import { DealChecklist } from '@/components/deal/DealChecklist';
+import { TransactionTaskPanel } from '@/components/deal/TransactionTaskPanel';
 import {
   ChevronRight,
   AlertTriangle,
@@ -199,6 +200,11 @@ export function DealDetailPage() {
         )}
 
         {!loading && <Timeline deadlines={deadlines} />}
+      </section>
+
+      {/* Non-Contingency Transaction Obligations Tasks */}
+      <section className="pt-2">
+        <TransactionTaskPanel dealId={dealId} documents={deal?.documents || []} />
       </section>
 
       {/* Activity History / Immutable Audit Trail */}

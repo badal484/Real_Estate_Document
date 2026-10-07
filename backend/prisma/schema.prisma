@@ -11,25 +11,264 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─── Organization / Multi-Tenancy Boundary ────────────────────────────────────
+model Organization {
+  id          String       @id @default(cuid())
+  name        String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  users       User[]
+  leads       Lead[]
+  properties  Property[]
+  deals       Deal[]
+  kbDocuments KBDocument[]
+
+  @@map("organizations")
+}
+
 // ─── User ─────────────────────────────────────────────────────────────────────
 // An agent who signs in with Google.
 model User {
-  id          String   @id @default(cuid())
-  googleId    String   @unique
-  email       String   @unique
-  name        String?
-  pictureUrl  String?
-  lastLoginAt DateTime @default(now())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String        @id @default(cuid())
+  googleId       String        @unique
+  email          String        @unique
+  name           String?
+  pictureUrl     String?
+  organizationId String?
+  lastLoginAt    DateTime      @default(now())
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  assignedLeads Lead[]
 
   @@map("users")
+}
+
+// ─── Lead & Lead Requirements ────────────────────────────────────────────────
+model Lead {
+  id             String       @id @default(cuid())
+  organizationId String?
+  source         LeadSource   @default(WEBSITE_FORM)
+  externalId     String?      @unique
+  fullName       String
+  email          String?
+  phone          String?
+  status         LeadStatus   @default(NEW)
+  priority       LeadPriority @default(MEDIUM)
+  assignedUserId String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization  Organization?        @relation(fields: [organizationId], references: [id])
+  assignedUser  User?                @relation(fields: [assignedUserId], references: [id])
+  requirements  LeadRequirement?
+  conversations ConversationThread[]
+  matches       PropertyMatch[]
+  deals         Deal[]
+
+  @@index([organizationId, status])
+  @@index([email, phone])
+  @@map("leads")
+}
+
+enum LeadSource {
+  WEBSITE_FORM
+  PORTAL_INQUIRY
+  WHATSAPP
+  EMAIL
+  MANUAL
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  PROPOSAL
+  WON
+  LOST
+}
+
+enum LeadPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model LeadRequirement {
+  id                 String   @id @default(cuid())
+  leadId             String   @unique
+  minBudget          Float?
+  maxBudget          Float?
+  preferredLocations String[]
+  propertyType       String?
+  minBedrooms        Int?
+  maxBedrooms        Int?
+  possessionTimeline String?
+  notes              String?  @db.Text
+  rawAiExtraction    Json?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@map("lead_requirements")
+}
+
+// ─── Multi-Channel Conversation & Human Takeover ────────────────────────────
+model ConversationThread {
+  id               String               @id @default(cuid())
+  leadId           String
+  channel          MessageChannel       @default(EMAIL)
+  isHumanTakeover  Boolean              @default(false)
+  takeoverBy       String?
+  autoReplyEnabled Boolean              @default(false)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  lead     Lead                  @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  messages ConversationMessage[]
+
+  @@index([leadId])
+  @@map("conversation_threads")
+}
+
+enum MessageChannel {
+  EMAIL
+  WHATSAPP
+  SMS
+  WEB_CHAT
+}
+
+model ConversationMessage {
+  id              String         @id @default(cuid())
+  threadId        String
+  senderType      SenderType
+  senderId        String?
+  content         String         @db.Text
+  suggestedAction Json?
+  approvalStatus  ApprovalStatus @default(APPROVED)
+  createdAt       DateTime       @default(now())
+
+  thread ConversationThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId])
+  @@map("conversation_messages")
+}
+
+enum SenderType {
+  CUSTOMER
+  AGENT
+  AI
+}
+
+enum ApprovalStatus {
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  EDITED
+}
+
+// ─── Property Inventory & Matching ──────────────────────────────────────────
+model Property {
+  id             String         @id @default(cuid())
+  organizationId String?
+  title          String
+  address        String
+  city           String
+  price          Float
+  bedrooms       Int
+  bathrooms      Float
+  propertyType   String
+  status         PropertyStatus @default(AVAILABLE)
+  possessionDate DateTime?
+  features       String[]
+  description    String?        @db.Text
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  organization Organization?   @relation(fields: [organizationId], references: [id])
+  matches      PropertyMatch[]
+
+  @@index([organizationId, price, bedrooms, status])
+  @@map("properties")
+}
+
+enum PropertyStatus {
+  AVAILABLE
+  UNDER_CONTRACT
+  SOLD
+  OFF_MARKET
+}
+
+model PropertyMatch {
+  id             String   @id @default(cuid())
+  leadId         String
+  propertyId     String
+  matchScore     Float
+  matchReason    String   @db.Text
+  failedCriteria String[]
+  createdAt      DateTime @default(now())
+
+  lead     Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([leadId, propertyId])
+  @@map("property_matches")
+}
+
+// ─── Transaction Tasks & Milestone Obligations ──────────────────────────────
+model TransactionTask {
+  id               String     @id @default(cuid())
+  dealId           String
+  title            String
+  description      String?    @db.Text
+  dueDate          DateTime
+  amount           Float?
+  assignedTo       String?
+  isHumanReviewed  Boolean    @default(false)
+  status           TaskStatus @default(PENDING)
+  sourceDocumentId String?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([dealId, status])
+  @@map("transaction_tasks")
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+  CANCELLED
+}
+
+// ─── Knowledge Base Documents ────────────────────────────────────────────────
+model KBDocument {
+  id             String      @id @default(cuid())
+  organizationId String?
+  title          String
+  category       String
+  storagePath    String
+  indexStatus    IndexStatus @default(PENDING)
+  createdAt      DateTime    @default(now())
+
+  organization Organization? @relation(fields: [organizationId], references: [id])
+
+  @@map("kb_documents")
 }
 
 // ─── Deal ─────────────────────────────────────────────────────────────────────
 // One Deal = one purchase agreement (one contract file).
 model Deal {
   id               String      @id @default(cuid())
+  organizationId   String?
+  leadId           String?
   propertyAddress  String
   buyerName        String?
   sellerName       String?
@@ -40,9 +279,12 @@ model Deal {
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
 
+  organization         Organization?           @relation(fields: [organizationId], references: [id])
+  lead                 Lead?                   @relation(fields: [leadId], references: [id])
   documents            Document[]
   clauses              ContingencyClause[]
   deadlines            Deadline[]
+  tasks                TransactionTask[]
   auditLogs            AuditLog[]
   chunks               DocumentChunk[]         // [Person B]
   conversations        AssistantConversation[] // [Person B]
@@ -265,9 +507,9 @@ enum DeadlineStatus {
 // Immutable log of every extraction, confirmation, edit, or alert event.
 model AuditLog {
   id            String      @id @default(cuid())
-  dealId        String
+  dealId        String?
   action        AuditAction
-  entityType    String?     // "Deadline" | "ContingencyClause" | "Deal" | "Document" | "Assistant"
+  entityType    String?     // "Deadline" | "ContingencyClause" | "Deal" | "Document" | "Assistant" | "Lead" | "Property" | "Task"
   entityId      String?
   previousValue Json?       // before-state snapshot
   newValue      Json?       // after-state snapshot
@@ -275,7 +517,7 @@ model AuditLog {
   note          String?     // free-text annotation
   createdAt     DateTime    @default(now())
 
-  deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  deal Deal? @relation(fields: [dealId], references: [id], onDelete: Cascade)
 
   @@map("audit_logs")
 }
@@ -294,4 +536,14 @@ enum AuditAction {
   DOCUMENT_INDEXED         // [Person B]
   EMAIL_SENT_TEST          // [Person A]
   EMAIL_INBOUND_RECEIVED   // [Person A]
+  LEAD_CREATED
+  LEAD_UPDATED
+  LEAD_REQUIREMENTS_EXTRACTED
+  HUMAN_TAKEOVER_TOGGLED
+  PROPERTY_CREATED
+  PROPERTY_MATCHED
+  TASK_EXTRACTED
+  TASK_APPROVED
+  TASK_COMPLETED
 }
+

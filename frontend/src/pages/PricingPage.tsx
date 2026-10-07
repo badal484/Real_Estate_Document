@@ -21,11 +21,17 @@ import { Card } from '@/components/ui/card';
 export function PricingPage() {
   const [isAnnual, setIsAnnual] = useState(true);
   const [seats, setSeats] = useState(5);
+  const [monthlyLeads, setMonthlyLeads] = useState(60);
+  const [avgCommission, setAvgCommission] = useState(9000);
 
   const calculateTeamPrice = () => {
     const base = isAnnual ? 119 : 149;
     return seats * base;
   };
+
+  // Speed-to-Lead Math (HBR Benchmark: Response under 60 seconds increases conversion by up to 391%)
+  const extraDealsPerYear = Math.round((monthlyLeads * (0.65 - 0.22) * 0.04) * 12 * 10) / 10;
+  const extraGciPerYear = Math.round(extraDealsPerYear * avgCommission);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-20">
@@ -273,6 +279,82 @@ export function PricingPage() {
                 <p className="text-xs text-slate-500">Return on Investment</p>
                 <p className="text-2xl font-bold text-sky-600 mt-1">{Math.round((seats * 25000) / (calculateTeamPrice() * 12))}x ROI</p>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Speed-to-Lead Revenue Calculator */}
+      <section className="mx-auto max-w-4xl px-4 sm:px-6 mt-12">
+        <div className="rounded-2xl p-8 border border-indigo-200/80 bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 text-white shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2.5 rounded-xl bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
+              <Zap className="h-6 w-6 text-indigo-400" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                Speed-to-Lead Revenue Growth Engine
+                <span className="text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 rounded-full">
+                  Harvard Business Review Benchmark
+                </span>
+              </h2>
+              <p className="text-xs text-indigo-200 mt-0.5">
+                Responding to buyer inquiries under 60 seconds increases contact &amp; conversion rates by 391%.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/5 backdrop-blur-md p-6 rounded-xl border border-white/10">
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between items-center text-xs text-indigo-200 mb-1.5">
+                  <label className="font-semibold">Inbound Buyer Enquiries / Month</label>
+                  <span className="text-sm font-bold text-white bg-indigo-900/60 px-2.5 py-0.5 rounded border border-indigo-400/30">
+                    {monthlyLeads} leads
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="10"
+                  max="300"
+                  step="5"
+                  value={monthlyLeads}
+                  onChange={(e) => setMonthlyLeads(Number(e.target.value))}
+                  className="w-full h-2 bg-indigo-950/80 rounded-lg appearance-none cursor-pointer accent-indigo-400"
+                />
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center text-xs text-indigo-200 mb-1.5">
+                  <label className="font-semibold">Avg Commission per Deal (GCI)</label>
+                  <span className="text-sm font-bold text-white bg-indigo-900/60 px-2.5 py-0.5 rounded border border-indigo-400/30">
+                    ${avgCommission.toLocaleString()}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="3000"
+                  max="35000"
+                  step="1000"
+                  value={avgCommission}
+                  onChange={(e) => setAvgCommission(Number(e.target.value))}
+                  className="w-full h-2 bg-indigo-950/80 rounded-lg appearance-none cursor-pointer accent-indigo-400"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col justify-center items-center bg-indigo-950/60 p-5 rounded-xl border border-indigo-400/20 text-center">
+              <span className="text-xs uppercase tracking-wider font-semibold text-indigo-300 mb-1">
+                Estimated Additional Annual GCI
+              </span>
+              <div className="text-4xl font-extrabold text-emerald-400 tracking-tight">
+                +${extraGciPerYear.toLocaleString()}
+              </div>
+              <p className="text-xs text-indigo-200/90 mt-2">
+                Yields approximately <span className="font-semibold text-white">{extraDealsPerYear} extra closed deals</span> per year from instant AI auto-replies &amp; 1-click tour booking.
+              </p>
             </div>
           </div>
         </div>

@@ -16,6 +16,11 @@ import { DocsPage } from '@/pages/DocsPage';
 import { PricingPage } from '@/pages/PricingPage';
 import { ContractsLibraryPage } from '@/pages/ContractsLibraryPage';
 import { SecurityPage } from '@/pages/SecurityPage';
+import { LeadsPage } from '@/pages/LeadsPage';
+import { LeadDetailPage } from '@/pages/LeadDetailPage';
+import { PropertiesPage } from '@/pages/PropertiesPage';
+import { KnowledgePage } from '@/pages/KnowledgePage';
+import { OrganizationPage } from '@/pages/OrganizationPage';
 
 function ProtectedLayout() {
   const { user, loading } = useAuth();
@@ -68,6 +73,11 @@ export default function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={user ? <Navigate to="/upload" replace /> : <LoginPage />} />
       <Route element={<ProtectedLayout />}>
+        <Route path="/leads" element={<LeadsPage />} />
+        <Route path="/leads/:id" element={<LeadDetailPage />} />
+        <Route path="/properties" element={<PropertiesPage />} />
+        <Route path="/knowledge" element={<KnowledgePage />} />
+        <Route path="/organization" element={<OrganizationPage />} />
         <Route path="/upload" element={<UploadPage />} />
         <Route path="/deals" element={<DealsPage />} />
         <Route path="/deals/:id" element={<DealDetailPage />} />

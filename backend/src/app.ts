@@ -10,6 +10,11 @@ import assistantRouter from './api/routes/assistant.js';
 import notificationsRouter from './api/routes/notifications.js';
 import inboundRouter from './api/routes/inbound.js';
 import authRouter from './api/routes/auth.js';
+import leadsRouter from './api/routes/leads.js';
+import conversationsRouter from './api/routes/conversations.js';
+import propertiesRouter, { leadMatchesRouter } from './api/routes/properties.js';
+import tasksRouter from './api/routes/tasks.js';
+import knowledgeRouter from './api/routes/knowledge.js';
 import { requireAuth } from './middleware/auth.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -36,9 +41,15 @@ export function createApp() {
   // ── API routes ────────────────────────────────────────────────────────────
   app.use('/api/auth', authRouter);
   app.use('/api/inbound', inboundRouter); // authenticated by INBOUND_PARSE_SECRET
+  app.use('/api/leads', leadsRouter);
+  app.use('/api/leads/:id/conversations', conversationsRouter);
+  app.use('/api/leads/:id/matches', leadMatchesRouter);
+  app.use('/api/properties', propertiesRouter);
+  app.use('/api/knowledge', knowledgeRouter);
   app.use('/api/deals', requireAuth, dealsRouter);
   app.use('/api/deals/:id/documents', requireAuth, documentsRouter);
   app.use('/api/deals/:id/deadlines', requireAuth, deadlinesRouter);
+  app.use('/api/deals/:id/tasks', requireAuth, tasksRouter);
   app.use('/api/deals/:id/audit', requireAuth, auditRouter);
   app.use('/api/deals/:id/assistant', requireAuth, assistantRouter);
   app.use('/api/deals/:id/notifications', requireAuth, notificationsRouter);

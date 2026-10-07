@@ -1,0 +1,65 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// /api/knowledge — Multi-Document Portfolio & Organization Grounded Knowledge Base
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { Router } from 'express';
+import { PrismaClient } from '@prisma/client';
+import { z } from 'zod';
+import { askPortfolioAssistant } from '../../services/assistant.service.js';
+import { asyncHandler, createError } from '../../middleware/errorHandler.js';
+import { requireAuth } from '../../middleware/auth.js';
+
+const router = Router();
+const prisma = new PrismaClient();
+
+const PortfolioAskSchema = z.object({
+  question: z.string().min(2, 'Question is too short').max(2000, 'Question exceeds 2,000 characters'),
+});
+
+// ── POST /api/knowledge/ask (Portfolio & Policy Grounded Q&A) ─────────────────
+router.post(
+  '/ask',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const parsed = PortfolioAskSchema.safeParse(req.body);
+    if (!parsed.success) throw createError(parsed.error.message, 422);
+
+    const result = await askPortfolioAssistant({
+      question: parsed.data.question,
+      actorEmail: req.user?.email,
+    });
+
+    res.json(result);
+  }),
+);
+
+// ── GET /api/knowledge/documents (List Indexed Documents across Portfolio) ───
+router.get(
+  '/documents',
+  requireAuth,
+  asyncHandler(async (_req, res) => {
+    const docs = await prisma.document.findMany({
+      orderBy: { uploadedAt: 'desc' },
+      take: 50,
+      include: {
+        deal: { select: { propertyAddress: true } },
+        _count: { select: { chunks: true } },
+      },
+    });
+
+    res.json(
+      docs.map((d) => ({
+        id: d.id,
+        dealId: d.dealId,
+        propertyAddress: d.deal.propertyAddress,
+        filename: d.filename,
+        docType: d.docType,
+        indexStatus: d.indexStatus,
+        chunkCount: d._count.chunks,
+        uploadedAt: d.uploadedAt.toISOString(),
+      })),
+    );
+  }),
+);
+
+export default router;

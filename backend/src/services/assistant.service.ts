@@ -485,3 +485,125 @@ export async function getDealSummary(dealId: string) {
     citations: [],
   };
 }
+
+/**
+ * Executes a portfolio-wide grounded QA query across all active deals and documents.
+ */
+export async function askPortfolioAssistant(params: {
+  question: string;
+  actorEmail?: string;
+}): Promise<AssistantAnswer> {
+  const { question } = params;
+
+  // Retrieve top relevant document chunks across ALL deals
+  const deals = await prisma.deal.findMany({
+    where: { status: 'ACTIVE' },
+    include: {
+      documents: true,
+      deadlines: { include: { clause: true } },
+    },
+    take: 10,
+  });
+
+  const allChunks = await prisma.documentChunk.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 50,
+  });
+
+  const docMap = new Map<string, { filename: string; docType: string; dealAddress: string }>();
+  for (const deal of deals) {
+    for (const doc of deal.documents) {
+      docMap.set(doc.id, {
+        filename: doc.filename,
+        docType: doc.docType,
+        dealAddress: deal.propertyAddress,
+      });
+    }
+  }
+
+  const formattedChunks = allChunks.map(c => {
+    const info = docMap.get(c.documentId);
+    return `
+<<DOC id="${c.documentId}" address="${info?.dealAddress ?? 'Unknown Property'}" name="${info?.filename ?? 'Doc'}" type="${info?.docType ?? 'OTHER'}" PAGE=${c.pageNumber}>>
+<<DOC_DATA>>
+${c.content}
+<</DOC_DATA>>
+`;
+  }).join('\n');
+
+  const fullPromptContent = `
+=== PORTFOLIO DOCUMENTS & CONTRACT TEXT (PAGE-BY-PAGE ACROSS ALL DEALS) ===
+${formattedChunks || 'No document text indexed across portfolio.'}
+
+=== USER QUESTION ===
+${question}
+`;
+
+  const apiKey = process.env['GEMINI_API_KEY'];
+  if (!apiKey) throw new Error('GEMINI_API_KEY is not configured');
+
+  const ai = new GoogleGenAI({ apiKey });
+  const candidateModels = Array.from(
+    new Set(
+      [
+        process.env['GEMINI_MODEL'],
+        'gemini-2.5-flash-lite',
+        'gemini-3.5-flash-lite',
+        'gemini-3.5-flash',
+        'gemini-flash-latest',
+      ].filter(Boolean) as string[],
+    ),
+  );
+
+  let rawJson = '{}';
+  for (const candidateModel of candidateModels) {
+    try {
+      const response = await ai.models.generateContent({
+        model: candidateModel,
+        contents: [{ text: fullPromptContent }],
+        config: {
+          systemInstruction: SYSTEM_INSTRUCTION,
+          responseMimeType: 'application/json',
+          responseJsonSchema: assistantJsonSchema,
+          temperature: 0.1,
+        },
+      });
+      if (response.text) {
+        rawJson = response.text;
+        break;
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  let parsedResponse;
+  try {
+    const rawParsed = JSON.parse(rawJson.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim());
+    parsedResponse = AssistantResponseSchema.parse(rawParsed);
+  } catch {
+    parsedResponse = {
+      answer: 'Portfolio query completed. Specific match information across uploaded documents could not be parsed.',
+      found: false,
+      isDirectlyAnswerable: false,
+      confidence: 0.5,
+      overrides: [],
+      citations: [],
+      suggestedFollowUps: ['Which deals have upcoming contingency deadlines this week?'],
+    };
+  }
+
+  return {
+    conversationId: 'portfolio',
+    messageId: crypto.randomUUID(),
+    answer: parsedResponse.answer,
+    found: parsedResponse.found,
+    isDirectlyAnswerable: parsedResponse.isDirectlyAnswerable,
+    confidence: parsedResponse.confidence,
+    overrides: parsedResponse.overrides as OverrideInfo[],
+    citations: parsedResponse.citations as Citation[],
+    suggestedFollowUps: parsedResponse.suggestedFollowUps,
+    createdAt: new Date().toISOString(),
+  };
+}
+

@@ -167,3 +167,104 @@ export const assistantApi = {
   getIndexStatus: (dealId: string) =>
     request<IndexStatusResponse>(`/deals/${dealId}/assistant/index-status`),
 };
+
+// ── Feature 1: AI Leads API ───────────────────────────────────────────────────
+
+export const leadsApi = {
+  list: (params?: { search?: string; status?: string; priority?: string }) => {
+    const cleanParams: Record<string, string> = {};
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== '' && v !== 'undefined') {
+          cleanParams[k] = String(v);
+        }
+      });
+    }
+    const query = new URLSearchParams(cleanParams).toString();
+    return request<any[]>(`/leads${query ? `?${query}` : ''}`);
+  },
+  get: (id: string) => request<any>(`/leads/${id}`),
+  create: (data: { fullName: string; email?: string; phone?: string; enquiryText?: string; source?: string }) =>
+    request<any>('/leads', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: any) =>
+    request<any>(`/leads/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  updateRequirements: (id: string, data: any) =>
+    request<any>(`/leads/${id}/requirements`, { method: 'PATCH', body: JSON.stringify(data) }),
+  extractRequirements: (id: string, enquiryText: string) =>
+    request<any>(`/leads/${id}/extract`, { method: 'POST', body: JSON.stringify({ enquiryText }) }),
+};
+
+// ── Feature 2: Conversation & Human Takeover API ──────────────────────────────
+
+export const conversationsApi = {
+  getThread: (leadId: string) => request<any>(`/leads/${leadId}/conversations`),
+  sendMessage: (leadId: string, content: string, channel = 'EMAIL') =>
+    request<any>(`/leads/${leadId}/conversations/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ content, channel }),
+    }),
+  toggleTakeover: (leadId: string, isHumanTakeover: boolean) =>
+    request<any>(`/leads/${leadId}/conversations/takeover`, {
+      method: 'POST',
+      body: JSON.stringify({ isHumanTakeover }),
+    }),
+  toggleAutoPilot: (leadId: string, autoReplyEnabled: boolean) =>
+    request<any>(`/leads/${leadId}/conversations/autopilot`, {
+      method: 'POST',
+      body: JSON.stringify({ autoReplyEnabled }),
+    }),
+  reviewMessage: (leadId: string, msgId: string, status: string, editedContent?: string) =>
+    request<any>(`/leads/${leadId}/conversations/messages/${msgId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status, editedContent }),
+    }),
+};
+
+// ── Feature 3: Property Inventory & Matcher API ──────────────────────────────
+
+export const propertiesApi = {
+  list: (params?: { search?: string; minPrice?: number; maxPrice?: number; bedrooms?: number; city?: string }) => {
+    const cleanParams: Record<string, string> = {};
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== '' && v !== 'undefined') {
+          cleanParams[k] = String(v);
+        }
+      });
+    }
+    const query = new URLSearchParams(cleanParams).toString();
+    return request<any[]>(`/properties${query ? `?${query}` : ''}`);
+  },
+  create: (data: any) => request<any>('/properties', { method: 'POST', body: JSON.stringify(data) }),
+  getLeadMatches: (leadId: string) => request<any[]>(`/leads/${leadId}/matches`),
+  refreshLeadMatches: (leadId: string) =>
+    request<any>(`/leads/${leadId}/matches/refresh`, { method: 'POST' }),
+};
+
+// ── Feature 4: Transaction Obligations & Tasks API ───────────────────────────
+
+export const tasksApi = {
+  list: (dealId: string) => request<any[]>(`/deals/${dealId}/tasks`),
+  extractFromDoc: (dealId: string, documentId: string) =>
+    request<any[]>(`/deals/${dealId}/tasks/extract`, {
+      method: 'POST',
+      body: JSON.stringify({ documentId }),
+    }),
+  reviewTask: (dealId: string, taskId: string, data: any) =>
+    request<any>(`/deals/${dealId}/tasks/${taskId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+};
+
+// ── Feature 5: Portfolio Knowledge Base API ──────────────────────────────────
+
+export const knowledgeApi = {
+  ask: (question: string) =>
+    request<AssistantAnswer>('/knowledge/ask', {
+      method: 'POST',
+      body: JSON.stringify({ question }),
+    }),
+  getDocuments: () => request<any[]>('/knowledge/documents'),
+};
+

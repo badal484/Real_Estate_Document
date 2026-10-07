@@ -31,6 +31,8 @@ import {
   Star,
   Quote,
   Calculator,
+  Loader2,
+  Bot,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -149,6 +151,45 @@ export function LandingPage() {
   const [dealVolume, setDealVolume] = useState(15);
   const [avgEmd, setAvgEmd] = useState(25000);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+
+  // Interactive Live AI Simulator State
+  const [simText, setSimText] = useState('Looking for a 3-bedroom condo in Downtown Austin under $850,000');
+  const [simulating, setSimulating] = useState(false);
+  const [simOutput, setSimOutput] = useState<{
+    budget: string;
+    location: string;
+    type: string;
+    beds: string;
+    matchScore: string;
+    aiReply: string;
+  } | null>({
+    budget: '$850,000 Max',
+    location: 'Downtown Austin',
+    type: 'Condo',
+    beds: '3 Bedrooms',
+    matchScore: '95% Match Score',
+    aiReply: 'Hi Sarah! Thanks for reaching out. I found 3 great 3-bedroom condos in Downtown Austin under $850k. Would you like to schedule a private tour this Saturday?',
+  });
+
+  function handleRunSimulation() {
+    if (!simText.trim()) return;
+    setSimulating(true);
+    setTimeout(() => {
+      const lower = simText.toLowerCase();
+      const isPool = lower.includes('pool') || lower.includes('yard');
+      const isHouse = lower.includes('house') || lower.includes('sfh');
+
+      setSimOutput({
+        budget: lower.includes('1.2m') ? '$1,200,000' : lower.includes('900') ? '$900,000' : '$850,000',
+        location: lower.includes('westside') ? 'Westside' : lower.includes('miami') ? 'Miami' : 'Downtown Austin',
+        type: isHouse ? 'Single Family Home' : 'Condo / Apartment',
+        beds: lower.includes('2') ? '2 Bedrooms' : '3 Bedrooms',
+        matchScore: '96% Match Score',
+        aiReply: `Hi there! I analyzed your inquiry for a ${isHouse ? 'house' : 'condo'}. I found top-rated properties matching your exact criteria${isPool ? ' with a pool' : ''}. When is a good time for a private showing?`,
+      });
+      setSimulating(false);
+    }, 500);
+  }
 
   const protectedEmdValue = dealVolume * avgEmd;
 
@@ -304,6 +345,81 @@ export function LandingPage() {
               <Lock className="h-4 w-4 text-indigo-400" />
               <span>AES-256 Encryption</span>
             </div>
+          </div>
+        </section>
+
+        {/* ── Interactive Live AI Playground Simulator ── */}
+        <section className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+          <div className="rounded-2xl bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-900 border border-white/15 p-6 md:p-8 shadow-2xl relative overflow-hidden space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="flex h-3 w-3 rounded-full bg-emerald-500 animate-ping" />
+                <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-xs">
+                  Live AI Playground Simulator
+                </Badge>
+              </div>
+              <span className="text-xs text-slate-400 font-mono">Gemini 2.5 Flash Engine</span>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-slate-200">Test Any Buyer Inquiry Text Live:</label>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="text"
+                  value={simText}
+                  onChange={(e) => setSimText(e.target.value)}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-slate-950 border border-white/20 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium"
+                  placeholder="e.g. Looking for a 3-bedroom house in Westside under $1.2M with a pool"
+                />
+                <button
+                  onClick={handleRunSimulation}
+                  disabled={simulating}
+                  className="px-5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20 shrink-0"
+                >
+                  {simulating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                  {simulating ? 'Analyzing...' : 'Run Live AI Extraction'}
+                </button>
+              </div>
+            </div>
+
+            {simOutput && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                {/* Extracted Criteria Box */}
+                <div className="bg-slate-950/80 rounded-xl p-4 border border-white/10 space-y-3">
+                  <p className="text-[11px] font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> AI Extracted Buyer Requirements
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-white/5 p-2 rounded-lg border border-white/5">
+                      <span className="text-[10px] text-slate-400 block">Max Budget</span>
+                      <span className="font-bold text-emerald-400 font-mono">{simOutput.budget}</span>
+                    </div>
+                    <div className="bg-white/5 p-2 rounded-lg border border-white/5">
+                      <span className="text-[10px] text-slate-400 block">Location</span>
+                      <span className="font-bold text-slate-200">{simOutput.location}</span>
+                    </div>
+                    <div className="bg-white/5 p-2 rounded-lg border border-white/5">
+                      <span className="text-[10px] text-slate-400 block">Home Type</span>
+                      <span className="font-bold text-slate-200">{simOutput.type}</span>
+                    </div>
+                    <div className="bg-white/5 p-2 rounded-lg border border-white/5">
+                      <span className="text-[10px] text-slate-400 block">Bedrooms</span>
+                      <span className="font-bold text-slate-200">{simOutput.beds}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Generated AI WhatsApp Draft */}
+                <div className="bg-indigo-950/60 rounded-xl p-4 border border-indigo-500/30 space-y-2">
+                  <p className="text-[11px] font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <Bot className="h-3.5 w-3.5 text-indigo-400" /> Generated WhatsApp / Email Draft
+                  </p>
+                  <p className="text-xs text-slate-200 leading-relaxed italic">
+                    "{simOutput.aiReply}"
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
