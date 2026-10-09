@@ -9,6 +9,7 @@ import { asyncHandler, createError } from '../../middleware/errorHandler.js';
 import { requireAuth } from '../../middleware/auth.js';
 import { scheduleAlerts } from '../../services/alert.service.js';
 import { computeDeadlinesForDeal } from '../../services/deadline.service.js';
+import { resetDeadlineAlertWindows } from '../../services/scheduler.service.js';
 
 const router = Router({ mergeParams: true });
 const prisma = new PrismaClient();
@@ -97,6 +98,10 @@ router.patch(
         actor: confirmedBy ?? 'system',
       },
     });
+
+    if (isEdit) {
+      await resetDeadlineAlertWindows(existing.id);
+    }
 
     if (activate) {
       await scheduleAlerts(existing.dealId);
