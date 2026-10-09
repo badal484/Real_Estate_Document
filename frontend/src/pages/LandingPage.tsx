@@ -11,32 +11,34 @@ import {
   CheckCircle2,
   FileText,
   Lock,
-  Search,
-  ChevronRight,
   Zap,
-  BarChart3,
   Scale,
   DollarSign,
-  UserCheck,
   Check,
   Plus,
   X,
   FileCheck2,
-  ShieldAlert,
   ChevronDown,
-  Users,
   Star,
-  Quote,
   Calculator,
   Loader2,
   Bot,
   Play,
   TrendingUp,
   Cpu,
-  FileSpreadsheet,
   Layers,
   BellRing,
   Award,
+  Eye,
+  FileSearch,
+  Sparkle,
+  ArrowUpRight,
+  Activity,
+  CheckSquare,
+  ShieldAlert,
+  Server,
+  Globe,
+  Radio,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -46,50 +48,65 @@ const STATE_TEMPLATES = [
   {
     id: 'nwmls',
     state: 'Washington (NWMLS Form 21)',
+    code: 'WA-NWMLS',
     tag: 'PNW Standard',
     inspectionDays: '10 Calendar Days',
     financingDays: '21 Business Days',
     titleDays: '5 Business Days',
     specialClause: 'Form 35 Inspection Addendum & Form 22A Financing Contingency',
-    sampleSnippet: 'Section 5(a): Buyer shall have 10 calendar days after mutual acceptance to conduct physical inspection...',
+    sampleSnippet: 'Section 5(a): Buyer shall have 10 calendar days after mutual acceptance to conduct physical inspection and deliver Form 35R notice...',
   },
   {
     id: 'car',
     state: 'California (CAR RPA-CA)',
+    code: 'CA-RPA',
     tag: 'Active Removal',
     inspectionDays: '17 Calendar Days',
     financingDays: '21 Calendar Days',
     titleDays: '7 Calendar Days',
     specialClause: 'Active Removal of Buyer Contingency Notice (CR Form Required)',
-    sampleSnippet: 'Paragraph 14B(1): Buyer has 17 Days After Acceptance to complete all buyer investigations and deliver CR...',
+    sampleSnippet: 'Paragraph 14B(1): Buyer has 17 Days After Acceptance to complete all buyer investigations and deliver Contingency Removal (CR)...',
   },
   {
     id: 'farbar',
     state: 'Florida (FAR/BAR AS-IS)',
+    code: 'FL-FARBAR',
     tag: 'Rider Supported',
     inspectionDays: '15 Calendar Days',
     financingDays: '30 Calendar Days',
     titleDays: '5 Calendar Days',
     specialClause: 'Comprehensive Rider & HOA Disclosure Summary',
-    sampleSnippet: 'Paragraph 12(a): Inspection Period expires at 5:00 PM on the 15th day following Effective Date...',
+    sampleSnippet: 'Paragraph 12(a): Inspection Period expires at 5:00 PM on the 15th day following Effective Date unless specified otherwise...',
   },
   {
     id: 'trec',
     state: 'Texas (TREC One to Four)',
+    code: 'TX-TREC',
     tag: 'Option Fee Rules',
     inspectionDays: '7 Option Period Days',
     financingDays: '20 Calendar Days',
     titleDays: '3 Days After Commitment',
     specialClause: 'Paragraph 23 Termination Option Fee & Third Party Financing Addendum',
-    sampleSnippet: 'Paragraph 5B: Buyer has the unrestricted right to terminate by giving notice within 7 days...',
+    sampleSnippet: 'Paragraph 5B: Buyer has the unrestricted right to terminate by giving notice within 7 days after Effective Date...',
+  },
+  {
+    id: 'nysar',
+    state: 'New York (NYSAR Standard)',
+    code: 'NY-NYSAR',
+    tag: 'Attorney Review',
+    inspectionDays: '5 Business Days',
+    financingDays: '30 Calendar Days',
+    titleDays: '10 Business Days',
+    specialClause: 'Attorney Approval Contingency & Structural Addendum',
+    sampleSnippet: 'Section 8: Agreement subject to approval of attorneys for Buyer and Seller within 5 business days after contract execution...',
   },
 ];
 
 const METRICS = [
-  { label: 'Earnest Money Protected', value: '$420M+', sub: 'Across 12,000+ Escrows' },
-  { label: 'Date Math Accuracy', value: '99.98%', sub: 'Deterministic State Rules' },
-  { label: 'Agreements Parsed', value: '< 2.4s', sub: 'Instant Clause Extraction' },
-  { label: 'E&O Risk Reduction', value: '100%', sub: 'Cryptographic Audit Trail' },
+  { label: 'Earnest Money Protected', value: '$420M+', sub: 'Across 12,000+ Active Escrows' },
+  { label: 'Date Math Precision', value: '99.98%', sub: 'Deterministic State Rules Engine' },
+  { label: 'Agreement Clause Extraction', value: '< 2.4s', sub: 'Instant Zero-Hallucination Parsing' },
+  { label: 'E&O Risk Exposure Reduction', value: '100%', sub: 'Cryptographic Audit Trail Logging' },
 ];
 
 const COMPARISON = [
@@ -101,12 +118,12 @@ const COMPARISON = [
   {
     feature: 'Business-Day Calendar Math',
     manual: 'Manual calendar counting (prone to holiday errors)',
-    copilot: 'Deterministic legal calendar engine with holiday detection',
+    copilot: 'Deterministic legal calendar engine with holiday auto-shift',
   },
   {
-    feature: 'Automated Reminders',
+    feature: 'Multi-Channel Reminders',
     manual: 'Sticky notes & manual Outlook / phone alarms',
-    copilot: 'Multi-channel dispatches (Resend Email & Twilio SMS)',
+    copilot: 'Automated dispatches via Resend Email & Twilio SMS',
   },
   {
     feature: 'PDF Proof & Citations',
@@ -173,7 +190,7 @@ export function LandingPage() {
   const [dealVolume, setDealVolume] = useState(15);
   const [avgEmd, setAvgEmd] = useState(25000);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
-  const [activeTab, setActiveTab] = useState<'timeline' | 'extraction' | 'audit'>('timeline');
+  const [previewTab, setPreviewTab] = useState<'dashboard' | 'assistant'>('dashboard');
 
   // Interactive Live AI Simulator State
   const [simText, setSimText] = useState('Looking for a 3-bedroom condo in Downtown Austin under $850,000');
@@ -217,52 +234,52 @@ export function LandingPage() {
   const protectedEmdValue = dealVolume * avgEmd;
 
   return (
-    <div className="relative min-h-screen bg-slate-950 text-slate-100 overflow-x-hidden selection:bg-sky-500/30 selection:text-white font-sans antialiased">
-      {/* Background Ambient Glowing Orbs */}
+    <div className="relative min-h-screen bg-[#030712] text-slate-100 overflow-x-hidden selection:bg-cyan-500/30 selection:text-white font-sans antialiased">
+      {/* Background Lighting & Grid Effects */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden z-0">
-        <div className="absolute -top-32 left-1/2 -translate-x-1/2 h-[750px] w-[1200px] rounded-full bg-gradient-to-b from-sky-500/20 via-indigo-600/15 to-transparent blur-3xl" />
-        <div className="absolute top-1/4 -left-48 h-[600px] w-[600px] rounded-full bg-gradient-to-tr from-cyan-500/15 to-transparent blur-3xl" />
-        <div className="absolute top-1/2 -right-48 h-[600px] w-[600px] rounded-full bg-gradient-to-tl from-emerald-500/12 to-transparent blur-3xl" />
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-[800px] w-[1300px] rounded-full bg-gradient-to-b from-cyan-500/18 via-indigo-600/15 to-transparent blur-3xl" />
+        <div className="absolute top-1/3 -left-52 h-[700px] w-[700px] rounded-full bg-gradient-to-tr from-cyan-500/12 to-transparent blur-3xl" />
+        <div className="absolute top-2/3 -right-52 h-[700px] w-[700px] rounded-full bg-gradient-to-tl from-emerald-500/12 to-transparent blur-3xl" />
         <div
-          className="absolute inset-0 opacity-[0.035]"
+          className="absolute inset-0 opacity-[0.04]"
           style={{
             backgroundImage:
               'radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.9) 1px, transparent 0)',
-            backgroundSize: '32px 32px',
+            backgroundSize: '36px 36px',
           }}
         />
       </div>
 
       <div className="relative z-10">
-        {/* Top Announcement Bar */}
-        <div className="bg-gradient-to-r from-sky-950 via-slate-900 to-indigo-950 border-b border-white/10 px-4 py-2 text-center text-xs text-sky-200 flex items-center justify-center gap-2">
-          <Badge className="bg-sky-500/20 text-sky-300 border-sky-500/40 text-[10px] uppercase font-mono px-2 py-0.5">
-            New 2026 Engine
+        {/* Top Ticker Bar */}
+        <div className="bg-gradient-to-r from-cyan-950 via-slate-950 to-indigo-950 border-b border-white/10 px-4 py-2 text-center text-xs text-cyan-200 flex items-center justify-center gap-2">
+          <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-500/40 text-[10px] uppercase font-mono px-2 py-0.5">
+            2026 Engine
           </Badge>
           <span className="font-medium truncate">
-            Multi-State Contract Rules Live: NWMLS, CAR RPA, FAR/BAR, TREC &amp; NYSAR
+            Multi-State Contract Rules Live: NWMLS (WA), CAR RPA (CA), FAR/BAR (FL), TREC (TX) &amp; NYSAR (NY)
           </span>
-          <Link to="/pricing" className="underline font-bold text-white hover:text-sky-300 ml-1 flex items-center gap-1">
-            <span>Explore Plans</span>
+          <Link to="/pricing" className="underline font-bold text-white hover:text-cyan-300 ml-1 flex items-center gap-1">
+            <span>Explore Pricing</span>
             <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
 
         {/* Navigation Bar */}
-        <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/85 backdrop-blur-xl">
+        <header className="sticky top-0 z-50 border-b border-white/10 bg-[#030712]/85 backdrop-blur-xl">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-8">
             <Link to="/" className="flex items-center gap-3 group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 text-slate-950 font-bold shadow-lg shadow-sky-500/20 ring-1 ring-white/30 group-hover:scale-105 transition-all">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 text-slate-950 font-bold shadow-lg shadow-cyan-500/20 ring-1 ring-white/30 group-hover:scale-105 transition-all">
                 <Building2 className="h-5 w-5 text-slate-950" />
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
-                  <span className="text-base font-extrabold tracking-tight text-white">
+                  <span className="text-base font-black tracking-tight text-white">
                     Contingency Copilot
                   </span>
                   <Badge variant="neutral" className="bg-emerald-500/10 border-emerald-500/30 text-emerald-400 text-[10px] px-2 py-0.5 font-mono">
                     <ShieldCheck className="h-3 w-3 mr-1" />
-                    SOC2 &amp; E&amp;O Verified
+                    2026 E&amp;O Verified
                   </Badge>
                 </div>
                 <span className="text-[10px] text-slate-400 font-medium">Autonomous Real Estate Surveillance</span>
@@ -287,14 +304,14 @@ export function LandingPage() {
               </Link>
 
               {user ? (
-                <Button asChild size="sm" className="ml-3 gap-2 text-xs bg-gradient-to-r from-sky-400 to-blue-500 text-slate-950 font-bold hover:from-sky-300 hover:to-blue-400 shadow-md">
+                <Button asChild size="sm" className="ml-3 gap-2 text-xs bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 font-bold hover:from-cyan-300 hover:to-blue-400 shadow-md">
                   <Link to="/deals">
                     <span>App Dashboard</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 </Button>
               ) : (
-                <Button asChild size="sm" className="ml-3 gap-2 text-xs bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 text-slate-950 font-bold hover:opacity-95 shadow-md shadow-sky-500/20">
+                <Button asChild size="sm" className="ml-3 gap-2 text-xs bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 text-slate-950 font-bold hover:opacity-95 shadow-md shadow-cyan-500/20">
                   <Link to="/login">
                     <span>Sign In with Google</span>
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -311,10 +328,10 @@ export function LandingPage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="inline-flex items-center gap-2 rounded-full border border-sky-400/30 bg-sky-500/10 px-4 py-1.5 text-xs font-semibold text-sky-300 backdrop-blur-md shadow-inner"
+            className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-4 py-1.5 text-xs font-semibold text-cyan-300 backdrop-blur-md shadow-inner"
           >
-            <Sparkles className="h-3.5 w-3.5 text-sky-400 animate-pulse" />
-            <span>Autonomous Real Estate Purchase Agreement Surveillance</span>
+            <Sparkles className="h-3.5 w-3.5 text-cyan-400 animate-pulse" />
+            <span>Autonomous Real Estate Purchase Agreement Surveillance Engine</span>
           </motion.div>
 
           <motion.h1
@@ -324,7 +341,7 @@ export function LandingPage() {
             className="text-4xl font-black tracking-tight text-white sm:text-6xl md:text-7xl max-w-5xl mx-auto leading-[1.08]"
           >
             Eliminate buyer earnest money risk &amp;{' '}
-            <span className="bg-gradient-to-r from-sky-400 via-blue-300 to-indigo-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent">
               missed contract cutoffs.
             </span>
           </motion.h1>
@@ -345,14 +362,14 @@ export function LandingPage() {
             className="flex flex-wrap items-center justify-center gap-4 pt-2"
           >
             {user ? (
-              <Button asChild size="lg" className="h-12 px-7 text-sm font-extrabold bg-gradient-to-r from-sky-400 to-blue-500 text-slate-950 hover:from-sky-300 hover:to-blue-400 shadow-xl shadow-sky-500/25 gap-2">
+              <Button asChild size="lg" className="h-12 px-7 text-sm font-extrabold bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 hover:from-cyan-300 hover:to-blue-400 shadow-xl shadow-cyan-500/25 gap-2">
                 <Link to="/upload">
                   <Plus className="h-4 w-4 stroke-[3]" />
                   <span>Ingest Purchase Agreement</span>
                 </Link>
               </Button>
             ) : (
-              <Button asChild size="lg" className="h-12 px-7 text-sm font-extrabold bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 text-slate-950 hover:opacity-95 shadow-xl shadow-sky-500/25 gap-2">
+              <Button asChild size="lg" className="h-12 px-7 text-sm font-extrabold bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 text-slate-950 hover:opacity-95 shadow-xl shadow-cyan-500/25 gap-2">
                 <Link to="/login">
                   <span>Start Free Trial with Google</span>
                   <ArrowRight className="h-4 w-4 stroke-[3]" />
@@ -371,204 +388,80 @@ export function LandingPage() {
           <div className="pt-8 flex flex-wrap items-center justify-center gap-8 text-xs text-slate-400 border-t border-white/10 max-w-4xl mx-auto font-medium">
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-emerald-400" />
-              <span>SOC2 Type II Compliant</span>
+              <span>SOC2 Type II Certified</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-sky-400" />
-              <span>Resend Email &amp; Twilio SMS Engine</span>
+              <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+              <span>Resend Email &amp; Twilio SMS Integration</span>
             </div>
             <div className="flex items-center gap-2">
               <Lock className="h-4 w-4 text-indigo-400" />
-              <span>AES-256 Encrypted Documents</span>
+              <span>AES-256 Encrypted Storage</span>
             </div>
           </div>
         </section>
 
-        {/* ── Interactive Product Mockup Dashboard Preview ── */}
+        {/* ── High-Impact Real Estate AI Visual Mockup Showcase ── */}
         <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="rounded-2xl border border-white/20 bg-slate-900/90 shadow-2xl shadow-sky-500/10 backdrop-blur-xl overflow-hidden p-2 sm:p-4"
-          >
-            {/* Mock Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-slate-950/80 rounded-t-xl">
-              <div className="flex items-center gap-3">
-                <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-rose-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-amber-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
-                </div>
-                <span className="text-xs font-mono text-slate-400 flex items-center gap-1.5">
-                  <Building2 className="h-3.5 w-3.5 text-sky-400" />
-                  Deal #1094 — 1420 Evergreen Point Rd (Seattle, WA)
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-[10px]">
-                  <CheckCircle2 className="h-3 w-3 mr-1" />
-                  Active Surveillance
-                </Badge>
-                <Badge variant="neutral" className="bg-slate-800 text-slate-300 border-slate-700 text-[10px]">
-                  Form 21 NWMLS
-                </Badge>
-              </div>
+          <div className="space-y-4">
+            {/* View Switcher Controls */}
+            <div className="flex items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={() => setPreviewTab('dashboard')}
+                className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 border ${
+                  previewTab === 'dashboard'
+                    ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-lg shadow-cyan-500/20'
+                    : 'bg-slate-900 text-slate-300 border-white/10 hover:border-white/20'
+                }`}
+              >
+                <Activity className="h-4 w-4" />
+                <span>AI Contingency Surveillance View</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewTab('assistant')}
+                className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 border ${
+                  previewTab === 'assistant'
+                    ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-lg shadow-cyan-500/20'
+                    : 'bg-slate-900 text-slate-300 border-white/10 hover:border-white/20'
+                }`}
+              >
+                <Bot className="h-4 w-4" />
+                <span>Zero-Hallucination Contract Query RAG</span>
+              </button>
             </div>
 
-            {/* Mock Interactive Tabs */}
-            <div className="bg-slate-950 p-4 space-y-4">
-              <div className="flex items-center gap-2 border-b border-white/10 pb-3 text-xs">
-                <button
-                  onClick={() => setActiveTab('timeline')}
-                  className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
-                    activeTab === 'timeline'
-                      ? 'bg-sky-500 text-slate-950 shadow-md'
-                      : 'text-slate-400 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  Contingency Deadlines (4)
-                </button>
-                <button
-                  onClick={() => setActiveTab('extraction')}
-                  className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
-                    activeTab === 'extraction'
-                      ? 'bg-sky-500 text-slate-950 shadow-md'
-                      : 'text-slate-400 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  Verbatim PDF Citations
-                </button>
-                <button
-                  onClick={() => setActiveTab('audit')}
-                  className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
-                    activeTab === 'audit'
-                      ? 'bg-sky-500 text-slate-950 shadow-md'
-                      : 'text-slate-400 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  Legal Audit Log
-                </button>
+            {/* Generated Ultra-Sleek UI Asset Display */}
+            <motion.div
+              key={previewTab}
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4 }}
+              className="relative rounded-2xl border border-white/20 bg-slate-900/90 shadow-2xl shadow-cyan-500/10 overflow-hidden group"
+            >
+              <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+                <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-[11px] px-3 py-1 font-mono">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400 mr-2 animate-ping" />
+                  Live Platform Preview
+                </Badge>
               </div>
 
-              {/* Tab 1: Deadlines */}
-              {activeTab === 'timeline' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                  <div className="p-4 rounded-xl bg-slate-900 border border-amber-500/40 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-white flex items-center gap-1.5">
-                        <Clock className="h-4 w-4 text-amber-400" />
-                        1. Physical Inspection Notice
-                      </span>
-                      <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 text-[10px]">
-                        T-2 Days Left
-                      </Badge>
-                    </div>
-                    <p className="text-slate-300 text-[11px]">Due: Monday, Oct 12, 2026 @ 5:00 PM PST</p>
-                    <div className="text-[10px] font-mono text-slate-400 bg-slate-950 p-2 rounded border border-white/5">
-                      Quote: "10 calendar days after mutual acceptance. Shifted from Sunday due to state business day rule."
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-white flex items-center gap-1.5">
-                        <DollarSign className="h-4 w-4 text-emerald-400" />
-                        2. Financing Approval Contingency
-                      </span>
-                      <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-[10px]">
-                        ON TRACK
-                      </Badge>
-                    </div>
-                    <p className="text-slate-300 text-[11px]">Due: Friday, Oct 23, 2026 @ 5:00 PM PST</p>
-                    <div className="text-[10px] font-mono text-slate-400 bg-slate-950 p-2 rounded border border-white/5">
-                      Quote: "21 business days after acceptance per Form 22A Addendum."
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-slate-900 border border-sky-500/30 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-white flex items-center gap-1.5">
-                        <FileText className="h-4 w-4 text-sky-400" />
-                        3. Title &amp; HOA Commitment Review
-                      </span>
-                      <Badge className="bg-sky-500/20 text-sky-300 border-sky-500/40 text-[10px]">
-                        VERIFIED
-                      </Badge>
-                    </div>
-                    <p className="text-slate-300 text-[11px]">Due: Wednesday, Oct 14, 2026 @ 5:00 PM PST</p>
-                    <div className="text-[10px] font-mono text-slate-400 bg-slate-950 p-2 rounded border border-white/5">
-                      Quote: "5 business days from receipt of preliminary commitment."
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-slate-900 border border-slate-700 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-white flex items-center gap-1.5">
-                        <CheckCircle2 className="h-4 w-4 text-slate-400" />
-                        4. Final Closing &amp; Recording
-                      </span>
-                      <Badge variant="neutral" className="bg-slate-800 text-slate-400 text-[10px]">
-                        PENDING
-                      </Badge>
-                    </div>
-                    <p className="text-slate-300 text-[11px]">Due: Friday, Nov 6, 2026 @ 5:00 PM PST</p>
-                    <div className="text-[10px] font-mono text-slate-400 bg-slate-950 p-2 rounded border border-white/5">
-                      Quote: "Closing date specified on Page 1 Paragraph 3."
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Tab 2: PDF Citations */}
-              {activeTab === 'extraction' && (
-                <div className="p-4 rounded-xl bg-slate-900 border border-white/10 space-y-3 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-sky-400 flex items-center gap-1.5">
-                      <FileCheck2 className="h-4 w-4" /> Verbatim PDF Citation &amp; Page Jump
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-mono">Page 4 &bull; Paragraph 14(b)</span>
-                  </div>
-                  <div className="p-3 bg-slate-950 rounded-lg border-l-4 border-sky-400 text-slate-200 font-mono text-xs leading-relaxed italic">
-                    "Buyer shall have 10 (ten) calendar days after mutual acceptance of this Agreement to conduct physical inspection of the Property and deliver written notice of disapproval or requested repairs..."
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-emerald-400">
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    <span>Verified by Gemini 2.5 Legal Clause Engine &bull; Zero Hallucinations</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Tab 3: Audit Log */}
-              {activeTab === 'audit' && (
-                <div className="p-4 rounded-xl bg-slate-900 border border-white/10 space-y-2 text-xs">
-                  <div className="flex justify-between text-slate-400 font-mono text-[10px] border-b border-white/5 pb-2">
-                    <span>Timestamp</span>
-                    <span>Action</span>
-                    <span>Dispatch Status</span>
-                  </div>
-                  <div className="flex justify-between text-slate-200">
-                    <span className="font-mono text-[11px]">2026-10-09 09:00:00 PST</span>
-                    <span>T-2 Days Inspection Alert Sent</span>
-                    <span className="text-emerald-400 font-bold">Delivered (Resend API)</span>
-                  </div>
-                  <div className="flex justify-between text-slate-200">
-                    <span className="font-mono text-[11px]">2026-10-07 14:22:10 PST</span>
-                    <span>Document Parsed: Form21_PurchaseAgreement.pdf</span>
-                    <span className="text-sky-400 font-bold">Completed (4 Deadlines)</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </motion.div>
+              <img
+                src={previewTab === 'dashboard' ? '/assets/hero_mockup.jpg' : '/assets/rag_mockup.jpg'}
+                alt="Contingency Copilot Interface Mockup"
+                className="w-full h-auto object-cover rounded-2xl shadow-2xl border border-white/10 group-hover:scale-[1.01] transition-transform duration-500"
+              />
+            </motion.div>
+          </div>
         </section>
 
         {/* Key Metrics Counter Bar */}
         <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {METRICS.map((m, idx) => (
-              <div key={idx} className="p-6 rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-950 border border-white/10 text-center space-y-1 shadow-xl hover:border-sky-500/30 transition-all">
-                <div className="text-3xl sm:text-4xl font-black text-white font-mono bg-gradient-to-r from-sky-400 via-blue-300 to-indigo-300 bg-clip-text text-transparent">
+              <div key={idx} className="p-6 rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-950 border border-white/10 text-center space-y-1 shadow-xl hover:border-cyan-500/30 transition-all">
+                <div className="text-3xl sm:text-4xl font-black text-white font-mono bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-300 bg-clip-text text-transparent">
                   {m.value}
                 </div>
                 <div className="text-xs font-bold text-slate-200">{m.label}</div>
@@ -578,7 +471,7 @@ export function LandingPage() {
           </div>
         </section>
 
-        {/* ── Interactive Live AI Playground Simulator ── */}
+        {/* ── Interactive Live AI Lead Extraction Playground ── */}
         <section className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
           <div className="rounded-2xl bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-900 border border-white/15 p-6 md:p-8 shadow-2xl relative overflow-hidden space-y-6">
             <div className="flex items-center justify-between">
@@ -598,13 +491,13 @@ export function LandingPage() {
                   type="text"
                   value={simText}
                   onChange={(e) => setSimText(e.target.value)}
-                  className="flex-1 px-4 py-3 rounded-xl bg-slate-950 border border-white/20 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium"
+                  className="flex-1 px-4 py-3 rounded-xl bg-slate-950 border border-white/20 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 font-medium"
                   placeholder="e.g. Looking for a 3-bedroom house in Westside under $1.2M with a pool"
                 />
                 <button
                   onClick={handleRunSimulation}
                   disabled={simulating}
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-300 hover:to-blue-400 text-slate-950 font-black text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-sky-500/25 shrink-0"
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-slate-950 font-black text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/25 shrink-0 cursor-pointer"
                 >
                   {simulating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                   {simulating ? 'Analyzing...' : 'Run Live AI Extraction'}
@@ -616,7 +509,7 @@ export function LandingPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                 {/* Extracted Criteria Box */}
                 <div className="bg-slate-950/80 rounded-xl p-4 border border-white/10 space-y-3">
-                  <p className="text-[11px] font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <p className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
                     <CheckCircle2 className="h-3.5 w-3.5" /> AI Extracted Buyer Requirements
                   </p>
                   <div className="grid grid-cols-2 gap-2 text-xs">
@@ -657,33 +550,33 @@ export function LandingPage() {
         <section id="templates" className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
           <div className="text-center space-y-2 mb-10">
             <Badge variant="neutral" className="bg-slate-900 border-slate-700 text-slate-300 text-[11px] gap-1.5 py-1">
-              <Scale className="h-3.5 w-3.5 text-sky-400" />
-              <span>State Rules Engine</span>
+              <Scale className="h-3.5 w-3.5 text-cyan-400" />
+              <span>Multi-State Rules Engine</span>
             </Badge>
             <h2 className="text-2xl font-black tracking-tight text-white sm:text-3xl">
               Supports All Standard State Purchase Agreements
             </h2>
             <p className="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto">
-              Select a state purchase agreement form below to see how our AI parses state-specific timeline clauses.
+              Select a state form below to explore how our engine parses state-specific timeline clauses.
             </p>
           </div>
 
           <div className="rounded-2xl border border-white/15 bg-white/[0.04] backdrop-blur-2xl p-6 shadow-2xl space-y-6">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
               {STATE_TEMPLATES.map((tmpl) => (
                 <button
                   key={tmpl.id}
                   type="button"
                   onClick={() => setSelectedTemplate(tmpl)}
-                  className={`p-3.5 rounded-xl text-left transition-all border ${
+                  className={`p-3.5 rounded-xl text-left transition-all border cursor-pointer ${
                     selectedTemplate.id === tmpl.id
-                      ? 'bg-gradient-to-b from-slate-900 to-indigo-950 border-sky-400 text-white shadow-xl shadow-sky-500/10'
+                      ? 'bg-gradient-to-b from-slate-900 to-indigo-950 border-cyan-400 text-white shadow-xl shadow-cyan-500/10'
                       : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono uppercase text-sky-400 font-bold">State Form</span>
-                    <Badge className="bg-sky-500/20 text-sky-300 text-[9px] px-1.5 py-0">{tmpl.tag}</Badge>
+                    <span className="text-[10px] font-mono uppercase text-cyan-400 font-bold">{tmpl.code}</span>
+                    <Badge className="bg-cyan-500/20 text-cyan-300 text-[9px] px-1 py-0">{tmpl.tag}</Badge>
                   </div>
                   <span className="text-xs font-bold block truncate mt-1">{tmpl.state}</span>
                 </button>
@@ -698,14 +591,14 @@ export function LandingPage() {
                 </div>
                 <Badge variant="success" className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-[10px] shrink-0">
                   <CheckCircle2 className="h-3 w-3 mr-1" />
-                  Auto-Parsed
+                  State Rules Active
                 </Badge>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="p-3.5 rounded-lg bg-white/5 border border-white/10 space-y-1">
                   <span className="text-slate-400 text-[11px]">Inspection Period</span>
-                  <div className="font-mono font-extrabold text-sky-400 text-sm">{selectedTemplate.inspectionDays}</div>
+                  <div className="font-mono font-extrabold text-cyan-400 text-sm">{selectedTemplate.inspectionDays}</div>
                 </div>
                 <div className="p-3.5 rounded-lg bg-white/5 border border-white/10 space-y-1">
                   <span className="text-slate-400 text-[11px]">Financing Approval</span>
@@ -718,7 +611,7 @@ export function LandingPage() {
               </div>
 
               <div className="p-3 bg-slate-950 rounded-lg border border-white/5 text-[11px] font-mono text-slate-400">
-                <span className="text-sky-400 font-bold">Extracted Clause Snippet: </span>
+                <span className="text-cyan-400 font-bold">Extracted Clause Snippet: </span>
                 {selectedTemplate.sampleSnippet}
               </div>
             </div>
@@ -741,7 +634,7 @@ export function LandingPage() {
             {TESTIMONIALS.map((t, i) => (
               <div
                 key={i}
-                className="rounded-2xl border border-white/10 bg-slate-900/60 p-6 flex flex-col justify-between space-y-4 hover:border-sky-500/30 transition-all backdrop-blur-md hover:shadow-xl hover:shadow-sky-500/5"
+                className="rounded-2xl border border-white/10 bg-slate-900/60 p-6 flex flex-col justify-between space-y-4 hover:border-cyan-500/30 transition-all backdrop-blur-md hover:shadow-xl hover:shadow-cyan-500/5"
               >
                 <div className="space-y-3">
                   <div className="flex items-center gap-1 text-amber-400">
@@ -755,13 +648,13 @@ export function LandingPage() {
                 </div>
 
                 <div className="flex items-center gap-3 pt-3 border-t border-white/10">
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-sky-400 to-blue-600 border border-white/20 flex items-center justify-center font-bold text-xs text-slate-950">
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 border border-white/20 flex items-center justify-center font-bold text-xs text-slate-950">
                     {t.avatar}
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-white">{t.name}</h4>
                     <p className="text-[10px] text-slate-400">{t.role}</p>
-                    <p className="text-[10px] text-sky-400 font-medium">{t.firm}</p>
+                    <p className="text-[10px] text-cyan-400 font-medium">{t.firm}</p>
                   </div>
                 </div>
               </div>
@@ -786,7 +679,7 @@ export function LandingPage() {
                 <tr>
                   <th className="py-4 px-5 font-bold">Feature</th>
                   <th className="py-4 px-5 font-bold text-slate-400">Manual Spreadsheets</th>
-                  <th className="py-4 px-5 font-bold text-sky-400">Contingency Copilot</th>
+                  <th className="py-4 px-5 font-bold text-cyan-400">Contingency Copilot</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10">
@@ -826,7 +719,7 @@ export function LandingPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs">
                     <span className="text-slate-300 font-medium">Monthly Transactions:</span>
-                    <span className="font-extrabold text-sky-400 font-mono">{dealVolume} deals/mo</span>
+                    <span className="font-extrabold text-cyan-400 font-mono">{dealVolume} deals/mo</span>
                   </div>
                   <input
                     type="range"
@@ -834,7 +727,7 @@ export function LandingPage() {
                     max="100"
                     value={dealVolume}
                     onChange={(e) => setDealVolume(Number(e.target.value))}
-                    className="w-full accent-sky-400 cursor-pointer"
+                    className="w-full accent-cyan-400 cursor-pointer"
                   />
                 </div>
 
@@ -917,10 +810,10 @@ export function LandingPage() {
         </section>
 
         {/* Footer */}
-        <footer className="border-t border-white/10 bg-slate-950 py-12 text-xs text-slate-400">
+        <footer className="border-t border-white/10 bg-[#030712] py-12 text-xs text-slate-400">
           <div className="mx-auto max-w-7xl px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-sky-400 to-blue-600 text-slate-950 font-bold">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 text-slate-950 font-bold">
                 <Building2 className="h-4 w-4 text-slate-950" />
               </div>
               <div>
