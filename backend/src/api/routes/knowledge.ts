@@ -21,11 +21,13 @@ router.post(
   '/ask',
   requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const parsed = PortfolioAskSchema.safeParse(req.body);
     if (!parsed.success) throw createError(parsed.error.message, 422);
 
     const result = await askPortfolioAssistant({
       question: parsed.data.question,
+      organizationId: orgId,
       actorEmail: req.user?.email,
     });
 
@@ -37,8 +39,10 @@ router.post(
 router.get(
   '/documents',
   requireAuth,
-  asyncHandler(async (_req, res) => {
+  asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const docs = await prisma.document.findMany({
+      where: { organizationId: orgId },
       orderBy: { uploadedAt: 'desc' },
       take: 50,
       include: {
@@ -51,7 +55,7 @@ router.get(
       docs.map((d) => ({
         id: d.id,
         dealId: d.dealId,
-        propertyAddress: d.deal.propertyAddress,
+        propertyAddress: d.deal?.propertyAddress ?? 'Unassigned Deal',
         filename: d.filename,
         docType: d.docType,
         indexStatus: d.indexStatus,

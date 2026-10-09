@@ -9,6 +9,7 @@ import { readFile } from 'node:fs/promises';
 import { extractTextFromPdf } from './pdf.service.js';
 import { computeContractDeadline } from './dateEngine.service.js';
 import { logger } from '../utils/logger.js';
+import { createError } from '../middleware/errorHandler.js';
 
 const prisma = new PrismaClient();
 
@@ -48,18 +49,22 @@ const taskJsonSchema = {
 } as const;
 
 /**
- * Extracts non-contingency transaction milestone tasks from a document (e.g. Escrow deposit, Title review, HOA docs).
+ * Extracts non-contingency transaction milestone tasks from a document.
+ * Records immutable TaskProposal entries and preserves human-reviewed tasks upon document reprocessing.
  */
-export async function extractTransactionTasksFromPdf(filePath: string, dealId: string, documentId: string) {
-  const deal = await prisma.deal.findUnique({ where: { id: dealId } });
-  if (!deal) throw new Error('Deal not found');
+export async function extractTransactionTasksFromPdf(filePath: string, dealId: string, documentId: string, organizationId?: string) {
+  const deal = await prisma.deal.findFirst({
+    where: { id: dealId, ...(organizationId ? { organizationId } : {}) },
+  });
+  if (!deal) throw createError('Deal not found or access denied', 404);
 
+  const orgId = organizationId ?? deal.organizationId;
   const baseDate = deal.acceptanceDate ?? new Date();
   const apiKey = process.env['GEMINI_API_KEY'];
 
   if (!apiKey) {
     logger.warn('[Task Extractor] GEMINI_API_KEY missing. Returning fallback sample tasks.');
-    return createSampleTasks(dealId, documentId, baseDate);
+    return createSampleTasks(dealId, documentId, baseDate, orgId);
   }
 
   const pdfData = await readFile(filePath, { encoding: 'base64' });
@@ -119,7 +124,7 @@ For each task:
   }
 
   if (extractedTasks.length === 0) {
-    return createSampleTasks(dealId, documentId, baseDate);
+    return createSampleTasks(dealId, documentId, baseDate, orgId);
   }
 
   const createdTasks = [];
@@ -127,16 +132,47 @@ For each task:
     const numDays = t.numberOfDays && t.numberOfDays > 0 ? t.numberOfDays : 3;
     const { deadline: dueDate } = computeContractDeadline(baseDate, numDays, t.dayType === 'business' ? 'business' : 'calendar');
 
+    // Record immutable TaskProposal
+    await prisma.taskProposal.create({
+      data: {
+        dealId,
+        organizationId: orgId,
+        sourceDocumentId: documentId,
+        title: t.title,
+        description: t.description ?? null,
+        proposedDueDate: dueDate,
+        proposedAmount: t.amount ?? null,
+        status: 'APPROVED',
+      },
+    });
+
+    // Check if task already exists and was human-reviewed
+    const existingReviewed = await prisma.transactionTask.findFirst({
+      where: {
+        dealId,
+        title: t.title,
+        isHumanReviewed: true,
+      },
+    });
+
+    if (existingReviewed) {
+      logger.info(`[Task Extractor] Preserving human-reviewed task: ${t.title}`);
+      createdTasks.push(existingReviewed);
+      continue;
+    }
+
+    // Upsert unreviewed task
     const taskRecord = await prisma.transactionTask.create({
       data: {
         dealId,
+        organizationId: orgId,
         sourceDocumentId: documentId,
         title: t.title,
         description: t.description ?? null,
         dueDate,
         amount: t.amount ?? null,
         assignedTo: t.assignedToRole ?? 'BUYER',
-        isHumanReviewed: false, // Must be explicitly reviewed by agent!
+        isHumanReviewed: false,
         status: 'PENDING',
       },
     });
@@ -147,6 +183,7 @@ For each task:
   await prisma.auditLog.create({
     data: {
       dealId,
+      organizationId: orgId,
       action: 'TASK_EXTRACTED',
       entityType: 'TransactionTask',
       actor: 'system',
@@ -157,7 +194,7 @@ For each task:
   return createdTasks;
 }
 
-function createSampleTasks(dealId: string, documentId: string, baseDate: Date) {
+function createSampleTasks(dealId: string, documentId: string, baseDate: Date, orgId?: string | null) {
   const depositDueDate = new Date(baseDate.getTime() + 3 * 86400000);
   const hoaDueDate = new Date(baseDate.getTime() + 7 * 86400000);
 
@@ -165,6 +202,7 @@ function createSampleTasks(dealId: string, documentId: string, baseDate: Date) {
     prisma.transactionTask.create({
       data: {
         dealId,
+        organizationId: orgId,
         sourceDocumentId: documentId,
         title: 'Deliver Initial Earnest Money Deposit',
         description: 'Buyer shall deliver earnest money deposit to Escrow Holder within 3 calendar days after acceptance.',
@@ -178,6 +216,7 @@ function createSampleTasks(dealId: string, documentId: string, baseDate: Date) {
     prisma.transactionTask.create({
       data: {
         dealId,
+        organizationId: orgId,
         sourceDocumentId: documentId,
         title: 'Seller HOA Disclosure Package Delivery',
         description: 'Seller to provide full HOA covenants, bylaws, and financial disclosures to buyer within 7 calendar days.',
@@ -196,6 +235,7 @@ function createSampleTasks(dealId: string, documentId: string, baseDate: Date) {
  */
 export async function reviewTransactionTask(params: {
   taskId: string;
+  organizationId?: string;
   dueDate?: string;
   title?: string;
   amount?: number;
@@ -203,10 +243,12 @@ export async function reviewTransactionTask(params: {
   status?: TaskStatus;
   actorEmail?: string;
 }) {
-  const { taskId, dueDate, title, amount, assignedTo, status, actorEmail } = params;
+  const { taskId, organizationId, dueDate, title, amount, assignedTo, status, actorEmail } = params;
 
-  const existing = await prisma.transactionTask.findUnique({ where: { id: taskId } });
-  if (!existing) throw new Error('Transaction task not found');
+  const existing = await prisma.transactionTask.findFirst({
+    where: { id: taskId, ...(organizationId ? { organizationId } : {}) },
+  });
+  if (!existing) throw createError('Transaction task not found', 404);
 
   const updated = await prisma.transactionTask.update({
     where: { id: taskId },
@@ -223,6 +265,7 @@ export async function reviewTransactionTask(params: {
   await prisma.auditLog.create({
     data: {
       dealId: existing.dealId,
+      organizationId: existing.organizationId,
       action: status === 'COMPLETED' ? 'TASK_COMPLETED' : 'TASK_APPROVED',
       entityType: 'TransactionTask',
       entityId: taskId,

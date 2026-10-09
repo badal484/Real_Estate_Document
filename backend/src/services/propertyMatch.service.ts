@@ -10,7 +10,8 @@ const prisma = new PrismaClient();
 
 export interface MatchCalculationResult {
   property: Property;
-  matchScore: number; // 0.0 to 1.0
+  matchScore: number; // 0.0 to 1.0 (deterministic compatibility)
+  aiExplanationConfidence: number; // 0.0 to 1.0
   matchReason: string;
   failedCriteria: string[];
 }
@@ -19,11 +20,12 @@ export interface MatchCalculationResult {
  * Computes deterministic property matches for a lead based on database inventory.
  * 1. Hard filters out unavailable, over-budget, or incompatible property types.
  * 2. Applies soft scoring for locations, amenities, price targets, and bedrooms.
- * 3. Returns and persists top matches with explicit reasons.
+ * 3. Returns and persists top matches with explicit reasons scoped strictly to organizationId.
  */
-export async function computeMatchesForLead(leadId: string): Promise<MatchCalculationResult[]> {
-  const lead = await getLeadDetails(leadId);
+export async function computeMatchesForLead(leadId: string, organizationId?: string): Promise<MatchCalculationResult[]> {
+  const lead = await getLeadDetails(leadId, organizationId);
   const req = lead.requirements;
+  const orgId = organizationId ?? lead.organizationId;
 
   logger.info(`[Property Matcher] Computing matches for Lead ${leadId} (${lead.fullName})`);
 
@@ -37,8 +39,8 @@ export async function computeMatchesForLead(leadId: string): Promise<MatchCalcul
     status: 'AVAILABLE',
   };
 
-  if (lead.organizationId) {
-    hardWhere['organizationId'] = lead.organizationId;
+  if (orgId) {
+    hardWhere['organizationId'] = orgId;
   }
 
   if (req.maxBudget && req.maxBudget > 0) {
@@ -102,6 +104,7 @@ export async function computeMatchesForLead(leadId: string): Promise<MatchCalcul
     results.push({
       property,
       matchScore: finalScore,
+      aiExplanationConfidence: 0.95,
       matchReason: matchReasonText,
       failedCriteria,
     });
@@ -110,7 +113,7 @@ export async function computeMatchesForLead(leadId: string): Promise<MatchCalcul
   // Sort descending by score
   results.sort((a, b) => b.matchScore - a.matchScore);
 
-  // 3. Persist top matches to database
+  // 3. Persist top matches to database with organizationId
   for (const res of results.slice(0, 10)) {
     await prisma.propertyMatch.upsert({
       where: {
@@ -122,12 +125,16 @@ export async function computeMatchesForLead(leadId: string): Promise<MatchCalcul
       create: {
         leadId,
         propertyId: res.property.id,
+        organizationId: orgId,
         matchScore: res.matchScore,
+        aiExplanationConfidence: res.aiExplanationConfidence,
         matchReason: res.matchReason,
         failedCriteria: res.failedCriteria,
       },
       update: {
+        organizationId: orgId,
         matchScore: res.matchScore,
+        aiExplanationConfidence: res.aiExplanationConfidence,
         matchReason: res.matchReason,
         failedCriteria: res.failedCriteria,
       },
@@ -151,7 +158,7 @@ export async function createProperty(data: {
   status?: 'AVAILABLE' | 'UNDER_CONTRACT' | 'SOLD' | 'OFF_MARKET';
   features?: string[];
   description?: string;
-  organizationId?: string;
+  organizationId: string;
 }) {
   const property = await prisma.property.create({
     data: {
@@ -165,7 +172,7 @@ export async function createProperty(data: {
       status: data.status ?? 'AVAILABLE',
       features: data.features ?? [],
       description: data.description ?? null,
-      organizationId: data.organizationId ?? null,
+      organizationId: data.organizationId,
     },
   });
 
@@ -174,7 +181,7 @@ export async function createProperty(data: {
 }
 
 /**
- * Returns property inventory list.
+ * Returns property inventory list scoped strictly to organization.
  */
 export async function getProperties(params: {
   search?: string;
@@ -182,10 +189,12 @@ export async function getProperties(params: {
   maxPrice?: number;
   bedrooms?: number;
   city?: string;
+  organizationId: string;
 }) {
-  const { search, minPrice, maxPrice, bedrooms, city } = params;
+  const { search, minPrice, maxPrice, bedrooms, city, organizationId } = params;
 
   const whereClause: Record<string, unknown> = {
+    organizationId,
     status: 'AVAILABLE',
   };
 

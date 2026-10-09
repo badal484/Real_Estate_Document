@@ -7,25 +7,34 @@ import {
   Building2,
   Clock,
   ShieldCheck,
-  AlertTriangle,
   TrendingUp,
   CheckCircle2,
   Calendar,
   Layers,
-  ArrowUpRight,
-  Loader2,
-  Mail,
   DollarSign,
   Users,
   Award,
   Zap,
-  Bot,
-  UserCheck,
-  Sparkles,
-  ArrowRight,
+  Download,
+  Filter,
+  PieChart as PieChartIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from 'recharts';
 
 interface AgentLeaderboard {
   rank: number;
@@ -40,6 +49,31 @@ interface AgentLeaderboard {
   commission: string;
 }
 
+const MONTHLY_VOLUME_DATA = [
+  { month: 'Jan', volume: 4.2, escrows: 8, closed: 6 },
+  { month: 'Feb', volume: 5.8, escrows: 11, closed: 9 },
+  { month: 'Mar', volume: 7.1, escrows: 14, closed: 12 },
+  { month: 'Apr', volume: 6.4, escrows: 12, closed: 10 },
+  { month: 'May', volume: 8.9, escrows: 17, closed: 15 },
+  { month: 'Jun', volume: 10.5, escrows: 21, closed: 18 },
+  { month: 'Jul', volume: 12.3, escrows: 24, closed: 21 },
+];
+
+const CONTINGENCY_BREAKDOWN = [
+  { category: 'Inspection', total: 42, resolved: 39, avgDays: 7.2 },
+  { category: 'Financing', total: 38, resolved: 35, avgDays: 14.8 },
+  { category: 'Appraisal', total: 29, resolved: 28, avgDays: 10.4 },
+  { category: 'Title/HOA', total: 24, resolved: 24, avgDays: 4.1 },
+  { category: 'Insurance', total: 18, resolved: 17, avgDays: 5.6 },
+];
+
+const LEAD_SOURCE_DATA = [
+  { name: 'Website Portal', value: 45, color: '#635bff' },
+  { name: 'Zillow / Realtor', value: 30, color: '#00d4b2' },
+  { name: 'WhatsApp Bot', value: 15, color: '#0a2540' },
+  { name: 'Referral Direct', value: 10, color: '#ffc700' },
+];
+
 export function AnalyticsPage() {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,10 +86,6 @@ export function AnalyticsPage() {
       .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
-
-  const totalDeals = deals.length;
-  const activeDeals = useMemo(() => deals.filter((d) => d.status === 'ACTIVE').length, [deals]);
-  const closedDeals = useMemo(() => deals.filter((d) => d.status === 'CLOSED').length, [deals]);
 
   // Mock Agent Leaderboard for B2B Agency Analytics
   const leaderboard: AgentLeaderboard[] = [
@@ -110,175 +140,353 @@ export function AnalyticsPage() {
   ];
 
   return (
-    <div className="space-y-8 max-w-[1600px] mx-auto">
-      {/* ── Page Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-12">
+      {/* ── Stripe Enterprise Header Controls ── */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-[#e3e8ee] pb-5">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-sky-600 font-mono">
-              Brokerage AI Intelligence & Performance
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold tracking-tight text-[#0a2540]">
+              Brokerage Analytics & Intelligence
+            </h1>
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#635bff]/10 px-2.5 py-0.5 text-xs font-bold text-[#635bff] border border-[#635bff]/20">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#635bff] animate-pulse" />
+              Live Executive Dashboard
             </span>
-            <Badge variant="neutral" className="glass-badge font-mono text-[10px] text-slate-700">
-              Live Team Metrics
-            </Badge>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-            Team Analytics & Speed-to-Lead ROI
-          </h1>
-          <p className="text-xs text-slate-500 mt-1 max-w-2xl">
-            Real-time brokerage response times, agent leaderboard, AI auto-pilot efficiency metrics, and estimated commission revenue.
+          <p className="text-xs text-[#4f566b] mt-0.5">
+            Real-time pipeline velocity, escrow volume trendline, contingency speed metrics, and commission forecasting.
           </p>
         </div>
 
-        <Button asChild size="sm" className="gap-1.5 h-9 text-xs">
-          <Link to="/organization">
-            <Users className="h-4 w-4 text-sky-400" />
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => alert('Exporting Stripe Analytics PDF/CSV summary...')}
+            className="btn-stripe-secondary text-xs"
+          >
+            <Download className="h-3.5 w-3.5 text-[#4f566b]" />
+            <span>Export Analytics</span>
+          </button>
+          <Link to="/organization" className="btn-stripe-primary text-xs">
+            <Users className="h-3.5 w-3.5" />
             <span>Manage Team Seats</span>
           </Link>
-        </Button>
+        </div>
       </div>
 
-      {/* ── Top Metrics Grid ── */}
+      {/* ── Top Metric Cards Grid ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Speed to Lead */}
-        <div className="rounded-2xl bg-white border border-slate-200/80 p-5 shadow-xs flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
-              Avg Speed to Lead
-            </span>
-            <div className="text-3xl font-extrabold tracking-tight text-emerald-600 font-mono">
-              14 sec
+        <div className="stripe-card p-4 bg-white relative overflow-hidden">
+          <div className="flex items-start justify-between">
+            <div>
+              <span className="text-[11px] font-bold text-[#4f566b] uppercase tracking-wider">
+                Avg Speed to Lead
+              </span>
+              <div className="text-2xl font-black text-[#059669] font-mono mt-1">
+                14 sec
+              </div>
             </div>
-            <p className="text-[11px] text-emerald-600 font-medium">⚡ 99.8% faster than industry avg (4.2 hrs)</p>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-[#059669] border border-emerald-200">
+              <Zap className="h-4.5 w-4.5" />
+            </div>
           </div>
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600">
-            <Zap className="h-6 w-6" />
+          <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-[#e3e8ee]">
+            <span className="text-[#059669] font-bold text-[11px]">
+              ⚡ 99.8% faster than industry avg
+            </span>
+            <span className="text-[#8792a2] text-[10px]">Real-Time AI</span>
           </div>
         </div>
 
-        {/* Generated Commission ROI */}
-        <div className="rounded-2xl bg-white border border-slate-200/80 p-5 shadow-xs flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
-              Est. Commission Generated
-            </span>
-            <div className="text-3xl font-extrabold tracking-tight text-slate-900 font-mono">
-              $89,100
+        {/* Est Commission */}
+        <div className="stripe-card p-4 bg-white relative overflow-hidden">
+          <div className="flex items-start justify-between">
+            <div>
+              <span className="text-[11px] font-bold text-[#4f566b] uppercase tracking-wider">
+                Commission Pipeline
+              </span>
+              <div className="text-2xl font-black text-[#0a2540] font-mono mt-1">
+                $89,100
+              </div>
             </div>
-            <p className="text-[11px] text-indigo-600 font-medium">18 Deals Closed via AI Ingestion</p>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#635bff]/10 text-[#635bff] border border-[#635bff]/20">
+              <DollarSign className="h-4.5 w-4.5" />
+            </div>
           </div>
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600">
-            <DollarSign className="h-6 w-6" />
+          <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-[#e3e8ee]">
+            <span className="text-[#635bff] font-bold text-[11px]">
+              <TrendingUp className="h-3.5 w-3.5 inline mr-1" /> +24% QoQ Growth
+            </span>
+            <span className="text-[#8792a2] text-[10px]">18 Deals Closed</span>
           </div>
         </div>
 
-        {/* Hours Saved by Auto-Pilot */}
-        <div className="rounded-2xl bg-white border border-slate-200/80 p-5 shadow-xs flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
-              Agent Hours Saved
-            </span>
-            <div className="text-3xl font-extrabold tracking-tight text-slate-900 font-mono">
-              214 hrs
+        {/* Hours Saved */}
+        <div className="stripe-card p-4 bg-white relative overflow-hidden">
+          <div className="flex items-start justify-between">
+            <div>
+              <span className="text-[11px] font-bold text-[#4f566b] uppercase tracking-wider">
+                Agent Hours Saved
+              </span>
+              <div className="text-2xl font-black text-[#0a2540] font-mono mt-1">
+                214 hrs
+              </div>
             </div>
-            <p className="text-[11px] text-sky-600 font-medium">Equal to 5.3 work weeks saved</p>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0a2540]/10 text-[#0a2540] border border-[#0a2540]/20">
+              <Clock className="h-4.5 w-4.5" />
+            </div>
           </div>
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-50 border border-sky-100 text-sky-600">
-            <Clock className="h-6 w-6" />
+          <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-[#e3e8ee]">
+            <span className="text-[#0a2540] font-bold text-[11px]">
+              5.3 work weeks reclaimed
+            </span>
+            <span className="text-[#8792a2] text-[10px]">Auto-Pilot RAG</span>
           </div>
         </div>
 
-        {/* Earnest Money Protection Rate */}
-        <div className="rounded-2xl bg-white border border-slate-200/80 p-5 shadow-xs flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
-              Contingency Protection Rate
-            </span>
-            <div className="text-3xl font-extrabold tracking-tight text-slate-900 font-mono">
-              100%
+        {/* Protection Rate */}
+        <div className="stripe-card p-4 bg-white relative overflow-hidden">
+          <div className="flex items-start justify-between">
+            <div>
+              <span className="text-[11px] font-bold text-[#4f566b] uppercase tracking-wider">
+                Contingency SLA Rate
+              </span>
+              <div className="text-2xl font-black text-[#059669] font-mono mt-1">
+                100%
+              </div>
             </div>
-            <p className="text-[11px] text-emerald-600 font-medium">0 Earnest Money Forfeitures</p>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-[#059669] border border-emerald-200">
+              <ShieldCheck className="h-4.5 w-4.5" />
+            </div>
           </div>
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600">
-            <ShieldCheck className="h-6 w-6" />
+          <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-[#e3e8ee]">
+            <span className="text-[#059669] font-bold text-[11px]">
+              0 Deposit Forfeitures
+            </span>
+            <span className="text-[#8792a2] text-[10px]">Zero Missed</span>
           </div>
+        </div>
+      </div>
+
+      {/* ── Interactive Recharts Graphical Analytics Section ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Monthly Volume Trend Area Chart (2 Cols) */}
+        <div className="lg:col-span-2 stripe-card p-5 space-y-4 bg-white">
+          <div className="flex items-center justify-between border-b border-[#e3e8ee] pb-3">
+            <div>
+              <h2 className="text-sm font-bold text-[#0a2540] flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-[#635bff]" />
+                Escrow Volume &amp; Transaction Growth ($M)
+              </h2>
+              <p className="text-[11px] text-[#4f566b]">
+                Monthly total volume in escrow vs. successfully closed contract pipeline.
+              </p>
+            </div>
+            <span className="text-[11px] font-extrabold text-[#635bff] bg-[#635bff]/10 px-2.5 py-1 rounded-md border border-[#635bff]/20 font-mono">
+              $12.3M YTD Peak
+            </span>
+          </div>
+
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={MONTHLY_VOLUME_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#635bff" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#635bff" stopOpacity={0.0} />
+                  </linearGradient>
+                  <linearGradient id="colorClosed" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#059669" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#059669" stopOpacity={0.0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e3e8ee" vertical={false} />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#4f566b' }} axisLine={{ stroke: '#e3e8ee' }} />
+                <YAxis tick={{ fontSize: 11, fill: '#4f566b' }} axisLine={{ stroke: '#e3e8ee' }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#ffffff',
+                    borderColor: '#e3e8ee',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                  }}
+                />
+                <Area type="monotone" dataKey="volume" name="Escrow Volume ($M)" stroke="#635bff" strokeWidth={2.5} fillOpacity={1} fill="url(#colorVolume)" />
+                <Area type="monotone" dataKey="closed" name="Closed Count" stroke="#059669" strokeWidth={2} fillOpacity={1} fill="url(#colorClosed)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Lead Source Breakdown Donut Chart (1 Col) */}
+        <div className="stripe-card p-5 space-y-4 bg-white flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between border-b border-[#e3e8ee] pb-3">
+              <h2 className="text-sm font-bold text-[#0a2540] flex items-center gap-2">
+                <PieChartIcon className="h-4 w-4 text-[#635bff]" />
+                Inbound Lead Attribution
+              </h2>
+              <span className="text-[10px] text-[#8792a2]">Parsed automatically</span>
+            </div>
+
+            <div className="h-56 w-full my-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={LEAD_SOURCE_DATA}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={80}
+                    paddingAngle={4}
+                    dataKey="value"
+                  >
+                    {LEAD_SOURCE_DATA.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#ffffff',
+                      borderColor: '#e3e8ee',
+                      borderRadius: '8px',
+                      fontSize: '11px',
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="space-y-1.5 pt-2 border-t border-[#e3e8ee]">
+            {LEAD_SOURCE_DATA.map((source) => (
+              <div key={source.name} className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: source.color }} />
+                  <span className="text-[#3c4257] font-semibold">{source.name}</span>
+                </div>
+                <span className="font-mono text-[#0a2540] font-bold">{source.value}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Contingency Resolution Speed Bar Chart ── */}
+      <div className="stripe-card p-5 space-y-4 bg-white">
+        <div className="flex items-center justify-between border-b border-[#e3e8ee] pb-3">
+          <div>
+            <h2 className="text-sm font-bold text-[#0a2540] flex items-center gap-2">
+              <Layers className="h-4 w-4 text-[#635bff]" />
+              Contingency Clause Resolution Velocity
+            </h2>
+            <p className="text-[11px] text-[#4f566b]">
+              Average resolution days vs. total processed contingencies across portfolio.
+            </p>
+          </div>
+          <span className="text-xs font-bold text-[#059669] bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
+            Avg 8.3 Days to Release
+          </span>
+        </div>
+
+        <div className="h-64 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={CONTINGENCY_BREAKDOWN} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e3e8ee" vertical={false} />
+              <XAxis dataKey="category" tick={{ fontSize: 11, fill: '#4f566b' }} axisLine={{ stroke: '#e3e8ee' }} />
+              <YAxis tick={{ fontSize: 11, fill: '#4f566b' }} axisLine={{ stroke: '#e3e8ee' }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#ffffff',
+                  borderColor: '#e3e8ee',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                }}
+              />
+              <Bar dataKey="total" name="Total Contingencies" fill="#635bff" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="resolved" name="Released / Cleared" fill="#059669" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
       {/* ── Conversion Funnel Card ── */}
-      <div className="rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 text-white shadow-xl border border-indigo-900/50 space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="stripe-card p-6 bg-[#0a2540] text-white space-y-4">
+        <div className="flex items-center justify-between border-b border-[#1a385c] pb-3">
           <div>
-            <h2 className="text-base font-bold flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-indigo-400" /> Inbound Lead Conversion Funnel
+            <h2 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wide">
+              <TrendingUp className="h-4 w-4 text-[#635bff]" /> Inbound Lead Conversion Funnel
             </h2>
             <p className="text-xs text-slate-300">
-              How AI Lead Management converts cold website/portal inquiries into closed real estate commissions.
+              How Stripe AI Lead Copilot converts cold website/portal inquiries into closed commissions.
             </p>
           </div>
-          <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-xs">
+          <span className="px-3 py-1 text-xs font-bold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
             22.8% Tour Conversion Rate
-          </Badge>
+          </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 pt-2">
-          <div className="bg-white/10 backdrop-blur-xs p-4 rounded-xl border border-white/10 text-center">
-            <p className="text-[11px] text-slate-300 uppercase font-semibold">1. Inbound Leads</p>
-            <p className="text-2xl font-bold font-mono mt-1">342</p>
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 pt-1">
+          <div className="bg-[#1a385c]/60 p-3.5 rounded-lg border border-[#2b4c75] text-center">
+            <p className="text-[10px] text-slate-300 uppercase font-bold">1. Inbound Leads</p>
+            <p className="text-xl font-bold font-mono mt-1 text-white">342</p>
             <p className="text-[10px] text-slate-400 mt-1">Web, Zillow, WhatsApp</p>
           </div>
-          <div className="bg-white/10 backdrop-blur-xs p-4 rounded-xl border border-white/10 text-center">
-            <p className="text-[11px] text-slate-300 uppercase font-semibold">2. AI Extracted</p>
-            <p className="text-2xl font-bold font-mono mt-1">328</p>
+          <div className="bg-[#1a385c]/60 p-3.5 rounded-lg border border-[#2b4c75] text-center">
+            <p className="text-[10px] text-slate-300 uppercase font-bold">2. AI Extracted</p>
+            <p className="text-xl font-bold font-mono mt-1 text-white">328</p>
             <p className="text-[10px] text-emerald-400 mt-1">95.9% Parsed</p>
           </div>
-          <div className="bg-white/10 backdrop-blur-xs p-4 rounded-xl border border-white/10 text-center">
-            <p className="text-[11px] text-slate-300 uppercase font-semibold">3. Property Matches</p>
-            <p className="text-2xl font-bold font-mono mt-1">214</p>
+          <div className="bg-[#1a385c]/60 p-3.5 rounded-lg border border-[#2b4c75] text-center">
+            <p className="text-[10px] text-slate-300 uppercase font-bold">3. Property Matches</p>
+            <p className="text-xl font-bold font-mono mt-1 text-white">214</p>
             <p className="text-[10px] text-sky-400 mt-1">Matched 70%+ score</p>
           </div>
-          <div className="bg-white/10 backdrop-blur-xs p-4 rounded-xl border border-white/10 text-center">
-            <p className="text-[11px] text-slate-300 uppercase font-semibold">4. Tours Booked</p>
-            <p className="text-2xl font-bold font-mono mt-1">78</p>
+          <div className="bg-[#1a385c]/60 p-3.5 rounded-lg border border-[#2b4c75] text-center">
+            <p className="text-[10px] text-slate-300 uppercase font-bold">4. Tours Booked</p>
+            <p className="text-xl font-bold font-mono mt-1 text-white">78</p>
             <p className="text-[10px] text-amber-400 mt-1">23.8% Conversion</p>
           </div>
-          <div className="bg-emerald-500/20 backdrop-blur-xs p-4 rounded-xl border border-emerald-500/40 text-center">
-            <p className="text-[11px] text-emerald-300 uppercase font-semibold">5. Deals Won</p>
-            <p className="text-2xl font-bold font-mono mt-1 text-emerald-300">18</p>
+          <div className="bg-emerald-500/20 p-3.5 rounded-lg border border-emerald-500/40 text-center">
+            <p className="text-[10px] text-emerald-300 uppercase font-bold">5. Deals Won</p>
+            <p className="text-xl font-bold font-mono mt-1 text-emerald-300">18</p>
             <p className="text-[10px] text-emerald-300 mt-1">$89.1k Commission</p>
           </div>
         </div>
       </div>
 
       {/* ── Agent Performance Leaderboard ── */}
-      <div className="rounded-2xl bg-white border border-slate-200/80 shadow-xs overflow-hidden">
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+      <div className="stripe-card overflow-hidden bg-white">
+        <div className="p-4 border-b border-[#e3e8ee] flex items-center justify-between">
           <div>
-            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Award className="h-5 w-5 text-indigo-600" /> Brokerage Agent Performance Leaderboard
+            <h2 className="text-sm font-bold text-[#0a2540] flex items-center gap-2">
+              <Award className="h-4 w-4 text-[#635bff]" /> Brokerage Agent Performance Leaderboard
             </h2>
-            <p className="text-xs text-slate-500">Ranking agent response speed, lead handling volume, and AI auto-pilot adoption rate.</p>
+            <p className="text-xs text-[#4f566b]">Ranking agent response speed, lead handling volume, and AI auto-pilot adoption rate.</p>
           </div>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100">
+            <thead className="bg-[#f8f9fa] text-[#3c4257] font-bold border-b border-[#e3e8ee]">
               <tr>
-                <th className="py-3.5 px-6">Rank</th>
-                <th className="py-3.5 px-6">Agent Name</th>
-                <th className="py-3.5 px-6">Speed to Lead</th>
-                <th className="py-3.5 px-6">Leads Handled</th>
-                <th className="py-3.5 px-6">Tours Booked</th>
-                <th className="py-3.5 px-6">Closed Deals</th>
-                <th className="py-3.5 px-6">Auto-Pilot %</th>
-                <th className="py-3.5 px-6 text-right">Commission Earned</th>
+                <th className="py-3 px-4">Rank</th>
+                <th className="py-3 px-4">Agent Name</th>
+                <th className="py-3 px-4">Speed to Lead</th>
+                <th className="py-3 px-4">Leads Handled</th>
+                <th className="py-3 px-4">Tours Booked</th>
+                <th className="py-3 px-4">Closed Deals</th>
+                <th className="py-3 px-4">Auto-Pilot %</th>
+                <th className="py-3 px-4 text-right">Commission Earned</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
+            <tbody className="divide-y divide-[#e3e8ee] text-[#1a1f36]">
               {leaderboard.map((agent) => (
-                <tr key={agent.rank} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="py-4 px-6 font-bold text-slate-900">
+                <tr key={agent.rank} className="hover:bg-[#f8f9fa] transition-colors">
+                  <td className="py-3.5 px-4 font-bold text-[#0a2540]">
                     <span
                       className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-extrabold ${
                         agent.rank === 1
@@ -293,25 +501,27 @@ export function AnalyticsPage() {
                       #{agent.rank}
                     </span>
                   </td>
-                  <td className="py-4 px-6 font-bold text-slate-900 flex items-center gap-2">
-                    <div className="h-7 w-7 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-xs">
-                      {agent.avatar}
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-900">{agent.name}</p>
-                      <p className="text-[10px] text-slate-400 font-normal">{agent.role}</p>
+                  <td className="py-3.5 px-4 font-bold text-[#0a2540]">
+                    <div className="flex items-center gap-2">
+                      <div className="h-7 w-7 rounded-full bg-[#0a2540] text-white font-bold flex items-center justify-center text-xs">
+                        {agent.avatar}
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-[#0a2540]">{agent.name}</p>
+                        <p className="text-[10px] text-[#8792a2] font-normal">{agent.role}</p>
+                      </div>
                     </div>
                   </td>
-                  <td className="py-4 px-6">
-                    <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-bold text-[11px] border border-emerald-200">
+                  <td className="py-3.5 px-4">
+                    <span className="px-2 py-0.5 rounded bg-emerald-50 text-[#059669] font-bold text-[11px] border border-emerald-200">
                       ⚡ {agent.speedToLead}
                     </span>
                   </td>
-                  <td className="py-4 px-6 font-mono text-slate-900 font-bold">{agent.leadsHandled}</td>
-                  <td className="py-4 px-6 font-mono text-slate-900">{agent.toursBooked}</td>
-                  <td className="py-4 px-6 font-mono text-emerald-600 font-bold">{agent.dealsClosed}</td>
-                  <td className="py-4 px-6 font-mono text-indigo-600 font-bold">{agent.autoPilotRate}</td>
-                  <td className="py-4 px-6 text-right font-bold text-slate-900 font-mono">
+                  <td className="py-3.5 px-4 font-mono font-bold text-[#0a2540]">{agent.leadsHandled}</td>
+                  <td className="py-3.5 px-4 font-mono text-[#4f566b]">{agent.toursBooked}</td>
+                  <td className="py-3.5 px-4 font-mono text-[#059669] font-bold">{agent.dealsClosed}</td>
+                  <td className="py-3.5 px-4 font-mono text-[#635bff] font-bold">{agent.autoPilotRate}</td>
+                  <td className="py-3.5 px-4 text-right font-bold text-[#0a2540] font-mono">
                     {agent.commission}
                   </td>
                 </tr>

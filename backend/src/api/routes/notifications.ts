@@ -1,11 +1,12 @@
 /**
- * /api/deals/:id/notifications — Notification preferences, templates, test emails, and audit delivery logs.
+ * /api/deals/:id/notifications — Notification preferences, templates, test emails, and audit delivery logs with Tenant Isolation.
  */
 
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { asyncHandler, createError } from '../../middleware/errorHandler.js';
+import { requireAuth } from '../../middleware/auth.js';
 import { sendEmail, generateTemplate } from '../../services/email.service.js';
 
 const router = Router({ mergeParams: true });
@@ -36,21 +37,34 @@ const PreviewSchema = z.object({
   deadlineId: z.string().optional(),
 });
 
+// Helper: Ensure deal belongs to organization
+async function getDealForTenant(dealId: string, organizationId: string) {
+  const deal = await prisma.deal.findFirst({
+    where: { id: dealId, organizationId },
+  });
+  if (!deal) throw createError('Deal not found or access denied', 404);
+  return deal;
+}
+
 // ── GET /settings ─────────────────────────────────────────────────────────────
 router.get(
   '/settings',
+  requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const dealId = req.params['id'];
+    await getDealForTenant(dealId, orgId);
+
     let settings = await prisma.notificationSetting.findUnique({
       where: { dealId },
     });
 
     if (!settings) {
-      // Default to deal owner's email or fallback
       const userEmail = req.user?.email ? [req.user.email] : [];
       settings = await prisma.notificationSetting.create({
         data: {
           dealId,
+          organizationId: orgId,
           recipients: userEmail,
           window3d: true,
           window1d: true,
@@ -81,8 +95,12 @@ router.get(
 // ── PUT /settings ─────────────────────────────────────────────────────────────
 router.put(
   '/settings',
+  requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const dealId = req.params['id'];
+    await getDealForTenant(dealId, orgId);
+
     const parsed = UpdateSettingsSchema.safeParse(req.body);
     if (!parsed.success) throw createError(parsed.error.message, 422);
 
@@ -92,6 +110,7 @@ router.put(
       where: { dealId },
       create: {
         dealId,
+        organizationId: orgId,
         recipients,
         window3d: windows.d3,
         window1d: windows.d1,
@@ -101,6 +120,7 @@ router.put(
         timezone,
       },
       update: {
+        organizationId: orgId,
         recipients,
         window3d: windows.d3,
         window1d: windows.d1,
@@ -130,13 +150,14 @@ router.put(
 // ── POST /test ────────────────────────────────────────────────────────────────
 router.post(
   '/test',
+  requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const dealId = req.params['id'];
+    const deal = await getDealForTenant(dealId, orgId);
+
     const parsed = SendTestSchema.safeParse(req.body);
     if (!parsed.success) throw createError(parsed.error.message, 422);
-
-    const deal = await prisma.deal.findUnique({ where: { id: dealId } });
-    if (!deal) throw createError('Deal not found', 404);
 
     const address = deal.propertyAddress;
     const testTpl = generateTemplate('3d', {
@@ -157,10 +178,10 @@ router.post(
       text: testTpl.text,
     });
 
-    // Record email log
     await prisma.emailLog.create({
       data: {
         dealId,
+        organizationId: orgId,
         recipient: parsed.data.to,
         template: '3d',
         status: result.success ? 'SENT' : 'BOUNCED',
@@ -169,10 +190,10 @@ router.post(
       },
     });
 
-    // Record audit action
     await prisma.auditLog.create({
       data: {
         dealId,
+        organizationId: orgId,
         action: 'EMAIL_SENT_TEST',
         entityType: 'EmailLog',
         actor: req.user?.email ?? 'system',
@@ -195,16 +216,18 @@ router.post(
 // ── POST /summary ─────────────────────────────────────────────────────────────
 router.post(
   '/summary',
+  requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const dealId = req.params['id'];
     const parsed = SendSummarySchema.safeParse(req.body);
     if (!parsed.success) throw createError(parsed.error.message, 422);
 
-    const deal = await prisma.deal.findUnique({
-      where: { id: dealId },
+    const deal = await prisma.deal.findFirst({
+      where: { id: dealId, organizationId: orgId },
       include: { deadlines: { orderBy: { computedDate: 'asc' } } },
     });
-    if (!deal) throw createError('Deal not found', 404);
+    if (!deal) throw createError('Deal not found or access denied', 404);
 
     const deadlines = deal.deadlines.map((d) => ({
       label: d.label,
@@ -236,6 +259,7 @@ router.post(
       await prisma.emailLog.create({
         data: {
           dealId,
+          organizationId: orgId,
           recipient,
           template: 'summary',
           status: result.success ? 'SENT' : 'BOUNCED',
@@ -254,16 +278,18 @@ router.post(
 // ── POST /preview ─────────────────────────────────────────────────────────────
 router.post(
   '/preview',
+  requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const dealId = req.params['id'];
     const parsed = PreviewSchema.safeParse(req.body);
     if (!parsed.success) throw createError(parsed.error.message, 422);
 
-    const deal = await prisma.deal.findUnique({
-      where: { id: dealId },
+    const deal = await prisma.deal.findFirst({
+      where: { id: dealId, organizationId: orgId },
       include: { deadlines: true },
     });
-    if (!deal) throw createError('Deal not found', 404);
+    if (!deal) throw createError('Deal not found or access denied', 404);
 
     let targetDeadline = deal.deadlines[0];
     if (parsed.data.deadlineId) {
@@ -308,10 +334,15 @@ router.post(
 // ── GET /log ──────────────────────────────────────────────────────────────────
 router.get(
   '/log',
+  requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const dealId = req.params['id'];
+
+    await getDealForTenant(dealId, orgId);
+
     const logs = await prisma.emailLog.findMany({
-      where: { dealId },
+      where: { dealId, organizationId: orgId },
       orderBy: { sentAt: 'desc' },
       take: 50,
     });
@@ -335,10 +366,11 @@ router.get(
 // ── GET /inbound-address ──────────────────────────────────────────────────────
 router.get(
   '/inbound-address',
+  requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const dealId = req.params['id'];
-    const deal = await prisma.deal.findUnique({ where: { id: dealId } });
-    if (!deal) throw createError('Deal not found', 404);
+    const deal = await getDealForTenant(dealId, orgId);
 
     const domain = process.env['INBOUND_EMAIL_DOMAIN'] ?? 'deals.contingencycopilot.com';
     const alias = deal.inboundAlias ?? `deal-${deal.id.slice(-6)}`;

@@ -141,34 +141,30 @@ export function OrganizationPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-12">
       {/* ── B2B Header Card ── */}
-      <div className="rounded-2xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 text-white shadow-xl border border-indigo-900/50 relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-          <Building2 className="h-64 w-64 text-indigo-400" />
-        </div>
-
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="card p-8 rounded-2xl relative overflow-hidden bg-white border border-slate-200/80 shadow-xs">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 flex items-center gap-1 text-xs">
-                <CheckCircle2 className="h-3.5 w-3.5" /> B2B Enterprise Workspace
-              </Badge>
-              <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/30 text-xs">
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> B2B Enterprise Workspace
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 border border-indigo-200">
                 4 / 10 Agent Seats Used
-              </Badge>
+              </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">
               {orgName}
             </h1>
-            <p className="text-sm text-slate-300 max-w-xl">
+            <p className="text-xs text-slate-500 max-w-xl">
               Manage team members, white-label agency branding, AI persona tone, and custom CRM webhook integrations.
             </p>
           </div>
 
           <button
             onClick={() => setShowInviteModal(true)}
-            className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2 self-start md:self-auto"
+            className="btn-primary self-start md:self-auto"
           >
             <UserPlus className="h-4 w-4" /> Invite Team Member
           </button>
@@ -177,16 +173,15 @@ export function OrganizationPage() {
 
       {/* ── 2-Column Section: White-Label Branding & AI Persona ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
         {/* White-Label Branding Form */}
-        <div className="rounded-2xl bg-white border border-slate-200/80 p-6 shadow-xs space-y-4">
+        <div className="card p-6 rounded-2xl space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
               <Palette className="h-5 w-5 text-indigo-600" /> White-Label Agency Branding
             </h2>
-            <Badge className="bg-purple-50 text-purple-700 border-purple-200 text-[11px]">
+            <span className="inline-block px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-purple-50 text-purple-700 border border-purple-200">
               Custom Branding
-            </Badge>
+            </span>
           </div>
 
           <form onSubmit={handleSaveBranding} className="space-y-4 text-xs">
@@ -196,7 +191,7 @@ export function OrganizationPage() {
                 type="text"
                 value={orgName}
                 onChange={(e) => setOrgName(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
+                className="input-base font-semibold"
               />
             </div>
 
@@ -210,7 +205,7 @@ export function OrganizationPage() {
                   type="text"
                   value={customDomain}
                   onChange={(e) => setCustomDomain(e.target.value)}
-                  className="w-full px-3 py-2 rounded-r-xl border border-slate-200 font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
+                  className="w-full px-3 py-2 rounded-r-xl border border-slate-200 font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900 text-xs"
                 />
               </div>
             </div>
@@ -235,7 +230,7 @@ export function OrganizationPage() {
                   type="number"
                   value={maxAutoBudget}
                   onChange={(e) => setMaxAutoBudget(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
+                  className="input-base font-mono"
                   placeholder="e.g. 2,500,000"
                 />
               </div>
@@ -243,7 +238,7 @@ export function OrganizationPage() {
 
             <button
               type="submit"
-              className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold transition-all flex items-center gap-2 shadow-xs"
+              className="btn-primary"
             >
               {savedBranding ? <Check className="h-4 w-4 text-emerald-400" /> : <Sparkles className="h-4 w-4 text-sky-400" />}
               {savedBranding ? 'Branding Saved!' : 'Save Branding Preferences'}
@@ -252,14 +247,14 @@ export function OrganizationPage() {
         </div>
 
         {/* AI Persona & Tone Configurator */}
-        <div className="rounded-2xl bg-white border border-slate-200/80 p-6 shadow-xs space-y-4">
+        <div className="card p-6 rounded-2xl space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Bot className="h-5 w-5 text-indigo-600" /> AI Tone & Persona Selector
+              <Bot className="h-5 w-5 text-indigo-600" /> AI Tone &amp; Persona Selector
             </h2>
-            <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[11px]">
+            <span className="inline-block px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
               Active Persona
-            </Badge>
+            </span>
           </div>
 
           <p className="text-xs text-slate-500">
@@ -271,12 +266,12 @@ export function OrganizationPage() {
               onClick={() => setAiPersona('PROFESSIONAL')}
               className={`p-3.5 rounded-xl border transition-all flex items-center justify-between cursor-pointer ${
                 aiPersona === 'PROFESSIONAL'
-                  ? 'border-indigo-600 bg-indigo-50/40 text-slate-900'
+                  ? 'border-indigo-600 bg-indigo-50/50 text-slate-900 shadow-2xs'
                   : 'border-slate-200 hover:bg-slate-50 text-slate-600'
               }`}
             >
               <div>
-                <p className="font-bold text-slate-900">🌟 Warm & Professional (Recommended)</p>
+                <p className="font-bold text-slate-900">🌟 Warm &amp; Professional (Recommended)</p>
                 <p className="text-[11px] text-slate-500 mt-0.5">Polite, helpful, consultative. Great for standard buyer inquiries.</p>
               </div>
               <input type="radio" checked={aiPersona === 'PROFESSIONAL'} readOnly className="h-4 w-4 text-indigo-600" />
@@ -286,12 +281,12 @@ export function OrganizationPage() {
               onClick={() => setAiPersona('LUXURY')}
               className={`p-3.5 rounded-xl border transition-all flex items-center justify-between cursor-pointer ${
                 aiPersona === 'LUXURY'
-                  ? 'border-indigo-600 bg-indigo-50/40 text-slate-900'
+                  ? 'border-indigo-600 bg-indigo-50/50 text-slate-900 shadow-2xs'
                   : 'border-slate-200 hover:bg-slate-50 text-slate-600'
               }`}
             >
               <div>
-                <p className="font-bold text-slate-900">💎 Luxury & Exclusive</p>
+                <p className="font-bold text-slate-900">💎 Luxury &amp; Exclusive</p>
                 <p className="text-[11px] text-slate-500 mt-0.5">Refined, discreet, high-end vocabulary for luxury estates ($2M+).</p>
               </div>
               <input type="radio" checked={aiPersona === 'LUXURY'} readOnly className="h-4 w-4 text-indigo-600" />
@@ -301,12 +296,12 @@ export function OrganizationPage() {
               onClick={() => setAiPersona('INVESTOR')}
               className={`p-3.5 rounded-xl border transition-all flex items-center justify-between cursor-pointer ${
                 aiPersona === 'INVESTOR'
-                  ? 'border-indigo-600 bg-indigo-50/40 text-slate-900'
+                  ? 'border-indigo-600 bg-indigo-50/50 text-slate-900 shadow-2xs'
                   : 'border-slate-200 hover:bg-slate-50 text-slate-600'
               }`}
             >
               <div>
-                <p className="font-bold text-slate-900">⚡ Direct & Energetic (Investor Focus)</p>
+                <p className="font-bold text-slate-900">⚡ Direct &amp; Energetic (Investor Focus)</p>
                 <p className="text-[11px] text-slate-500 mt-0.5">Concise, metrics-driven, fast responses tailored for flippers and REIT investors.</p>
               </div>
               <input type="radio" checked={aiPersona === 'INVESTOR'} readOnly className="h-4 w-4 text-indigo-600" />
@@ -316,11 +311,11 @@ export function OrganizationPage() {
       </div>
 
       {/* ── Integration Hub & Embed Code Snippet Card ── */}
-      <div className="rounded-2xl bg-white border border-slate-200/80 p-6 shadow-xs space-y-4">
+      <div className="card p-6 rounded-2xl space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Code className="h-5 w-5 text-indigo-600" /> 1-Click Integrations & Website Widget Embed
+              <Code className="h-5 w-5 text-indigo-600" /> 1-Click Integrations &amp; Website Widget Embed
             </h2>
             <p className="text-xs text-slate-500">
               Copy this embed script to add the AI Live Chat Assistant directly to your brokerage website, or connect Zillow and WhatsApp.
@@ -334,7 +329,7 @@ export function OrganizationPage() {
             <span className="flex-1 truncate">{embedCodeSnippet}</span>
             <button
               onClick={handleCopyEmbedSnippet}
-              className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-sans text-xs font-bold transition-colors flex items-center gap-1.5 shrink-0"
+              className="btn-primary text-xs py-1.5 shrink-0"
             >
               {copiedSnippet ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
               {copiedSnippet ? 'Copied Code!' : 'Copy Snippet'}
@@ -344,7 +339,7 @@ export function OrganizationPage() {
       </div>
 
       {/* ── Team Members Table ── */}
-      <div className="rounded-2xl bg-white border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="card rounded-2xl overflow-hidden">
         <div className="p-6 border-b border-slate-100 flex items-center justify-between">
           <div>
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
@@ -352,14 +347,14 @@ export function OrganizationPage() {
             </h2>
             <p className="text-xs text-slate-500">Agents and administrators belonging to your brokerage organization.</p>
           </div>
-          <Badge className="bg-indigo-50 text-indigo-700 border-indigo-200 text-xs font-semibold">
+          <span className="inline-block px-2.5 py-1 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
             Multi-Tenant Isolated Workspace
-          </Badge>
+          </span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100">
+            <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
               <tr>
                 <th className="py-3.5 px-6">Member Name</th>
                 <th className="py-3.5 px-6">Email Address</th>
@@ -373,7 +368,7 @@ export function OrganizationPage() {
               {teamMembers.map((member) => (
                 <tr key={member.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="py-4 px-6 font-bold text-slate-900 flex items-center gap-2">
-                    <div className="h-7 w-7 rounded-full bg-slate-100 text-slate-700 font-bold flex items-center justify-center text-xs">
+                    <div className="h-7 w-7 rounded-full bg-slate-100 text-slate-700 font-bold flex items-center justify-center text-xs border border-slate-200">
                       {member.name.charAt(0).toUpperCase()}
                     </div>
                     {member.name}
@@ -383,8 +378,8 @@ export function OrganizationPage() {
                     <span
                       className={`px-2 py-0.5 rounded-md font-bold text-[11px] ${
                         member.role === 'BROKER_ADMIN'
-                          ? 'bg-purple-100 text-purple-800 border border-purple-200'
-                          : 'bg-blue-100 text-blue-800 border border-blue-200'
+                          ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                          : 'bg-blue-50 text-blue-700 border border-blue-200'
                       }`}
                     >
                       {member.role === 'BROKER_ADMIN' ? 'Broker Admin' : 'Agent'}
@@ -394,8 +389,8 @@ export function OrganizationPage() {
                     <span
                       className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
                         member.status === 'ACTIVE'
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-amber-100 text-amber-800'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : 'bg-amber-50 text-amber-700 border border-amber-200'
                       }`}
                     >
                       {member.status}
@@ -421,11 +416,11 @@ export function OrganizationPage() {
       </div>
 
       {/* ── Webhook & API Key Settings Card ── */}
-      <div className="rounded-2xl bg-white border border-slate-200/80 p-6 shadow-xs space-y-4">
+      <div className="card p-6 rounded-2xl space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Key className="h-5 w-5 text-indigo-600" /> Organization Webhook & Integration Keys
+              <Key className="h-5 w-5 text-indigo-600" /> Organization Webhook &amp; Integration Keys
             </h2>
             <p className="text-xs text-slate-500">
               Use this secret key to connect your website forms, WhatsApp Cloud API, Zillow, or Facebook Webhooks directly to your AI Lead Management workspace.
@@ -437,7 +432,7 @@ export function OrganizationPage() {
           <span className="flex-1 truncate">{webhookSecret}</span>
           <button
             onClick={handleCopyWebhookSecret}
-            className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-sans text-xs font-bold transition-colors flex items-center gap-1.5"
+            className="btn-primary text-xs py-1.5 shrink-0"
           >
             {copiedKey ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
             {copiedKey ? 'Copied Key!' : 'Copy Secret'}
@@ -447,15 +442,15 @@ export function OrganizationPage() {
 
       {/* ── Invite Modal ── */}
       {showInviteModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 w-full max-w-md shadow-2xl space-y-5">
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 w-full max-w-md shadow-xl space-y-5 animate-in fade-in duration-150">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                 <UserPlus className="h-5 w-5 text-indigo-600" /> Invite Agent to Organization
               </h3>
               <button
                 onClick={() => setShowInviteModal(false)}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-slate-400 hover:text-slate-600 font-semibold"
               >
                 ✕
               </button>
@@ -470,7 +465,7 @@ export function OrganizationPage() {
                   placeholder="agent@brokerage.com"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
+                  className="input-base"
                 />
               </div>
 
@@ -479,25 +474,25 @@ export function OrganizationPage() {
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value as any)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
+                  className="input-base"
                 >
                   <option value="AGENT">Agent (Standard Seat)</option>
                   <option value="BROKER_ADMIN">Broker Admin (Full Access)</option>
                 </select>
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-2">
+              <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowInviteModal(false)}
-                  className="px-4 py-2 rounded-xl border border-slate-200 font-bold text-slate-600 hover:bg-slate-50"
+                  className="btn-secondary"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={sendingInvite}
-                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold flex items-center gap-2 shadow-xs"
+                  className="btn-primary"
                 >
                   {sendingInvite && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                   Send Email Invite

@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// /api/deals/:id/assistant — AI Knowledge Assistant API Routes
+// /api/deals/:id/assistant — AI Knowledge Assistant API Routes with Tenant Scoping
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { Router } from 'express';
@@ -15,19 +15,20 @@ import { chunkDocumentPages } from '../../services/chunk.service.js';
 import { classifyDocument } from '../../services/docClassifier.service.js';
 import { generateEmbedding } from '../../services/embedding.service.js';
 import { asyncHandler, createError } from '../../middleware/errorHandler.js';
+import { requireAuth } from '../../middleware/auth.js';
 import { logger } from '../../utils/logger.js';
 
 const router = Router({ mergeParams: true });
 const prisma = new PrismaClient();
 
-// Rate limiting in-memory map (userId/ip -> timestamps)
+// Rate limiting in-memory map
 const rateLimitMap = new Map<string, number[]>();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = parseInt(process.env['ASSISTANT_RATE_LIMIT'] ?? '30', 10);
 
 function checkRateLimit(key: string): boolean {
   const now = Date.now();
-  const timestamps = (rateLimitMap.get(key) ?? []).filter(t => now - t < RATE_LIMIT_WINDOW_MS);
+  const timestamps = (rateLimitMap.get(key) ?? []).filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
   if (timestamps.length >= MAX_REQUESTS_PER_WINDOW) return false;
   timestamps.push(now);
   rateLimitMap.set(key, timestamps);
@@ -42,10 +43,12 @@ const AskInputSchema = z.object({
 // ── POST /api/deals/:id/assistant/ask ─────────────────────────────────────────
 router.post(
   '/ask',
+  requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const dealId = req.params['id'];
     const actorEmail = req.user?.email ?? 'system';
-    const rateLimitKey = `${dealId}:${actorEmail}`;
+    const rateLimitKey = `${orgId}:${dealId}:${actorEmail}`;
 
     if (!checkRateLimit(rateLimitKey)) {
       throw createError('Assistant rate limit exceeded. Please wait a moment.', 429);
@@ -68,6 +71,7 @@ router.post(
       try {
         const result = await askDealAssistant({
           dealId,
+          organizationId: orgId,
           question,
           conversationId,
           userId: req.user?.id,
@@ -88,9 +92,9 @@ router.post(
       return;
     }
 
-    // Plain JSON response
     const result = await askDealAssistant({
       dealId,
+      organizationId: orgId,
       question,
       conversationId,
       userId: req.user?.id,
@@ -104,9 +108,11 @@ router.post(
 // ── GET /api/deals/:id/assistant/suggestions ──────────────────────────────────
 router.get(
   '/suggestions',
+  requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const dealId = req.params['id'];
-    const suggestions = await getDealSuggestions(dealId);
+    const suggestions = await getDealSuggestions(dealId, orgId);
     res.json({ suggestions });
   }),
 );
@@ -114,9 +120,11 @@ router.get(
 // ── GET /api/deals/:id/assistant/summary ──────────────────────────────────────
 router.get(
   '/summary',
+  requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const dealId = req.params['id'];
-    const summary = await getDealSummary(dealId);
+    const summary = await getDealSummary(dealId, orgId);
     res.json(summary);
   }),
 );
@@ -124,10 +132,12 @@ router.get(
 // ── GET /api/deals/:id/assistant/conversations ────────────────────────────────
 router.get(
   '/conversations',
+  requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const dealId = req.params['id'];
     const conversations = await prisma.assistantConversation.findMany({
-      where: { dealId },
+      where: { dealId, organizationId: orgId },
       orderBy: { updatedAt: 'desc' },
       include: {
         messages: {
@@ -143,10 +153,12 @@ router.get(
 // ── GET /api/deals/:id/assistant/conversations/:cid ───────────────────────────
 router.get(
   '/conversations/:cid',
+  requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const { id: dealId, cid } = req.params;
     const conversation = await prisma.assistantConversation.findFirst({
-      where: { id: cid, dealId },
+      where: { id: cid, dealId, organizationId: orgId },
       include: {
         messages: { orderBy: { createdAt: 'asc' } },
       },
@@ -159,24 +171,30 @@ router.get(
 // ── GET /api/deals/:id/assistant/index-status ─────────────────────────────────
 router.get(
   '/index-status',
+  requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const dealId = req.params['id'];
+
+    const deal = await prisma.deal.findFirst({ where: { id: dealId, organizationId: orgId } });
+    if (!deal) throw createError('Deal not found or access denied', 404);
+
     const documents = await prisma.document.findMany({
-      where: { dealId },
+      where: { dealId, organizationId: orgId },
       include: { _count: { select: { chunks: true } } },
     });
 
     const totalCount = documents.length;
-    const indexedCount = documents.filter(d => d.indexStatus === 'READY').length;
+    const indexedCount = documents.filter((d) => d.indexStatus === 'READY').length;
     const isAllReady = totalCount > 0 && indexedCount === totalCount;
-    const isAnyIndexing = documents.some(d => d.indexStatus === 'INDEXING');
+    const isAnyIndexing = documents.some((d) => d.indexStatus === 'INDEXING');
 
     res.json({
       dealId,
       status: isAllReady ? 'READY' : isAnyIndexing ? 'INDEXING' : totalCount === 0 ? 'READY' : 'PENDING',
       indexedCount,
       totalCount,
-      documents: documents.map(d => ({
+      documents: documents.map((d) => ({
         id: d.id,
         filename: d.filename,
         docType: d.docType,
@@ -191,11 +209,16 @@ router.get(
 // ── POST /api/deals/:id/assistant/reindex ──────────────────────────────────────
 router.post(
   '/reindex',
+  requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const dealId = req.params['id'];
-    const documents = await prisma.document.findMany({ where: { dealId } });
 
-    // Trigger non-blocking reindex
+    const deal = await prisma.deal.findFirst({ where: { id: dealId, organizationId: orgId } });
+    if (!deal) throw createError('Deal not found or access denied', 404);
+
+    const documents = await prisma.document.findMany({ where: { dealId, organizationId: orgId } });
+
     (async () => {
       for (const doc of documents) {
         try {
@@ -204,26 +227,20 @@ router.post(
             data: { indexStatus: 'INDEXING' },
           });
 
-          // Delete existing chunks
           await prisma.documentChunk.deleteMany({ where: { documentId: doc.id } });
 
-          // Extract pages
           const pages = await extractPagesFromPdf(doc.storagePath);
-          const sampleText = pages.map(p => p.text).join('\n').slice(0, 10000);
-
-          // Classify document
+          const sampleText = pages.map((p) => p.text).join('\n').slice(0, 10000);
           const classification = await classifyDocument({ filename: doc.filename, sampleText });
-
-          // Generate chunks
           const chunks = chunkDocumentPages(pages);
 
-          // Embed and save chunks
           for (const chunk of chunks) {
             const embedding = await generateEmbedding(chunk.content);
             await prisma.documentChunk.create({
               data: {
                 documentId: doc.id,
                 dealId,
+                organizationId: orgId,
                 pageNumber: chunk.pageNumber,
                 chunkIndex: chunk.chunkIndex,
                 sectionTitle: chunk.sectionTitle,
@@ -249,6 +266,7 @@ router.post(
           await prisma.auditLog.create({
             data: {
               dealId,
+              organizationId: orgId,
               action: 'DOCUMENT_INDEXED',
               entityType: 'Document',
               entityId: doc.id,

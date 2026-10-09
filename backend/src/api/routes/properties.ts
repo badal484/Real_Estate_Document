@@ -32,13 +32,21 @@ router.get(
   '/',
   requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const search = req.query['search'] as string | undefined;
     const minPrice = req.query['minPrice'] ? Number(req.query['minPrice']) : undefined;
     const maxPrice = req.query['maxPrice'] ? Number(req.query['maxPrice']) : undefined;
     const bedrooms = req.query['bedrooms'] ? Number(req.query['bedrooms']) : undefined;
     const city = req.query['city'] as string | undefined;
 
-    const properties = await getProperties({ search, minPrice, maxPrice, bedrooms, city });
+    const properties = await getProperties({
+      search,
+      minPrice,
+      maxPrice,
+      bedrooms,
+      city,
+      organizationId: orgId,
+    });
     res.json(properties);
   }),
 );
@@ -51,7 +59,8 @@ router.post(
     const parsed = CreatePropertySchema.safeParse(req.body);
     if (!parsed.success) throw createError(parsed.error.message, 422);
 
-    const property = await createProperty(parsed.data);
+    const orgId = req.user!.organizationId;
+    const property = await createProperty({ ...parsed.data, organizationId: orgId });
     res.status(201).json(property);
   }),
 );
@@ -66,7 +75,8 @@ leadMatchesRouter.get(
   requireAuth,
   asyncHandler(async (req, res) => {
     const leadId = req.params['id'];
-    const matches = await computeMatchesForLead(leadId);
+    const orgId = req.user!.organizationId;
+    const matches = await computeMatchesForLead(leadId, orgId);
     res.json(matches);
   }),
 );
@@ -76,7 +86,8 @@ leadMatchesRouter.post(
   requireAuth,
   asyncHandler(async (req, res) => {
     const leadId = req.params['id'];
-    const matches = await computeMatchesForLead(leadId);
+    const orgId = req.user!.organizationId;
+    const matches = await computeMatchesForLead(leadId, orgId);
     res.json({ message: 'Lead matches refreshed successfully', matchesCount: matches.length, matches });
   }),
 );

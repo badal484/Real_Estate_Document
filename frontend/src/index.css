@@ -9,35 +9,35 @@
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 222 47% 11%;
+    --background: 210 33% 98%; /* #f6f9fc Stripe dashboard bg */
+    --foreground: 222 47% 16%; /* #1a1f36 Stripe dark text */
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 222 47% 16%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 222 47% 16%;
 
-    --primary: 222 47% 11%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 247 100% 68%; /* #635bff Stripe royal blue */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 210 25% 96%;
+    --secondary-foreground: 222 47% 16%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 210 25% 96%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 210 25% 96%;
+    --accent-foreground: 222 47% 16%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 350 89% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222 47% 11%;
+    --border: 215 28% 91%; /* #e3e8ee Stripe border */
+    --input: 215 28% 91%;
+    --ring: 247 100% 68%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
   }
 
   html {
@@ -48,17 +48,18 @@
   }
 
   body {
-    @apply bg-slate-50 text-slate-900 antialiased selection:bg-slate-200 selection:text-slate-900;
+    background-color: #f6f9fc;
+    color: #1a1f36;
     min-height: 100vh;
     position: relative;
     overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply tracking-tight font-semibold text-slate-900;
+    @apply tracking-tight font-semibold text-[#0a2540];
   }
 
-  /* Custom Slim Enterprise Scrollbars */
+  /* Custom Stripe Slim Scrollbars */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -67,137 +68,74 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-slate-300/80 rounded-full hover:bg-slate-400 transition-colors;
+    @apply bg-slate-300 rounded-full hover:bg-slate-400 transition-colors;
   }
 }
 
 @layer components {
-  /* ── Glassmorphism Core Design Tokens ── */
-  .glass-panel {
-    background: rgba(255, 255, 255, 0.76);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.85);
-    box-shadow: 0 8px 32px -4px rgba(15, 23, 42, 0.05), 0 0 0 1px rgba(226, 232, 240, 0.75);
+  /* ── Stripe Enterprise Design System Tokens ── */
+  .stripe-nav {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e3e8ee;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
   }
 
-  .glass-card {
-    background: rgba(255, 255, 255, 0.72);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 0 0 1px rgba(226, 232, 240, 0.7);
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  .stripe-card {
+    background-color: #ffffff;
+    border: 1px solid #e3e8ee;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+    transition: all 0.15s ease-in-out;
   }
 
-  .glass-card:hover {
-    background: rgba(255, 255, 255, 0.88);
-    border-color: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 12px 30px -4px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(203, 213, 225, 0.8);
-    transform: translateY(-1px);
+  .stripe-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
   }
 
-  .glass-nav {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(226, 232, 240, 0.7);
-    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.03);
+  /* ── Stripe Buttons ── */
+  .btn-stripe-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-[#635bff] hover:bg-[#5469d4] active:bg-[#4b5ebb] text-white px-3.5 py-1.5 text-xs font-semibold shadow-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
-  .glass-dropdown {
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.9);
-    box-shadow: 0 16px 40px -6px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(226, 232, 240, 0.8);
+  .btn-stripe-navy {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-[#0a2540] hover:bg-[#1a385c] text-white px-3.5 py-1.5 text-xs font-semibold shadow-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
-  .glass-input {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(203, 213, 225, 0.7);
-    box-shadow: inset 0 1px 2px 0 rgba(15, 23, 42, 0.02);
+  .btn-stripe-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-[#e3e8ee] bg-white text-[#4f566b] hover:bg-[#f8f9fa] hover:text-[#1a1f36] px-3.5 py-1.5 text-xs font-semibold shadow-2xs transition-all disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
-  .glass-input:focus {
-    background: rgba(255, 255, 255, 0.95);
-    border-color: rgba(15, 23, 42, 0.8);
-    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.8), 0 4px 12px -2px rgba(15, 23, 42, 0.06);
+  .btn-stripe-ghost {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#4f566b] hover:bg-[#f2f4f8] hover:text-[#1a1f36] transition-all;
   }
 
-  .glass-badge {
-    background: rgba(255, 255, 255, 0.65);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(226, 232, 240, 0.8);
-  }
-
-  /* ── Core Button & Component Styles ── */
-  .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50;
-  }
-  .btn-brand {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-brand-800 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-700 focus:ring-offset-2 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50;
-  }
-  .btn-secondary {
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(226, 232, 240, 0.8);
-    box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-700 transition-all hover:bg-white hover:border-slate-300 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50;
-  }
-  .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition-all hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50;
-  }
   .card {
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.85);
-    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 0 0 1px rgba(226, 232, 240, 0.7);
-    @apply rounded-xl transition-all;
+    @apply rounded-xl border border-[#e3e8ee] bg-white shadow-2xs transition-all;
   }
+
   .card-hover {
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.85);
-    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 0 0 1px rgba(226, 232, 240, 0.7);
-    @apply rounded-xl transition-all hover:bg-white/90 hover:shadow-md hover:border-slate-300;
+    @apply rounded-xl border border-[#e3e8ee] bg-white shadow-2xs transition-all hover:border-[#cbd5e1] hover:shadow-xs;
   }
+
   .input-base {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(226, 232, 240, 0.8);
-    box-shadow: inset 0 1px 2px 0 rgba(15, 23, 42, 0.02);
-    @apply w-full rounded-lg px-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-900 focus:border-slate-900 focus:bg-white transition-all;
+    @apply w-full rounded-lg border border-[#e3e8ee] bg-white px-3 py-1.5 text-xs text-[#1a1f36] placeholder:text-[#a3acb9] focus:border-[#635bff] focus:ring-2 focus:ring-[#635bff]/20 focus:outline-none transition-all;
   }
+
   .label-base {
-    @apply mb-1.5 block text-xs font-semibold text-slate-700;
+    @apply mb-1.5 block text-xs font-semibold text-[#3c4257];
   }
+
   .banner-error {
-    background: rgba(255, 241, 242, 0.85);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 1px 3px 0 rgba(244, 63, 94, 0.1);
-    @apply flex items-start gap-2 rounded-xl border border-rose-200/80 px-3.5 py-2.5 text-xs text-rose-800;
+    @apply flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs text-rose-800;
   }
+
   .banner-success {
-    background: rgba(236, 253, 245, 0.85);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 1px 3px 0 rgba(16, 185, 129, 0.1);
-    @apply flex items-start gap-2 rounded-xl border border-emerald-200/80 px-3.5 py-2.5 text-xs text-emerald-800;
+    @apply flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs text-emerald-800;
   }
+
   .empty-state {
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    @apply rounded-xl border border-dashed border-slate-200/90 p-10 text-center;
+    @apply rounded-xl border border-dashed border-[#e3e8ee] bg-white p-10 text-center;
   }
 }
 

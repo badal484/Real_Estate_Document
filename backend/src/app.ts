@@ -23,11 +23,26 @@ export function createApp() {
 
   // ── Security & parsing middleware ────────────────────────────────────────
   app.use(helmet());
+  const allowedOrigins = [
+    process.env['CORS_ORIGIN'],
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:5173',
+  ].filter(Boolean) as string[];
+
   app.use(
     cors({
-      origin: process.env['CORS_ORIGIN'] ?? 'http://localhost:3000',
+      origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin) || process.env['NODE_ENV'] !== 'production') {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
+      credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Webhook-Signature', 'x-organization-id'],
     }),
   );
   app.use(express.json({ limit: '1mb' }));

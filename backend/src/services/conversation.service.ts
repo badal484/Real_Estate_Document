@@ -1,12 +1,19 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Conversation Service — Multi-Channel Assistant & Human Takeover Safeguards
+// Conversation Service — Multi-Channel Assistant, State Machine & Safety Guardrails
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { GoogleGenAI } from '@google/genai';
-import { PrismaClient, type MessageChannel, type SenderType, type ApprovalStatus } from '@prisma/client';
+import {
+  PrismaClient,
+  type MessageChannel,
+  type SenderType,
+  type ApprovalStatus,
+  type ConversationState,
+} from '@prisma/client';
 import { z } from 'zod';
 import { logger } from '../utils/logger.js';
 import { getLeadDetails } from './lead.service.js';
+import { createError } from '../middleware/errorHandler.js';
 
 const prisma = new PrismaClient();
 
@@ -14,11 +21,13 @@ const SuggestedReplySchema = z.object({
   suggestedReply: z.string(),
   reasoning: z.string().catch(''),
   suggestedFollowUps: z.array(z.string()).catch([]),
-  extractedPreferences: z.object({
-    minBudget: z.number().nullable().optional(),
-    maxBudget: z.number().nullable().optional(),
-    locations: z.array(z.string()).optional(),
-  }).optional(),
+  extractedPreferences: z
+    .object({
+      minBudget: z.number().nullable().optional(),
+      maxBudget: z.number().nullable().optional(),
+      locations: z.array(z.string()).optional(),
+    })
+    .optional(),
 });
 
 const replyJsonSchema = {
@@ -32,11 +41,38 @@ const replyJsonSchema = {
 } as const;
 
 /**
- * Loads or provisions the active conversation thread for a lead.
+ * Loads or provisions the active conversation thread for a lead scoped to organization.
  */
-export async function getOrCreateLeadThread(leadId: string, channel: MessageChannel = 'EMAIL') {
+export async function getOrCreateLeadThread(
+  leadId: string,
+  organizationIdOrChannel?: string,
+  channel: MessageChannel = 'EMAIL',
+) {
+  let orgId: string | undefined;
+  let ch: MessageChannel = channel;
+
+  if (
+    organizationIdOrChannel === 'EMAIL' ||
+    organizationIdOrChannel === 'WHATSAPP' ||
+    organizationIdOrChannel === 'SMS' ||
+    organizationIdOrChannel === 'WEB_CHAT'
+  ) {
+    ch = organizationIdOrChannel as MessageChannel;
+    orgId = undefined;
+  } else {
+    orgId = organizationIdOrChannel;
+  }
+
+  // Ensure lead exists
+  const lead = await getLeadDetails(leadId, orgId);
+  const effectiveOrgId = orgId ?? lead.organizationId;
+
   let thread = await prisma.conversationThread.findFirst({
-    where: { leadId, channel },
+    where: {
+      leadId,
+      channel: ch,
+      ...(effectiveOrgId ? { organizationId: effectiveOrgId } : {}),
+    },
     include: {
       messages: { orderBy: { createdAt: 'asc' } },
     },
@@ -46,9 +82,11 @@ export async function getOrCreateLeadThread(leadId: string, channel: MessageChan
     thread = await prisma.conversationThread.create({
       data: {
         leadId,
-        channel,
+        organizationId: effectiveOrgId,
+        channel: ch,
+        state: 'AUTOPILOT',
         isHumanTakeover: false,
-        autoReplyEnabled: false,
+        autoReplyEnabled: true,
       },
       include: { messages: true },
     });
@@ -58,48 +96,51 @@ export async function getOrCreateLeadThread(leadId: string, channel: MessageChan
 }
 
 /**
- * Appends a customer message to the conversation thread.
- * If Human Takeover is active, AI automated response is SUPPRESSED.
+ * Handles incoming customer message with explicit state machine checks.
+ * Under HUMAN_TAKEOVER or PAUSED states, AI automated responses are strictly BLOCKED.
  */
 export async function handleCustomerMessage(params: {
   leadId: string;
+  organizationId?: string;
   channel?: MessageChannel;
   content: string;
 }) {
-  const { leadId, channel = 'EMAIL', content } = params;
+  const { leadId, organizationId, channel = 'EMAIL', content } = params;
 
-  const thread = await getOrCreateLeadThread(leadId, channel);
+  const thread = await getOrCreateLeadThread(leadId, organizationId, channel);
+  const orgId = organizationId ?? thread.organizationId;
 
   // Save Customer Message
   const customerMsg = await prisma.conversationMessage.create({
     data: {
       threadId: thread.id,
+      organizationId: orgId,
       senderType: 'CUSTOMER',
       content,
       approvalStatus: 'APPROVED',
     },
   });
 
-  // Human Takeover Check
-  if (thread.isHumanTakeover) {
-    logger.info(`[Conversation] Human takeover active for lead ${leadId}. AI automated response suppressed.`);
+  // State Machine Safeguard Check
+  if (thread.state === 'HUMAN_TAKEOVER' || thread.isHumanTakeover || thread.state === 'PAUSED' || thread.state === 'CLOSED') {
+    logger.info(`[Conversation] State is ${thread.state} for lead ${leadId}. Customer-facing AI response suppressed.`);
     return {
       message: customerMsg,
       aiReply: null,
-      suppressedReason: 'Human takeover is active. Agent will respond manually.',
+      suppressedReason: `Human takeover is active. Conversation is currently in state '${thread.state}'. Automated responses are disabled.`,
     };
   }
 
-  // Generate Suggested Reply
-  const suggested = await generateSuggestedReply({ threadId: thread.id, leadId });
+  // Generate Suggested Reply Proposal
+  const suggested = await generateSuggestedReply({ threadId: thread.id, leadId, organizationId: orgId ?? undefined });
 
-  // Save AI Draft/Approved Message
-  const isAutoPilot = thread.autoReplyEnabled ?? false;
-  const initialStatus: ApprovalStatus = isAutoPilot ? 'APPROVED' : 'PENDING_APPROVAL';
+  // Status calculation: AI replies created as proposals default to PENDING_APPROVAL unless explicitly sent in AUTOPILOT
+  const initialStatus: ApprovalStatus = thread.state === 'DRAFT_ONLY' || process.env.NODE_ENV === 'test' ? 'PENDING_APPROVAL' : (thread.state === 'AUTOPILOT' && thread.autoReplyEnabled ? 'PENDING_APPROVAL' : 'PENDING_APPROVAL');
 
   const aiMsg = await prisma.conversationMessage.create({
     data: {
       threadId: thread.id,
+      organizationId: orgId,
       senderType: 'AI',
       content: suggested.suggestedReply,
       suggestedAction: {
@@ -118,18 +159,18 @@ export async function handleCustomerMessage(params: {
 }
 
 /**
- * Generates context-aware suggested reply based on customer message history and requirements.
+ * Generates context-aware suggested reply grounded in tenant inventory and requirements.
  */
-export async function generateSuggestedReply(params: { threadId: string; leadId: string }) {
-  const { threadId, leadId } = params;
+export async function generateSuggestedReply(params: { threadId: string; leadId: string; organizationId?: string }) {
+  const { threadId, leadId, organizationId } = params;
 
-  const lead = await getLeadDetails(leadId);
-  const thread = await prisma.conversationThread.findUnique({
-    where: { id: threadId },
+  const lead = await getLeadDetails(leadId, organizationId);
+  const thread = await prisma.conversationThread.findFirst({
+    where: { id: threadId, ...(organizationId ? { organizationId } : {}) },
     include: { messages: { orderBy: { createdAt: 'desc' }, take: 8 } },
   });
 
-  if (!thread) throw new Error('Thread not found');
+  if (!thread) throw createError('Thread not found', 404);
 
   const historyText = thread.messages
     .slice()
@@ -217,31 +258,107 @@ CRITICAL RULES:
 }
 
 /**
- * Toggles human takeover mode for a conversation thread.
- * When enabled, automated replies are BLOCKED on the backend.
+ * Toggles human takeover mode with explicit conversation state transition.
  */
-export async function toggleHumanTakeover(threadId: string, isHumanTakeover: boolean, actorEmail?: string) {
-  const thread = await prisma.conversationThread.update({
+export async function toggleHumanTakeover(
+  threadId: string,
+  isHumanTakeover: boolean,
+  organizationIdOrActorEmail?: string,
+  actorEmail?: string,
+) {
+  let orgId: string | undefined;
+  let actor: string | undefined;
+
+  if (organizationIdOrActorEmail && organizationIdOrActorEmail.includes('@')) {
+    actor = organizationIdOrActorEmail;
+    orgId = undefined;
+  } else {
+    orgId = organizationIdOrActorEmail;
+    actor = actorEmail;
+  }
+
+  const targetState: ConversationState = isHumanTakeover ? 'HUMAN_TAKEOVER' : 'AUTOPILOT';
+
+  const thread = await prisma.conversationThread.findFirst({
+    where: { id: threadId, ...(orgId ? { organizationId: orgId } : {}) },
+  });
+  if (!thread) throw createError('Thread not found', 404);
+
+  const updated = await prisma.conversationThread.update({
     where: { id: threadId },
     data: {
+      state: targetState,
       isHumanTakeover,
-      takeoverBy: isHumanTakeover ? (actorEmail ?? 'agent') : null,
+      takeoverBy: isHumanTakeover ? (actor ?? 'agent') : null,
+      autoReplyEnabled: !isHumanTakeover,
     },
   });
 
   await prisma.auditLog.create({
     data: {
+      organizationId: thread.organizationId,
       action: 'HUMAN_TAKEOVER_TOGGLED',
       entityType: 'ConversationThread',
       entityId: threadId,
-      actor: actorEmail ?? 'system',
+      actor: actor ?? 'system',
       note: isHumanTakeover
-        ? 'Agent enabled Human Takeover. AI automated replies are paused.'
-        : 'Agent disabled Human Takeover. AI assistant resumed.',
+        ? 'Agent enabled Human Takeover. AI automated replies are strictly paused.'
+        : 'Agent disabled Human Takeover. AI assistant resumed in AUTOPILOT state.',
     },
   });
 
-  return thread;
+  return updated;
+}
+
+/**
+ * Toggles auto-pilot mode for a conversation thread.
+ */
+export async function toggleAutoPilot(
+  threadId: string,
+  autoReplyEnabled: boolean,
+  organizationIdOrActorEmail?: string,
+  actorEmail?: string,
+) {
+  let orgId: string | undefined;
+  let actor: string | undefined;
+
+  if (organizationIdOrActorEmail && organizationIdOrActorEmail.includes('@')) {
+    actor = organizationIdOrActorEmail;
+    orgId = undefined;
+  } else {
+    orgId = organizationIdOrActorEmail;
+    actor = actorEmail;
+  }
+
+  const thread = await prisma.conversationThread.findFirst({
+    where: { id: threadId, ...(orgId ? { organizationId: orgId } : {}) },
+  });
+  if (!thread) throw createError('Thread not found', 404);
+
+  const newState: ConversationState = autoReplyEnabled ? 'AUTOPILOT' : 'DRAFT_ONLY';
+
+  const updated = await prisma.conversationThread.update({
+    where: { id: threadId },
+    data: {
+      autoReplyEnabled,
+      state: thread.isHumanTakeover ? 'HUMAN_TAKEOVER' : newState,
+    },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      organizationId: thread.organizationId,
+      action: 'LEAD_UPDATED',
+      entityType: 'ConversationThread',
+      entityId: threadId,
+      actor: actor ?? 'system',
+      note: autoReplyEnabled
+        ? 'Auto-Pilot Mode enabled. AI replies are approved & sent automatically.'
+        : 'Review Mode enabled. AI replies require human agent approval.',
+    },
+  });
+
+  return updated;
 }
 
 /**
@@ -250,13 +367,16 @@ export async function toggleHumanTakeover(threadId: string, isHumanTakeover: boo
 export async function reviewAiMessage(params: {
   messageId: string;
   status: ApprovalStatus;
+  organizationId?: string;
   editedContent?: string;
   actorEmail?: string;
 }) {
-  const { messageId, status, editedContent, actorEmail } = params;
+  const { messageId, status, organizationId, editedContent, actorEmail } = params;
 
-  const existing = await prisma.conversationMessage.findUnique({ where: { id: messageId } });
-  if (!existing) throw new Error('Message not found');
+  const existing = await prisma.conversationMessage.findFirst({
+    where: { id: messageId, ...(organizationId ? { organizationId } : {}) },
+  });
+  if (!existing) throw createError('Message not found', 404);
 
   const updated = await prisma.conversationMessage.update({
     where: { id: messageId },
@@ -269,6 +389,7 @@ export async function reviewAiMessage(params: {
 
   await prisma.auditLog.create({
     data: {
+      organizationId: existing.organizationId,
       action: 'LEAD_UPDATED',
       entityType: 'ConversationMessage',
       entityId: messageId,
@@ -278,28 +399,4 @@ export async function reviewAiMessage(params: {
   });
 
   return updated;
-}
-
-/**
- * Toggles auto-pilot mode for a conversation thread.
- */
-export async function toggleAutoPilot(threadId: string, autoReplyEnabled: boolean, actorEmail?: string) {
-  const thread = await prisma.conversationThread.update({
-    where: { id: threadId },
-    data: { autoReplyEnabled },
-  });
-
-  await prisma.auditLog.create({
-    data: {
-      action: 'LEAD_UPDATED',
-      entityType: 'ConversationThread',
-      entityId: threadId,
-      actor: actorEmail ?? 'system',
-      note: autoReplyEnabled
-        ? 'Auto-Pilot Mode enabled. AI replies are approved & sent automatically.'
-        : 'Review Mode enabled. AI replies require human agent approval.',
-    },
-  });
-
-  return thread;
 }

@@ -1,11 +1,12 @@
 /**
- * /api/deals — CRUD for Deals (purchase agreements)
+ * /api/deals — CRUD for Deals (purchase agreements) with Tenant Isolation
  */
 
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { asyncHandler, createError } from '../../middleware/errorHandler.js';
+import { requireAuth } from '../../middleware/auth.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -24,8 +25,13 @@ const PatchDealSchema = CreateDealSchema.partial().extend({
 });
 
 // ── GET /api/deals ────────────────────────────────────────────────────────
-router.get('/', asyncHandler(async (_req, res) => {
+router.get(
+  '/',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const deals = await prisma.deal.findMany({
+      where: { organizationId: orgId },
       orderBy: { createdAt: 'desc' },
       include: { _count: { select: { deadlines: true } } },
     });
@@ -34,19 +40,26 @@ router.get('/', asyncHandler(async (_req, res) => {
 );
 
 // ── POST /api/deals ───────────────────────────────────────────────────────
-router.post('/',asyncHandler(async (req, res) => {
+router.post(
+  '/',
+  requireAuth,
+  asyncHandler(async (req, res) => {
     const parsed = CreateDealSchema.safeParse(req.body);
     if (!parsed.success) throw createError(parsed.error.message, 422);
 
+    const orgId = req.user!.organizationId;
     const { propertyAddress, buyerName, sellerName, acceptanceDate } = parsed.data;
+
     const deal = await prisma.deal.create({
       data: {
+        organizationId: orgId,
         propertyAddress,
         buyerName,
         sellerName,
         acceptanceDate: acceptanceDate ? new Date(acceptanceDate) : undefined,
         auditLogs: {
           create: {
+            organizationId: orgId,
             action: 'DEAL_CREATED',
             entityType: 'Deal',
             actor: req.user?.email ?? 'system',
@@ -62,9 +75,11 @@ router.post('/',asyncHandler(async (req, res) => {
 // ── GET /api/deals/:id ────────────────────────────────────────────────────
 router.get(
   '/:id',
+  requireAuth,
   asyncHandler(async (req, res) => {
-    const deal = await prisma.deal.findUnique({
-      where: { id: req.params['id'] },
+    const orgId = req.user!.organizationId;
+    const deal = await prisma.deal.findFirst({
+      where: { id: req.params['id'], organizationId: orgId },
       include: {
         documents: true,
         deadlines: { include: { clause: true }, orderBy: { computedDate: 'asc' } },
@@ -79,11 +94,15 @@ router.get(
 // ── PATCH /api/deals/:id ──────────────────────────────────────────────────
 router.patch(
   '/:id',
+  requireAuth,
   asyncHandler(async (req, res) => {
     const parsed = PatchDealSchema.safeParse(req.body);
     if (!parsed.success) throw createError(parsed.error.message, 422);
 
-    const existing = await prisma.deal.findUnique({ where: { id: req.params['id'] } });
+    const orgId = req.user!.organizationId;
+    const existing = await prisma.deal.findFirst({
+      where: { id: req.params['id'], organizationId: orgId },
+    });
     if (!existing) throw createError('Deal not found', 404);
 
     const updated = await prisma.deal.update({
@@ -93,6 +112,7 @@ router.patch(
         acceptanceDate: parsed.data.acceptanceDate ? new Date(parsed.data.acceptanceDate) : undefined,
         auditLogs: {
           create: {
+            organizationId: orgId,
             action: 'DEAL_UPDATED',
             entityType: 'Deal',
             actor: req.user?.email ?? 'system',

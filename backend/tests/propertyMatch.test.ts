@@ -4,16 +4,24 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 describe('Property Match Service', () => {
+  let testOrgId: string;
   let testLeadId: string;
   let prop1Id: string;
   let prop2Id: string;
 
   beforeAll(async () => {
+    // Provision test Organization
+    const testOrg = await prisma.organization.create({
+      data: { name: 'Property Match Test Org' },
+    });
+    testOrgId = testOrg.id;
+
     // 1. Create test lead with budget ceiling of $700,000 and 3 min bedrooms
     const lead = await prisma.lead.create({
       data: {
         fullName: 'Match Test Buyer',
         email: `match.buyer.${Date.now()}@example.com`,
+        organizationId: testOrgId,
         status: 'NEW',
         priority: 'HIGH',
         requirements: {
@@ -32,6 +40,7 @@ describe('Property Match Service', () => {
 
     // 2. Create qualifying property (Under budget, 3 beds, Downtown)
     const prop1 = await createProperty({
+      organizationId: testOrgId,
       title: 'Modern Downtown Penthouse',
       address: '100 Main St',
       city: 'Downtown',
@@ -45,6 +54,7 @@ describe('Property Match Service', () => {
 
     // 3. Create non-qualifying property (Over budget - $850,000)
     const prop2 = await createProperty({
+      organizationId: testOrgId,
       title: 'Luxury Mansion',
       address: '500 Hilltop Rd',
       city: 'Downtown',
@@ -58,9 +68,11 @@ describe('Property Match Service', () => {
   });
 
   afterAll(async () => {
-    if (testLeadId) await prisma.lead.delete({ where: { id: testLeadId } }).catch(() => {});
     if (prop1Id) await prisma.property.delete({ where: { id: prop1Id } }).catch(() => {});
     if (prop2Id) await prisma.property.delete({ where: { id: prop2Id } }).catch(() => {});
+    if (testLeadId) await prisma.lead.delete({ where: { id: testLeadId } }).catch(() => {});
+    if (testOrgId) await prisma.organization.delete({ where: { id: testOrgId } }).catch(() => {});
+    await prisma.$disconnect();
   });
 
   it('filters out properties that violate hard budget ceilings', async () => {

@@ -1,5 +1,7 @@
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
-import { Navbar } from '@/components/Navbar';
+import { Sidebar } from '@/components/Sidebar';
+import { TopHeader } from '@/components/TopHeader';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { LandingPage } from '@/pages/LandingPage';
@@ -28,36 +30,23 @@ function ProtectedLayout() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      <div className="flex min-h-screen items-center justify-center bg-[#f6f9fc]">
+        <Loader2 className="h-6 w-6 animate-spin text-[#635bff]" />
       </div>
     );
   }
   if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
 
   return (
-    <div className="relative min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-slate-200">
-      {/* ── Atmospheric Ambient Lighting for Glassmorphism ── */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
-      >
-        <div className="absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-sky-400/15 via-blue-500/10 to-transparent blur-3xl" />
-        <div className="absolute top-1/3 -left-40 h-[500px] w-[500px] rounded-full bg-gradient-to-tr from-indigo-400/12 via-slate-400/8 to-transparent blur-3xl" />
-        <div className="absolute -bottom-40 right-1/4 h-[550px] w-[550px] rounded-full bg-gradient-to-t from-teal-400/10 via-emerald-400/6 to-transparent blur-3xl" />
-        <div
-          className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.8) 1px, transparent 0)',
-            backgroundSize: '24px 24px',
-          }}
-        />
-      </div>
+    <div className="flex min-h-screen bg-[#f6f9fc] text-[#1a1f36]">
+      {/* Fixed Left Vertical Sidebar */}
+      <Sidebar />
 
-      <div className="relative z-10 flex min-h-screen flex-col">
-        <Navbar />
-        <main className="flex-1 mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      {/* Main Content Area with Sticky Header */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <TopHeader />
+        <main className="flex-1 p-6 max-w-[1600px] w-full mx-auto">
+          <Breadcrumbs />
           <Outlet />
         </main>
       </div>

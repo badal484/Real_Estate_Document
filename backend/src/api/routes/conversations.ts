@@ -40,7 +40,7 @@ router.get(
   requireAuth,
   asyncHandler(async (req, res) => {
     const leadId = req.params['id'];
-    const thread = await getOrCreateLeadThread(leadId);
+    const thread = await getOrCreateLeadThread(leadId, req.user!.organizationId);
     res.json(thread);
   }),
 );
@@ -56,6 +56,7 @@ router.post(
 
     const result = await handleCustomerMessage({
       leadId,
+      organizationId: req.user!.organizationId,
       content: parsed.data.content,
       channel: parsed.data.channel,
     });
@@ -73,10 +74,11 @@ router.post(
     const parsed = TakeoverSchema.safeParse(req.body);
     if (!parsed.success) throw createError(parsed.error.message, 422);
 
-    const thread = await getOrCreateLeadThread(leadId);
+    const thread = await getOrCreateLeadThread(leadId, req.user!.organizationId);
     const updated = await toggleHumanTakeover(
       thread.id,
       parsed.data.isHumanTakeover,
+      req.user!.organizationId,
       req.user?.email,
     );
 
@@ -93,10 +95,11 @@ router.post(
     const parsed = AutoPilotSchema.safeParse(req.body);
     if (!parsed.success) throw createError(parsed.error.message, 422);
 
-    const thread = await getOrCreateLeadThread(leadId);
+    const thread = await getOrCreateLeadThread(leadId, req.user!.organizationId);
     const updated = await toggleAutoPilot(
       thread.id,
       parsed.data.autoReplyEnabled,
+      req.user!.organizationId,
       req.user?.email,
     );
 
@@ -115,6 +118,7 @@ router.patch(
     const updated = await reviewAiMessage({
       messageId: req.params['msgId'],
       status: parsed.data.status,
+      organizationId: req.user!.organizationId,
       editedContent: parsed.data.editedContent,
       actorEmail: req.user?.email,
     });

@@ -1,9 +1,5 @@
 /**
- * /api/deals/:id/documents — PDF upload + list
- *
- * POST  /api/deals/:id/documents       → upload PDF (multer), store, trigger extraction pipeline
- * GET   /api/deals/:id/documents       → list documents for a deal
- * GET   /api/deals/:id/documents/:docId/url → short-lived signed link to view/download the PDF
+ * /api/deals/:id/documents — PDF upload + list with Tenant Isolation
  */
 
 import { Router } from 'express';
@@ -12,7 +8,9 @@ import { uploadMiddleware } from '../../middleware/upload.js';
 import { storeFile, getSignedDocumentUrl } from '../../services/storage.service.js';
 import { extractClausesFromPdf } from '../../services/ai.service.js';
 import { computeDeadlinesForDeal } from '../../services/deadline.service.js';
+import { extractTransactionTasksFromPdf } from '../../services/transactionTask.service.js';
 import { asyncHandler, createError } from '../../middleware/errorHandler.js';
+import { requireAuth } from '../../middleware/auth.js';
 import { logger } from '../../utils/logger.js';
 
 const router = Router({ mergeParams: true });
@@ -21,9 +19,16 @@ const prisma = new PrismaClient();
 // ── GET /api/deals/:id/documents ──────────────────────────────────────────
 router.get(
   '/',
+  requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
+    const dealId = req.params['id'];
+
+    const deal = await prisma.deal.findFirst({ where: { id: dealId, organizationId: orgId } });
+    if (!deal) throw createError('Deal not found or access denied', 404);
+
     const docs = await prisma.document.findMany({
-      where: { dealId: req.params['id'] },
+      where: { dealId, organizationId: orgId },
       orderBy: { uploadedAt: 'desc' },
     });
     res.json(docs);
@@ -31,23 +36,28 @@ router.get(
 );
 
 // ── POST /api/deals/:id/documents ─────────────────────────────────────────
-router.post('/',uploadMiddleware.single('file'),
+router.post(
+  '/',
+  requireAuth,
+  uploadMiddleware.single('file'),
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const dealId = req.params['id'];
     const file = req.file;
     if (!file) throw createError('No file uploaded', 400);
 
-    // Verify deal exists
-    const deal = await prisma.deal.findUnique({ where: { id: dealId } });
-    if (!deal) throw createError('Deal not found', 404);
+    // Verify deal exists and belongs to tenant
+    const deal = await prisma.deal.findFirst({ where: { id: dealId, organizationId: orgId } });
+    if (!deal) throw createError('Deal not found or access denied', 404);
 
-    // Store file (local disk in dev)
+    // Store file
     const { storagePath } = await storeFile(file.path, file.originalname);
 
-    // Persist document record
+    // Persist document record with organizationId
     const document = await prisma.document.create({
       data: {
         dealId,
+        organizationId: orgId,
         filename: file.originalname,
         storagePath,
         mimeType: file.mimetype,
@@ -59,6 +69,7 @@ router.post('/',uploadMiddleware.single('file'),
     await prisma.auditLog.create({
       data: {
         dealId,
+        organizationId: orgId,
         action: 'DOCUMENT_UPLOADED',
         entityType: 'Document',
         entityId: document.id,
@@ -71,12 +82,9 @@ router.post('/',uploadMiddleware.single('file'),
     logger.info(`[Pipeline] Starting extraction for document ${document.id}`);
 
     await prisma.auditLog.create({
-      data: { dealId, action: 'EXTRACTION_STARTED', entityType: 'Document', entityId: document.id, actor: 'system' },
+      data: { dealId, organizationId: orgId, action: 'EXTRACTION_STARTED', entityType: 'Document', entityId: document.id, actor: 'system' },
     });
 
-    // Always extract from the local temp copy multer wrote to disk — storagePath
-    // may be a remote ImageKit URL when STORAGE_DRIVER=imagekit, and the
-    // extraction pipeline needs local file bytes.
     const extraction = await extractClausesFromPdf(file.path);
     const clauses = await Promise.all(
       extraction.clauses.map((clause) =>
@@ -84,6 +92,7 @@ router.post('/',uploadMiddleware.single('file'),
           data: {
             dealId,
             documentId: document.id,
+            organizationId: orgId,
             clauseType: clause.clauseType,
             rawText: clause.rawText,
             pageNumber: clause.pageNumber,
@@ -98,11 +107,16 @@ router.post('/',uploadMiddleware.single('file'),
 
     const baseAcceptanceDate = deal.acceptanceDate ?? new Date();
     const deadlines = await computeDeadlinesForDeal(dealId, baseAcceptanceDate, clauses);
-    logger.info(`[Pipeline] Extracted ${clauses.length} clauses and computed ${deadlines.length} deadlines`);
+
+    // Extract non-contingency milestone tasks into TaskProposal queue
+    await extractTransactionTasksFromPdf(file.path, dealId, document.id, orgId).catch((err) => {
+      logger.warn(`[Pipeline] Task extraction failed: ${err.message}`);
+    });
 
     await prisma.auditLog.create({
       data: {
         dealId,
+        organizationId: orgId,
         action: 'EXTRACTION_COMPLETED',
         entityType: 'Document',
         entityId: document.id,
@@ -135,6 +149,7 @@ router.post('/',uploadMiddleware.single('file'),
             data: {
               documentId: document.id,
               dealId,
+              organizationId: orgId,
               pageNumber: chunk.pageNumber,
               chunkIndex: chunk.chunkIndex,
               sectionTitle: chunk.sectionTitle,
@@ -162,14 +177,14 @@ router.post('/',uploadMiddleware.single('file'),
             where: { id: dealId },
             data: { acceptanceDate: classification.effectiveDate },
           });
-          const allClauses = await prisma.contingencyClause.findMany({ where: { dealId } });
+          const allClauses = await prisma.contingencyClause.findMany({ where: { dealId, organizationId: orgId } });
           await computeDeadlinesForDeal(dealId, classification.effectiveDate, allClauses);
         }
-
 
         await prisma.auditLog.create({
           data: {
             dealId,
+            organizationId: orgId,
             action: 'DOCUMENT_INDEXED',
             entityType: 'Document',
             entityId: document.id,
@@ -201,14 +216,15 @@ router.post('/',uploadMiddleware.single('file'),
 );
 
 // ── GET /api/deals/:id/documents/:docId/url ────────────────────────────────
-// Returns a link to the document that's valid for a short time (15 min).
-// Documents are stored privately, so the stored storagePath itself won't load.
 router.get(
   '/:docId/url',
+  requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const { id: dealId, docId } = req.params;
-    const document = await prisma.document.findFirst({ where: { id: docId, dealId } });
-    if (!document) throw createError('Document not found', 404);
+
+    const document = await prisma.document.findFirst({ where: { id: docId, dealId, organizationId: orgId } });
+    if (!document) throw createError('Document not found or access denied', 404);
 
     const url = getSignedDocumentUrl(document.storagePath);
     res.json({ url, expiresInSeconds: 900 });
@@ -216,13 +232,15 @@ router.get(
 );
 
 // ── GET /api/deals/:id/documents/:docId/file ───────────────────────────────
-// Securely streams the actual PDF file binary to the browser with CORS headers
 router.get(
   '/:docId/file',
+  requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const { id: dealId, docId } = req.params;
-    const document = await prisma.document.findFirst({ where: { id: docId, dealId } });
-    if (!document) throw createError('Document not found', 404);
+
+    const document = await prisma.document.findFirst({ where: { id: docId, dealId, organizationId: orgId } });
+    if (!document) throw createError('Document not found or access denied', 404);
 
     const { readFile } = await import('node:fs/promises');
     const { existsSync } = await import('node:fs');

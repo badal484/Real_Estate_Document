@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// /api/leads — AI Lead Management API Routes
+// /api/leads — AI Lead Management API Routes with Tenant Isolation
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { Router } from 'express';
@@ -14,7 +14,6 @@ import {
 import { PrismaClient } from '@prisma/client';
 import { asyncHandler, createError } from '../../middleware/errorHandler.js';
 import { requireAuth } from '../../middleware/auth.js';
-import { logger } from '../../utils/logger.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -26,6 +25,7 @@ const InboundLeadSchema = z.object({
   source: z.enum(['WEBSITE_FORM', 'PORTAL_INQUIRY', 'WHATSAPP', 'EMAIL', 'MANUAL']).optional(),
   externalId: z.string().optional().nullable(),
   enquiryText: z.string().optional().nullable(),
+  organizationId: z.string().optional().nullable(),
 });
 
 const UpdateLeadSchema = z.object({
@@ -69,11 +69,12 @@ router.get(
   '/',
   requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const search = req.query['search'] as string | undefined;
     const status = req.query['status'] as any;
     const priority = req.query['priority'] as any;
 
-    const leads = await getLeads({ search, status, priority });
+    const leads = await getLeads({ search, status, priority, organizationId: orgId });
     res.json(leads);
   }),
 );
@@ -83,12 +84,14 @@ router.post(
   '/',
   requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const parsed = InboundLeadSchema.safeParse(req.body);
     if (!parsed.success) throw createError(parsed.error.message, 422);
 
     const lead = await ingestInboundLead({
       ...parsed.data,
       source: parsed.data.source ?? 'MANUAL',
+      organizationId: orgId,
     });
     res.status(201).json(lead);
   }),
@@ -99,7 +102,8 @@ router.get(
   '/:id',
   requireAuth,
   asyncHandler(async (req, res) => {
-    const lead = await getLeadDetails(req.params['id']);
+    const orgId = req.user!.organizationId;
+    const lead = await getLeadDetails(req.params['id'], orgId);
     res.json(lead);
   }),
 );
@@ -109,11 +113,14 @@ router.patch(
   '/:id',
   requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const parsed = UpdateLeadSchema.safeParse(req.body);
     if (!parsed.success) throw createError(parsed.error.message, 422);
 
     const leadId = req.params['id'];
-    const existing = await prisma.lead.findUnique({ where: { id: leadId } });
+    const existing = await prisma.lead.findFirst({
+      where: { id: leadId, organizationId: orgId },
+    });
     if (!existing) throw createError('Lead not found', 404);
 
     const updated = await prisma.lead.update({
@@ -124,6 +131,7 @@ router.patch(
 
     await prisma.auditLog.create({
       data: {
+        organizationId: orgId,
         action: 'LEAD_UPDATED',
         entityType: 'Lead',
         entityId: leadId,
@@ -142,11 +150,12 @@ router.patch(
   '/:id/requirements',
   requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const parsed = RequirementUpdateSchema.safeParse(req.body);
     if (!parsed.success) throw createError(parsed.error.message, 422);
 
     const leadId = req.params['id'];
-    const updated = await updateLeadRequirements(leadId, parsed.data, req.user?.email);
+    const updated = await updateLeadRequirements(leadId, parsed.data, orgId, req.user?.email);
     res.json(updated);
   }),
 );
@@ -156,11 +165,12 @@ router.post(
   '/:id/extract',
   requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const parsed = ExtractInputSchema.safeParse(req.body);
     if (!parsed.success) throw createError(parsed.error.message, 422);
 
     const leadId = req.params['id'];
-    const requirements = await extractAndPersistRequirements(leadId, parsed.data.enquiryText);
+    const requirements = await extractAndPersistRequirements(leadId, parsed.data.enquiryText, orgId);
     res.json(requirements);
   }),
 );

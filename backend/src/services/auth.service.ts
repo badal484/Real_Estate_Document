@@ -12,6 +12,7 @@ export interface SessionUser {
   email: string;
   name: string | null;
   pictureUrl: string | null;
+  organizationId: string;
 }
 
 function requireEnv(name: string): string {
@@ -26,8 +27,38 @@ function getGoogleClient(): OAuth2Client {
   return googleClient;
 }
 
+async function ensureUserOrganization(user: User): Promise<User> {
+  if (user.organizationId) return user;
+
+  let org = await prisma.organization.findFirst({
+    where: { name: 'Apex Realty Brokerage' },
+  });
+
+  if (!org) {
+    org = await prisma.organization.create({
+      data: { name: 'Apex Realty Brokerage' },
+    });
+  }
+
+  const updated = await prisma.user.update({
+    where: { id: user.id },
+    data: { organizationId: org.id },
+  });
+
+  return updated;
+}
+
 function toSessionUser(user: User): SessionUser {
-  return { id: user.id, email: user.email, name: user.name, pictureUrl: user.pictureUrl };
+  if (!user.organizationId) {
+    throw createError('User is not associated with an organization', 403);
+  }
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    pictureUrl: user.pictureUrl,
+    organizationId: user.organizationId,
+  };
 }
 
 /** Verify a Google Identity Services ID token and upsert the matching user. */
@@ -49,11 +80,14 @@ export async function signInWithGoogle(credential: string): Promise<{ token: str
     pictureUrl: payload.picture ?? null,
     lastLoginAt: new Date(),
   };
-  const user = await prisma.user.upsert({
+
+  let user = await prisma.user.upsert({
     where: { googleId: payload.sub },
     update: profile,
     create: { googleId: payload.sub, ...profile },
   });
+
+  user = await ensureUserOrganization(user);
 
   const sessionUser = toSessionUser(user);
   const jwtSecret = process.env['JWT_SECRET'] || 'development-fallback-secret-2026';
@@ -74,11 +108,13 @@ export async function signInAsDemoAgent(): Promise<{ token: string; user: Sessio
     lastLoginAt: new Date(),
   };
 
-  const user = await prisma.user.upsert({
+  let user = await prisma.user.upsert({
     where: { googleId: demoGoogleId },
     update: profile,
     create: { googleId: demoGoogleId, ...profile },
   });
+
+  user = await ensureUserOrganization(user);
 
   const sessionUser = toSessionUser(user);
   const jwtSecret = process.env['JWT_SECRET'] || 'development-fallback-secret-2026';
@@ -94,7 +130,16 @@ export function verifySessionToken(token: string): SessionUser {
   try {
     const jwtSecret = process.env['JWT_SECRET'] || 'development-fallback-secret-2026';
     const decoded = jwt.verify(token, jwtSecret) as jwt.JwtPayload & SessionUser;
-    return { id: decoded.id, email: decoded.email, name: decoded.name, pictureUrl: decoded.pictureUrl };
+    if (!decoded.organizationId) {
+      throw new Error('Missing organizationId in session token');
+    }
+    return {
+      id: decoded.id,
+      email: decoded.email,
+      name: decoded.name,
+      pictureUrl: decoded.pictureUrl,
+      organizationId: decoded.organizationId,
+    };
   } catch {
     throw createError('Session expired or invalid — please sign in again', 401);
   }

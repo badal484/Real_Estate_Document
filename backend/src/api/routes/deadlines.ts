@@ -1,14 +1,12 @@
 /**
- * /api/deals/:id/deadlines — View and confirm/edit deadlines
- *
- * GET   /api/deals/:id/deadlines          → list all deadlines for a deal
- * PATCH /api/deals/:id/deadlines/:dId     → confirm or edit a deadline date
+ * /api/deals/:id/deadlines — View and confirm/edit deadlines with Tenant Isolation
  */
 
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { asyncHandler, createError } from '../../middleware/errorHandler.js';
+import { requireAuth } from '../../middleware/auth.js';
 import { scheduleAlerts } from '../../services/alert.service.js';
 import { computeDeadlinesForDeal } from '../../services/deadline.service.js';
 
@@ -16,30 +14,38 @@ const router = Router({ mergeParams: true });
 const prisma = new PrismaClient();
 
 const ConfirmDeadlineSchema = z.object({
-  confirmedDate: z.string().datetime(),        // ISO 8601 — user can override computed date
-  confirmedBy: z.string().min(1).optional(),   // agent name or email
-  activate: z.boolean().optional(),            // true → status becomes ACTIVE + schedule alerts
+  confirmedDate: z.string().datetime(),
+  confirmedBy: z.string().min(1).optional(),
+  activate: z.boolean().optional(),
 });
 
 // ── GET /api/deals/:id/deadlines ──────────────────────────────────────────
-router.get('/', asyncHandler(async (req, res) => {
+router.get(
+  '/',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const dealId = req.params['id'];
+
+    const deal = await prisma.deal.findFirst({ where: { id: dealId, organizationId: orgId } });
+    if (!deal) throw createError('Deal not found or access denied', 404);
+
     let deadlines = await prisma.deadline.findMany({
-      where: { dealId },
+      where: { dealId, organizationId: orgId },
       include: { clause: true },
       orderBy: { computedDate: 'asc' },
     });
 
     if (deadlines.length === 0) {
-      const deal = await prisma.deal.findUnique({
-        where: { id: dealId },
+      const fullDeal = await prisma.deal.findFirst({
+        where: { id: dealId, organizationId: orgId },
         include: { clauses: true },
       });
-      if (deal && deal.clauses.length > 0) {
-        const baseDate = deal.acceptanceDate ?? deal.createdAt;
-        await computeDeadlinesForDeal(dealId, baseDate, deal.clauses);
+      if (fullDeal && fullDeal.clauses.length > 0) {
+        const baseDate = fullDeal.acceptanceDate ?? fullDeal.createdAt;
+        await computeDeadlinesForDeal(dealId, baseDate, fullDeal.clauses);
         deadlines = await prisma.deadline.findMany({
-          where: { dealId },
+          where: { dealId, organizationId: orgId },
           include: { clause: true },
           orderBy: { computedDate: 'asc' },
         });
@@ -53,12 +59,16 @@ router.get('/', asyncHandler(async (req, res) => {
 // ── PATCH /api/deals/:id/deadlines/:dId ──────────────────────────────────
 router.patch(
   '/:dId',
+  requireAuth,
   asyncHandler(async (req, res) => {
+    const orgId = req.user!.organizationId;
     const parsed = ConfirmDeadlineSchema.safeParse(req.body);
     if (!parsed.success) throw createError(parsed.error.message, 422);
 
-    const existing = await prisma.deadline.findUnique({ where: { id: req.params['dId'] } });
-    if (!existing) throw createError('Deadline not found', 404);
+    const existing = await prisma.deadline.findFirst({
+      where: { id: req.params['dId'], organizationId: orgId },
+    });
+    if (!existing) throw createError('Deadline not found or access denied', 404);
 
     const { confirmedDate, activate } = parsed.data;
     const confirmedBy = req.user?.email ?? parsed.data.confirmedBy;
@@ -75,10 +85,10 @@ router.patch(
       },
     });
 
-    // Write audit log
     await prisma.auditLog.create({
       data: {
         dealId: existing.dealId,
+        organizationId: orgId,
         action: isEdit ? 'DEADLINE_EDITED' : 'DEADLINE_CONFIRMED',
         entityType: 'Deadline',
         entityId: existing.id,
@@ -88,12 +98,12 @@ router.patch(
       },
     });
 
-    // If activating, schedule alerts (stub)
     if (activate) {
       await scheduleAlerts(existing.dealId);
       await prisma.auditLog.create({
         data: {
           dealId: existing.dealId,
+          organizationId: orgId,
           action: 'DEADLINE_ACTIVATED',
           entityType: 'Deadline',
           entityId: existing.id,
