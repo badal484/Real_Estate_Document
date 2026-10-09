@@ -1,25 +1,20 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { dealsApi } from '@/services/api';
 import type { Deal } from '@/types';
 import {
   BarChart3,
-  Building2,
   Clock,
   ShieldCheck,
   TrendingUp,
-  CheckCircle2,
-  Calendar,
   Layers,
   DollarSign,
   Users,
   Award,
   Zap,
   Download,
-  Filter,
   PieChart as PieChartIcon,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import {
   AreaChart,
   Area,
@@ -33,7 +28,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend,
 } from 'recharts';
 
 interface AgentLeaderboard {
@@ -68,16 +62,16 @@ const CONTINGENCY_BREAKDOWN = [
 ];
 
 const LEAD_SOURCE_DATA = [
-  { name: 'Website Portal', value: 45, color: '#635bff' },
-  { name: 'Zillow / Realtor', value: 30, color: '#00d4b2' },
-  { name: 'WhatsApp Bot', value: 15, color: '#0a2540' },
-  { name: 'Referral Direct', value: 10, color: '#ffc700' },
+  { name: 'Website Portal', value: 45, color: '#C9A961' },
+  { name: 'Zillow / Realtor', value: 30, color: '#34D399' },
+  { name: 'WhatsApp Bot', value: 15, color: '#818CF8' },
+  { name: 'Referral Direct', value: 10, color: '#F59E0B' },
 ];
 
 export function AnalyticsPage() {
-  const [deals, setDeals] = useState<Deal[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [, setDeals] = useState<Deal[]>([]);
+  const [, setLoading] = useState(true);
+  const [, setError] = useState<string | null>(null);
 
   useEffect(() => {
     dealsApi
@@ -141,32 +135,35 @@ export function AnalyticsPage() {
 
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto pb-12">
-      {/* ── Stripe Enterprise Header Controls ── */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-[#e3e8ee] pb-5">
+      {/* ── Luxury Header Controls ── */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-white/[0.08] pb-5">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold tracking-tight text-[#0a2540]">
+            <h1 className="text-2xl font-semibold tracking-tight text-[#F5F5F7]">
               Brokerage Analytics & Intelligence
             </h1>
-            <span className="inline-flex items-center gap-1 rounded-full bg-[#635bff]/10 px-2.5 py-0.5 text-xs font-bold text-[#635bff] border border-[#635bff]/20">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#635bff] animate-pulse" />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#C9A961]/10 px-2.5 py-0.5 text-xs font-medium text-[#C9A961] border border-[#C9A961]/20">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#C9A961] animate-pulse" />
               Live Executive Dashboard
             </span>
           </div>
-          <p className="text-xs text-[#4f566b] mt-0.5">
+          <p className="text-xs text-[#9A9AA5] mt-1">
             Real-time pipeline velocity, escrow volume trendline, contingency speed metrics, and commission forecasting.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <button
-            onClick={() => alert('Exporting Stripe Analytics PDF/CSV summary...')}
-            className="btn-stripe-secondary text-xs"
+            onClick={() => alert('Exporting Analytics PDF/CSV summary...')}
+            className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-[#141418] hover:bg-white/[0.06] hover:border-white/20 text-[#F5F5F7] px-4 py-2 text-xs font-medium transition-all"
           >
-            <Download className="h-3.5 w-3.5 text-[#4f566b]" />
+            <Download className="h-3.5 w-3.5 text-[#9A9AA5]" />
             <span>Export Analytics</span>
           </button>
-          <Link to="/organization" className="btn-stripe-primary text-xs">
+          <Link
+            to="/organization"
+            className="inline-flex items-center gap-1.5 rounded-full bg-[#C9A961] hover:bg-[#D4B774] text-[#0A0A0B] px-4 py-2 text-xs font-semibold transition-all shadow-sm"
+          >
             <Users className="h-3.5 w-3.5" />
             <span>Manage Team Seats</span>
           </Link>
@@ -176,94 +173,94 @@ export function AnalyticsPage() {
       {/* ── Top Metric Cards Grid ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Speed to Lead */}
-        <div className="stripe-card p-4 bg-white relative overflow-hidden">
+        <div className="bg-[#141418] border border-white/[0.08] rounded-xl p-4.5 relative overflow-hidden shadow-lg group hover:border-[#C9A961]/30 transition-all">
           <div className="flex items-start justify-between">
             <div>
-              <span className="text-[11px] font-bold text-[#4f566b] uppercase tracking-wider">
+              <span className="text-[11px] font-medium text-[#9A9AA5] uppercase tracking-wider">
                 Avg Speed to Lead
               </span>
-              <div className="text-2xl font-black text-[#059669] font-mono mt-1">
+              <div className="text-2xl font-bold text-[#34D399] font-mono mt-1">
                 14 sec
               </div>
             </div>
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-[#059669] border border-emerald-200">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#34D399]/10 text-[#34D399] border border-[#34D399]/20">
               <Zap className="h-4.5 w-4.5" />
             </div>
           </div>
-          <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-[#e3e8ee]">
-            <span className="text-[#059669] font-bold text-[11px]">
+          <div className="mt-3 flex items-center justify-between text-xs pt-2.5 border-t border-white/[0.06]">
+            <span className="text-[#34D399] font-medium text-[11px]">
               ⚡ 99.8% faster than industry avg
             </span>
-            <span className="text-[#8792a2] text-[10px]">Real-Time AI</span>
+            <span className="text-[#6E6E7A] text-[10px]">Real-Time AI</span>
           </div>
         </div>
 
         {/* Est Commission */}
-        <div className="stripe-card p-4 bg-white relative overflow-hidden">
+        <div className="bg-[#141418] border border-white/[0.08] rounded-xl p-4.5 relative overflow-hidden shadow-lg group hover:border-[#C9A961]/30 transition-all">
           <div className="flex items-start justify-between">
             <div>
-              <span className="text-[11px] font-bold text-[#4f566b] uppercase tracking-wider">
+              <span className="text-[11px] font-medium text-[#9A9AA5] uppercase tracking-wider">
                 Commission Pipeline
               </span>
-              <div className="text-2xl font-black text-[#0a2540] font-mono mt-1">
+              <div className="text-2xl font-bold text-[#C9A961] font-mono mt-1">
                 $89,100
               </div>
             </div>
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#635bff]/10 text-[#635bff] border border-[#635bff]/20">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#C9A961]/10 text-[#C9A961] border border-[#C9A961]/20">
               <DollarSign className="h-4.5 w-4.5" />
             </div>
           </div>
-          <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-[#e3e8ee]">
-            <span className="text-[#635bff] font-bold text-[11px]">
-              <TrendingUp className="h-3.5 w-3.5 inline mr-1" /> +24% QoQ Growth
+          <div className="mt-3 flex items-center justify-between text-xs pt-2.5 border-t border-white/[0.06]">
+            <span className="text-[#C9A961] font-medium text-[11px] flex items-center gap-1">
+              <TrendingUp className="h-3.5 w-3.5" /> +24% QoQ Growth
             </span>
-            <span className="text-[#8792a2] text-[10px]">18 Deals Closed</span>
+            <span className="text-[#6E6E7A] text-[10px]">18 Deals Closed</span>
           </div>
         </div>
 
         {/* Hours Saved */}
-        <div className="stripe-card p-4 bg-white relative overflow-hidden">
+        <div className="bg-[#141418] border border-white/[0.08] rounded-xl p-4.5 relative overflow-hidden shadow-lg group hover:border-[#C9A961]/30 transition-all">
           <div className="flex items-start justify-between">
             <div>
-              <span className="text-[11px] font-bold text-[#4f566b] uppercase tracking-wider">
+              <span className="text-[11px] font-medium text-[#9A9AA5] uppercase tracking-wider">
                 Agent Hours Saved
               </span>
-              <div className="text-2xl font-black text-[#0a2540] font-mono mt-1">
+              <div className="text-2xl font-bold text-[#F5F5F7] font-mono mt-1">
                 214 hrs
               </div>
             </div>
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0a2540]/10 text-[#0a2540] border border-[#0a2540]/20">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/[0.06] text-[#F5F5F7] border border-white/[0.08]">
               <Clock className="h-4.5 w-4.5" />
             </div>
           </div>
-          <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-[#e3e8ee]">
-            <span className="text-[#0a2540] font-bold text-[11px]">
+          <div className="mt-3 flex items-center justify-between text-xs pt-2.5 border-t border-white/[0.06]">
+            <span className="text-[#9A9AA5] font-medium text-[11px]">
               5.3 work weeks reclaimed
             </span>
-            <span className="text-[#8792a2] text-[10px]">Auto-Pilot RAG</span>
+            <span className="text-[#6E6E7A] text-[10px]">Auto-Pilot RAG</span>
           </div>
         </div>
 
         {/* Protection Rate */}
-        <div className="stripe-card p-4 bg-white relative overflow-hidden">
+        <div className="bg-[#141418] border border-white/[0.08] rounded-xl p-4.5 relative overflow-hidden shadow-lg group hover:border-[#C9A961]/30 transition-all">
           <div className="flex items-start justify-between">
             <div>
-              <span className="text-[11px] font-bold text-[#4f566b] uppercase tracking-wider">
+              <span className="text-[11px] font-medium text-[#9A9AA5] uppercase tracking-wider">
                 Contingency SLA Rate
               </span>
-              <div className="text-2xl font-black text-[#059669] font-mono mt-1">
+              <div className="text-2xl font-bold text-[#34D399] font-mono mt-1">
                 100%
               </div>
             </div>
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-[#059669] border border-emerald-200">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#34D399]/10 text-[#34D399] border border-[#34D399]/20">
               <ShieldCheck className="h-4.5 w-4.5" />
             </div>
           </div>
-          <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-[#e3e8ee]">
-            <span className="text-[#059669] font-bold text-[11px]">
+          <div className="mt-3 flex items-center justify-between text-xs pt-2.5 border-t border-white/[0.06]">
+            <span className="text-[#34D399] font-medium text-[11px]">
               0 Deposit Forfeitures
             </span>
-            <span className="text-[#8792a2] text-[10px]">Zero Missed</span>
+            <span className="text-[#6E6E7A] text-[10px]">Zero Missed</span>
           </div>
         </div>
       </div>
@@ -271,18 +268,18 @@ export function AnalyticsPage() {
       {/* ── Interactive Recharts Graphical Analytics Section ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Monthly Volume Trend Area Chart (2 Cols) */}
-        <div className="lg:col-span-2 stripe-card p-5 space-y-4 bg-white">
-          <div className="flex items-center justify-between border-b border-[#e3e8ee] pb-3">
+        <div className="lg:col-span-2 bg-[#141418] border border-white/[0.08] rounded-xl p-5 space-y-4 shadow-lg">
+          <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
             <div>
-              <h2 className="text-sm font-bold text-[#0a2540] flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-[#635bff]" />
+              <h2 className="text-sm font-semibold text-[#F5F5F7] flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-[#C9A961]" />
                 Escrow Volume &amp; Transaction Growth ($M)
               </h2>
-              <p className="text-[11px] text-[#4f566b]">
+              <p className="text-[11px] text-[#9A9AA5] mt-0.5">
                 Monthly total volume in escrow vs. successfully closed contract pipeline.
               </p>
             </div>
-            <span className="text-[11px] font-extrabold text-[#635bff] bg-[#635bff]/10 px-2.5 py-1 rounded-md border border-[#635bff]/20 font-mono">
+            <span className="text-[11px] font-bold text-[#C9A961] bg-[#C9A961]/10 px-2.5 py-1 rounded-md border border-[#C9A961]/20 font-mono">
               $12.3M YTD Peak
             </span>
           </div>
@@ -292,43 +289,45 @@ export function AnalyticsPage() {
               <AreaChart data={MONTHLY_VOLUME_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#635bff" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#635bff" stopOpacity={0.0} />
+                    <stop offset="5%" stopColor="#C9A961" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#C9A961" stopOpacity={0.0} />
                   </linearGradient>
                   <linearGradient id="colorClosed" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#059669" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#059669" stopOpacity={0.0} />
+                    <stop offset="5%" stopColor="#34D399" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#34D399" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e3e8ee" vertical={false} />
-                <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#4f566b' }} axisLine={{ stroke: '#e3e8ee' }} />
-                <YAxis tick={{ fontSize: 11, fill: '#4f566b' }} axisLine={{ stroke: '#e3e8ee' }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#6E6E7A' }} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} />
+                <YAxis tick={{ fontSize: 11, fill: '#6E6E7A' }} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#ffffff',
-                    borderColor: '#e3e8ee',
+                    backgroundColor: '#141418',
+                    borderColor: 'rgba(255,255,255,0.12)',
                     borderRadius: '8px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
                     fontSize: '12px',
                     fontWeight: 600,
+                    color: '#F5F5F7',
                   }}
+                  itemStyle={{ color: '#F5F5F7' }}
                 />
-                <Area type="monotone" dataKey="volume" name="Escrow Volume ($M)" stroke="#635bff" strokeWidth={2.5} fillOpacity={1} fill="url(#colorVolume)" />
-                <Area type="monotone" dataKey="closed" name="Closed Count" stroke="#059669" strokeWidth={2} fillOpacity={1} fill="url(#colorClosed)" />
+                <Area type="monotone" dataKey="volume" name="Escrow Volume ($M)" stroke="#C9A961" strokeWidth={2.5} fillOpacity={1} fill="url(#colorVolume)" />
+                <Area type="monotone" dataKey="closed" name="Closed Count" stroke="#34D399" strokeWidth={2} fillOpacity={1} fill="url(#colorClosed)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Lead Source Breakdown Donut Chart (1 Col) */}
-        <div className="stripe-card p-5 space-y-4 bg-white flex flex-col justify-between">
+        <div className="bg-[#141418] border border-white/[0.08] rounded-xl p-5 space-y-4 shadow-lg flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between border-b border-[#e3e8ee] pb-3">
-              <h2 className="text-sm font-bold text-[#0a2540] flex items-center gap-2">
-                <PieChartIcon className="h-4 w-4 text-[#635bff]" />
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+              <h2 className="text-sm font-semibold text-[#F5F5F7] flex items-center gap-2">
+                <PieChartIcon className="h-4 w-4 text-[#C9A961]" />
                 Inbound Lead Attribution
               </h2>
-              <span className="text-[10px] text-[#8792a2]">Parsed automatically</span>
+              <span className="text-[10px] text-[#6E6E7A]">Parsed automatically</span>
             </div>
 
             <div className="h-56 w-full my-2">
@@ -349,25 +348,27 @@ export function AnalyticsPage() {
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: '#ffffff',
-                      borderColor: '#e3e8ee',
+                      backgroundColor: '#141418',
+                      borderColor: 'rgba(255,255,255,0.12)',
                       borderRadius: '8px',
                       fontSize: '11px',
+                      color: '#F5F5F7',
                     }}
+                    itemStyle={{ color: '#F5F5F7' }}
                   />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          <div className="space-y-1.5 pt-2 border-t border-[#e3e8ee]">
+          <div className="space-y-2 pt-2 border-t border-white/[0.06]">
             {LEAD_SOURCE_DATA.map((source) => (
               <div key={source.name} className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: source.color }} />
-                  <span className="text-[#3c4257] font-semibold">{source.name}</span>
+                  <span className="text-[#9A9AA5] font-medium">{source.name}</span>
                 </div>
-                <span className="font-mono text-[#0a2540] font-bold">{source.value}%</span>
+                <span className="font-mono text-[#F5F5F7] font-bold">{source.value}%</span>
               </div>
             ))}
           </div>
@@ -375,18 +376,18 @@ export function AnalyticsPage() {
       </div>
 
       {/* ── Contingency Resolution Speed Bar Chart ── */}
-      <div className="stripe-card p-5 space-y-4 bg-white">
-        <div className="flex items-center justify-between border-b border-[#e3e8ee] pb-3">
+      <div className="bg-[#141418] border border-white/[0.08] rounded-xl p-5 space-y-4 shadow-lg">
+        <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
           <div>
-            <h2 className="text-sm font-bold text-[#0a2540] flex items-center gap-2">
-              <Layers className="h-4 w-4 text-[#635bff]" />
+            <h2 className="text-sm font-semibold text-[#F5F5F7] flex items-center gap-2">
+              <Layers className="h-4 w-4 text-[#C9A961]" />
               Contingency Clause Resolution Velocity
             </h2>
-            <p className="text-[11px] text-[#4f566b]">
+            <p className="text-[11px] text-[#9A9AA5] mt-0.5">
               Average resolution days vs. total processed contingencies across portfolio.
             </p>
           </div>
-          <span className="text-xs font-bold text-[#059669] bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
+          <span className="text-xs font-semibold text-[#34D399] bg-[#34D399]/10 px-2.5 py-1 rounded-md border border-[#34D399]/20 font-mono">
             Avg 8.3 Days to Release
           </span>
         </div>
@@ -394,84 +395,86 @@ export function AnalyticsPage() {
         <div className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={CONTINGENCY_BREAKDOWN} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e3e8ee" vertical={false} />
-              <XAxis dataKey="category" tick={{ fontSize: 11, fill: '#4f566b' }} axisLine={{ stroke: '#e3e8ee' }} />
-              <YAxis tick={{ fontSize: 11, fill: '#4f566b' }} axisLine={{ stroke: '#e3e8ee' }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+              <XAxis dataKey="category" tick={{ fontSize: 11, fill: '#6E6E7A' }} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} />
+              <YAxis tick={{ fontSize: 11, fill: '#6E6E7A' }} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#ffffff',
-                  borderColor: '#e3e8ee',
+                  backgroundColor: '#141418',
+                  borderColor: 'rgba(255,255,255,0.12)',
                   borderRadius: '8px',
                   fontSize: '12px',
                   fontWeight: 600,
+                  color: '#F5F5F7',
                 }}
+                itemStyle={{ color: '#F5F5F7' }}
               />
-              <Bar dataKey="total" name="Total Contingencies" fill="#635bff" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="resolved" name="Released / Cleared" fill="#059669" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="total" name="Total Contingencies" fill="#C9A961" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="resolved" name="Released / Cleared" fill="#34D399" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       {/* ── Conversion Funnel Card ── */}
-      <div className="stripe-card p-6 bg-[#0a2540] text-white space-y-4">
-        <div className="flex items-center justify-between border-b border-[#1a385c] pb-3">
+      <div className="bg-[#141418] border border-white/[0.08] rounded-xl p-6 shadow-lg space-y-4">
+        <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
           <div>
-            <h2 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wide">
-              <TrendingUp className="h-4 w-4 text-[#635bff]" /> Inbound Lead Conversion Funnel
+            <h2 className="text-sm font-semibold text-[#F5F5F7] flex items-center gap-2 uppercase tracking-wider">
+              <TrendingUp className="h-4 w-4 text-[#C9A961]" /> Inbound Lead Conversion Funnel
             </h2>
-            <p className="text-xs text-slate-300">
-              How Stripe AI Lead Copilot converts cold website/portal inquiries into closed commissions.
+            <p className="text-xs text-[#9A9AA5] mt-0.5">
+              How Apex AI Escrow Copilot converts cold website and MLS inquiries into closed commissions.
             </p>
           </div>
-          <span className="px-3 py-1 text-xs font-bold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+          <span className="px-3 py-1 text-xs font-semibold rounded-full bg-[#34D399]/15 text-[#34D399] border border-[#34D399]/25">
             22.8% Tour Conversion Rate
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 pt-1">
-          <div className="bg-[#1a385c]/60 p-3.5 rounded-lg border border-[#2b4c75] text-center">
-            <p className="text-[10px] text-slate-300 uppercase font-bold">1. Inbound Leads</p>
-            <p className="text-xl font-bold font-mono mt-1 text-white">342</p>
-            <p className="text-[10px] text-slate-400 mt-1">Web, Zillow, WhatsApp</p>
+          <div className="bg-[#0D0D11] p-3.5 rounded-lg border border-white/[0.06] text-center">
+            <p className="text-[10px] text-[#9A9AA5] uppercase font-semibold">1. Inbound Leads</p>
+            <p className="text-xl font-bold font-mono mt-1 text-[#F5F5F7]">342</p>
+            <p className="text-[10px] text-[#6E6E7A] mt-1">Web, Zillow, WhatsApp</p>
           </div>
-          <div className="bg-[#1a385c]/60 p-3.5 rounded-lg border border-[#2b4c75] text-center">
-            <p className="text-[10px] text-slate-300 uppercase font-bold">2. AI Extracted</p>
-            <p className="text-xl font-bold font-mono mt-1 text-white">328</p>
-            <p className="text-[10px] text-emerald-400 mt-1">95.9% Parsed</p>
+          <div className="bg-[#0D0D11] p-3.5 rounded-lg border border-white/[0.06] text-center">
+            <p className="text-[10px] text-[#9A9AA5] uppercase font-semibold">2. AI Extracted</p>
+            <p className="text-xl font-bold font-mono mt-1 text-[#F5F5F7]">328</p>
+            <p className="text-[10px] text-[#34D399] mt-1">95.9% Parsed</p>
           </div>
-          <div className="bg-[#1a385c]/60 p-3.5 rounded-lg border border-[#2b4c75] text-center">
-            <p className="text-[10px] text-slate-300 uppercase font-bold">3. Property Matches</p>
-            <p className="text-xl font-bold font-mono mt-1 text-white">214</p>
-            <p className="text-[10px] text-sky-400 mt-1">Matched 70%+ score</p>
+          <div className="bg-[#0D0D11] p-3.5 rounded-lg border border-white/[0.06] text-center">
+            <p className="text-[10px] text-[#9A9AA5] uppercase font-semibold">3. Property Matches</p>
+            <p className="text-xl font-bold font-mono mt-1 text-[#F5F5F7]">214</p>
+            <p className="text-[10px] text-[#C9A961] mt-1">Matched 70%+ score</p>
           </div>
-          <div className="bg-[#1a385c]/60 p-3.5 rounded-lg border border-[#2b4c75] text-center">
-            <p className="text-[10px] text-slate-300 uppercase font-bold">4. Tours Booked</p>
-            <p className="text-xl font-bold font-mono mt-1 text-white">78</p>
+          <div className="bg-[#0D0D11] p-3.5 rounded-lg border border-white/[0.06] text-center">
+            <p className="text-[10px] text-[#9A9AA5] uppercase font-semibold">4. Tours Booked</p>
+            <p className="text-xl font-bold font-mono mt-1 text-[#F5F5F7]">78</p>
             <p className="text-[10px] text-amber-400 mt-1">23.8% Conversion</p>
           </div>
-          <div className="bg-emerald-500/20 p-3.5 rounded-lg border border-emerald-500/40 text-center">
-            <p className="text-[10px] text-emerald-300 uppercase font-bold">5. Deals Won</p>
-            <p className="text-xl font-bold font-mono mt-1 text-emerald-300">18</p>
-            <p className="text-[10px] text-emerald-300 mt-1">$89.1k Commission</p>
+          <div className="bg-[#C9A961]/10 p-3.5 rounded-lg border border-[#C9A961]/30 text-center">
+            <p className="text-[10px] text-[#C9A961] uppercase font-semibold">5. Deals Won</p>
+            <p className="text-xl font-bold font-mono mt-1 text-[#C9A961]">18</p>
+            <p className="text-[10px] text-[#C9A961]/80 mt-1">$89.1k Commission</p>
           </div>
         </div>
       </div>
 
       {/* ── Agent Performance Leaderboard ── */}
-      <div className="stripe-card overflow-hidden bg-white">
-        <div className="p-4 border-b border-[#e3e8ee] flex items-center justify-between">
+      <div className="bg-[#141418] border border-white/[0.08] rounded-xl overflow-hidden shadow-lg">
+        <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-bold text-[#0a2540] flex items-center gap-2">
-              <Award className="h-4 w-4 text-[#635bff]" /> Brokerage Agent Performance Leaderboard
+            <h2 className="text-sm font-semibold text-[#F5F5F7] flex items-center gap-2">
+              <Award className="h-4 w-4 text-[#C9A961]" /> Brokerage Agent Performance Leaderboard
             </h2>
-            <p className="text-xs text-[#4f566b]">Ranking agent response speed, lead handling volume, and AI auto-pilot adoption rate.</p>
+            <p className="text-xs text-[#9A9AA5] mt-0.5">Ranking agent response speed, lead handling volume, and AI auto-pilot adoption rate.</p>
           </div>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#f8f9fa] text-[#3c4257] font-bold border-b border-[#e3e8ee]">
+            <thead className="bg-[#0D0D11] text-[#9A9AA5] font-semibold border-b border-white/[0.06]">
               <tr>
                 <th className="py-3 px-4">Rank</th>
                 <th className="py-3 px-4">Agent Name</th>
@@ -483,45 +486,45 @@ export function AnalyticsPage() {
                 <th className="py-3 px-4 text-right">Commission Earned</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#e3e8ee] text-[#1a1f36]">
+            <tbody className="divide-y divide-white/[0.06] text-[#F5F5F7]">
               {leaderboard.map((agent) => (
-                <tr key={agent.rank} className="hover:bg-[#f8f9fa] transition-colors">
-                  <td className="py-3.5 px-4 font-bold text-[#0a2540]">
+                <tr key={agent.rank} className="hover:bg-white/[0.02] transition-colors">
+                  <td className="py-3.5 px-4 font-semibold">
                     <span
-                      className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-extrabold ${
+                      className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
                         agent.rank === 1
-                          ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                          ? 'bg-[#C9A961]/20 text-[#C9A961] border border-[#C9A961]/40'
                           : agent.rank === 2
-                          ? 'bg-slate-200 text-slate-800'
+                          ? 'bg-slate-300/20 text-slate-300 border border-slate-400/30'
                           : agent.rank === 3
-                          ? 'bg-amber-800/10 text-amber-900'
-                          : 'bg-slate-100 text-slate-600'
+                          ? 'bg-amber-700/20 text-amber-500 border border-amber-600/30'
+                          : 'bg-white/5 text-[#9A9AA5]'
                       }`}
                     >
                       #{agent.rank}
                     </span>
                   </td>
-                  <td className="py-3.5 px-4 font-bold text-[#0a2540]">
-                    <div className="flex items-center gap-2">
-                      <div className="h-7 w-7 rounded-full bg-[#0a2540] text-white font-bold flex items-center justify-center text-xs">
+                  <td className="py-3.5 px-4 font-semibold text-[#F5F5F7]">
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-7 w-7 rounded-full bg-[#C9A961]/20 text-[#C9A961] font-semibold flex items-center justify-center text-xs border border-[#C9A961]/30">
                         {agent.avatar}
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-[#0a2540]">{agent.name}</p>
-                        <p className="text-[10px] text-[#8792a2] font-normal">{agent.role}</p>
+                        <p className="text-xs font-semibold text-[#F5F5F7]">{agent.name}</p>
+                        <p className="text-[10px] text-[#6E6E7A] font-normal">{agent.role}</p>
                       </div>
                     </div>
                   </td>
                   <td className="py-3.5 px-4">
-                    <span className="px-2 py-0.5 rounded bg-emerald-50 text-[#059669] font-bold text-[11px] border border-emerald-200">
+                    <span className="px-2 py-0.5 rounded bg-[#34D399]/10 text-[#34D399] font-semibold text-[11px] border border-[#34D399]/20">
                       ⚡ {agent.speedToLead}
                     </span>
                   </td>
-                  <td className="py-3.5 px-4 font-mono font-bold text-[#0a2540]">{agent.leadsHandled}</td>
-                  <td className="py-3.5 px-4 font-mono text-[#4f566b]">{agent.toursBooked}</td>
-                  <td className="py-3.5 px-4 font-mono text-[#059669] font-bold">{agent.dealsClosed}</td>
-                  <td className="py-3.5 px-4 font-mono text-[#635bff] font-bold">{agent.autoPilotRate}</td>
-                  <td className="py-3.5 px-4 text-right font-bold text-[#0a2540] font-mono">
+                  <td className="py-3.5 px-4 font-mono font-bold text-[#F5F5F7]">{agent.leadsHandled}</td>
+                  <td className="py-3.5 px-4 font-mono text-[#9A9AA5]">{agent.toursBooked}</td>
+                  <td className="py-3.5 px-4 font-mono text-[#34D399] font-bold">{agent.dealsClosed}</td>
+                  <td className="py-3.5 px-4 font-mono text-[#C9A961] font-bold">{agent.autoPilotRate}</td>
+                  <td className="py-3.5 px-4 text-right font-bold text-[#F5F5F7] font-mono">
                     {agent.commission}
                   </td>
                 </tr>

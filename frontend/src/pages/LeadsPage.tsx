@@ -87,19 +87,19 @@ export function LeadsPage() {
   }
 
   const priorityColors: Record<string, string> = {
-    URGENT: 'bg-rose-50 text-rose-700 border-rose-200',
-    HIGH: 'bg-amber-50 text-amber-700 border-amber-200',
-    MEDIUM: 'bg-sky-50 text-sky-700 border-sky-200',
-    LOW: 'bg-slate-100 text-slate-600 border-slate-200',
+    URGENT: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+    HIGH: 'bg-[#C9A961]/15 text-[#C9A961] border-[#C9A961]/30',
+    MEDIUM: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
+    LOW: 'bg-white/5 text-[#9A9AA5] border-white/10',
   };
 
   const statusColors: Record<string, string> = {
-    NEW: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    CONTACTED: 'bg-blue-50 text-blue-700 border-blue-200',
-    QUALIFIED: 'bg-indigo-50 text-[#635bff] border-indigo-200',
-    PROPOSAL: 'bg-purple-50 text-purple-700 border-purple-200',
-    WON: 'bg-teal-50 text-teal-700 border-teal-200',
-    LOST: 'bg-slate-100 text-slate-600 border-slate-200',
+    NEW: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+    CONTACTED: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
+    QUALIFIED: 'bg-[#C9A961]/15 text-[#C9A961] border-[#C9A961]/30',
+    PROPOSAL: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+    WON: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+    LOST: 'bg-white/5 text-[#9A9AA5] border-white/10',
   };
 
   const totalLeadsCount = leads.length;
@@ -108,18 +108,18 @@ export function LeadsPage() {
 
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto pb-12">
-      {/* ── Stripe Page Header ── */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-[#e3e8ee] pb-5">
+      {/* ── Page Header ── */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-white/[0.08] pb-5">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold tracking-tight text-[#0a2540]">
+            <h1 className="text-xl font-bold tracking-tight text-white">
               AI Lead Operations &amp; Extraction
             </h1>
-            <span className="inline-flex items-center gap-1 rounded-full bg-[#635bff]/10 px-2.5 py-0.5 text-xs font-bold text-[#635bff] border border-[#635bff]/20">
-              <Zap className="h-3 w-3 text-[#635bff]" /> Auto-Extraction Active
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#C9A961]/10 px-2.5 py-0.5 text-xs font-semibold text-[#C9A961] border border-[#C9A961]/25">
+              <Zap className="h-3 w-3 text-[#C9A961]" /> Auto-Extraction Active
             </span>
           </div>
-          <p className="text-xs text-[#4f566b] mt-0.5">
+          <p className="text-xs text-[#9A9AA5] mt-0.5">
             Real-time buyer requirement synthesis, state machine controls &amp; inventory matching.
           </p>
         </div>
@@ -129,88 +129,88 @@ export function LeadsPage() {
             onClick={() => setShowCsvModal(true)}
             className="btn-stripe-secondary text-xs"
           >
-            <FileSpreadsheet className="h-3.5 w-3.5 text-[#059669]" />
-            Import CSV
+            <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" />
+            <span>Import CSV</span>
           </button>
           <button
             onClick={() => setShowAddModal(true)}
             className="btn-stripe-primary text-xs"
           >
             <Plus className="h-3.5 w-3.5" />
-            Add Inbound Lead
+            <span>Add Inbound Lead</span>
           </button>
         </div>
       </div>
 
       {/* ── Stripe Metric Cards Grid ── */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="stripe-card p-4 flex items-center justify-between">
+        <div className="stripe-card p-4 flex items-center justify-between bg-[#141418] border border-white/[0.08] rounded-2xl">
           <div>
-            <span className="text-[11px] font-bold text-[#4f566b] uppercase tracking-wider">Total Active Leads</span>
-            <div className="text-2xl font-black text-[#0a2540] mt-1">{totalLeadsCount}</div>
-            <span className="text-[11px] text-[#059669] font-bold flex items-center gap-1 mt-1">
+            <span className="text-[10px] font-mono font-medium text-[#9A9AA5] uppercase tracking-widest">Total Active Leads</span>
+            <div className="text-2xl font-bold text-white font-mono mt-1">{totalLeadsCount}</div>
+            <span className="text-[11px] text-emerald-400 font-medium flex items-center gap-1 mt-1">
               <TrendingUp className="h-3 w-3" /> Live Pipeline
             </span>
           </div>
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#635bff]/10 text-[#635bff] border border-[#635bff]/20">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#181820] text-[#C9A961] border border-[#C9A961]/25">
             <Users className="h-4.5 w-4.5" />
           </div>
         </div>
 
-        <div className="stripe-card p-4 flex items-center justify-between">
+        <div className="stripe-card p-4 flex items-center justify-between bg-[#141418] border border-white/[0.08] rounded-2xl">
           <div>
-            <span className="text-[11px] font-bold text-[#4f566b] uppercase tracking-wider">New Inbound Queue</span>
-            <div className="text-2xl font-black text-[#059669] mt-1">{newLeadsCount}</div>
-            <span className="text-[11px] text-[#4f566b] mt-1">Awaiting Contact</span>
+            <span className="text-[10px] font-mono font-medium text-[#9A9AA5] uppercase tracking-widest">New Inbound Queue</span>
+            <div className="text-2xl font-bold text-emerald-400 font-mono mt-1">{newLeadsCount}</div>
+            <span className="text-[11px] text-[#9A9AA5] mt-1 font-mono">Awaiting Contact</span>
           </div>
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-[#059669] border border-emerald-200">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
             <Sparkles className="h-4.5 w-4.5" />
           </div>
         </div>
 
-        <div className="stripe-card p-4 flex items-center justify-between">
+        <div className="stripe-card p-4 flex items-center justify-between bg-[#141418] border border-white/[0.08] rounded-2xl">
           <div>
-            <span className="text-[11px] font-bold text-[#4f566b] uppercase tracking-wider">High Priority Buyers</span>
-            <div className="text-2xl font-black text-[#d97706] mt-1">{urgentCount}</div>
-            <span className="text-[11px] text-[#d97706] font-bold mt-1">Immediate Timeline</span>
+            <span className="text-[10px] font-mono font-medium text-[#9A9AA5] uppercase tracking-widest">High Priority Buyers</span>
+            <div className="text-2xl font-bold text-[#C9A961] font-mono mt-1">{urgentCount}</div>
+            <span className="text-[11px] text-[#C9A961] font-medium mt-1">Immediate Timeline</span>
           </div>
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 text-[#d97706] border border-amber-200">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#181820] text-[#C9A961] border border-[#C9A961]/25">
             <Zap className="h-4.5 w-4.5" />
           </div>
         </div>
 
-        <div className="stripe-card p-4 flex items-center justify-between">
+        <div className="stripe-card p-4 flex items-center justify-between bg-[#141418] border border-white/[0.08] rounded-2xl">
           <div>
-            <span className="text-[11px] font-bold text-[#4f566b] uppercase tracking-wider">AI Autopilot Engine</span>
-            <div className="text-2xl font-black text-[#0a2540] mt-1">Active</div>
-            <span className="text-[11px] text-[#635bff] font-bold mt-1">Gemini 2.5 Engine</span>
+            <span className="text-[10px] font-mono font-medium text-[#9A9AA5] uppercase tracking-widest">AI Autopilot Engine</span>
+            <div className="text-2xl font-bold text-white font-mono mt-1">Active</div>
+            <span className="text-[11px] text-[#C9A961] font-medium mt-1 font-mono">Gemini 2.5 Engine</span>
           </div>
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-[#0a2540] border border-[#e3e8ee]">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#181820] text-[#C9A961] border border-[#C9A961]/25">
             <Bot className="h-4.5 w-4.5" />
           </div>
         </div>
       </div>
 
       {/* ── Search & Filter Controls ── */}
-      <div className="stripe-card p-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="stripe-card p-3 flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#141418] border border-white/[0.08] rounded-2xl">
         <div className="relative flex-1 w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#8792a2]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#6E6E7A]" />
           <input
             type="text"
             placeholder="Search leads by name, email, or phone..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="input-base pl-9 text-xs"
+            className="input-base pl-9 text-xs bg-[#181820] border-white/[0.08] text-white placeholder:text-[#6E6E7A] focus:border-[#C9A961]"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <div className="flex items-center gap-1.5">
-            <Filter className="h-3.5 w-3.5 text-[#8792a2]" />
+            <Filter className="h-3.5 w-3.5 text-[#6E6E7A]" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="input-base w-auto py-1.5 text-xs"
+              className="input-base w-auto py-1.5 text-xs bg-[#181820] border-white/[0.08] text-white focus:border-[#C9A961]"
             >
               <option value="">All Statuses</option>
               <option value="NEW">New</option>
@@ -225,7 +225,7 @@ export function LeadsPage() {
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            className="input-base w-auto py-1.5 text-xs"
+            className="input-base w-auto py-1.5 text-xs bg-[#181820] border-white/[0.08] text-white focus:border-[#C9A961]"
           >
             <option value="">All Priorities</option>
             <option value="URGENT">Urgent</option>
@@ -238,8 +238,8 @@ export function LeadsPage() {
 
       {/* ── Content States ── */}
       {loading ? (
-        <div className="stripe-card flex justify-center py-16">
-          <Loader2 className="h-7 w-7 animate-spin text-[#635bff]" />
+        <div className="stripe-card flex justify-center py-16 bg-[#141418] border border-white/[0.08] rounded-2xl">
+          <Loader2 className="h-7 w-7 animate-spin text-[#C9A961]" />
         </div>
       ) : error ? (
         <div className="banner-error">
@@ -247,10 +247,10 @@ export function LeadsPage() {
           <span>{error}</span>
         </div>
       ) : leads.length === 0 ? (
-        <div className="empty-state">
-          <Sparkles className="h-8 w-8 text-[#635bff] mx-auto mb-2" />
-          <h3 className="text-sm font-bold text-[#0a2540]">No leads in queue</h3>
-          <p className="text-xs text-[#4f566b] mt-1 max-w-sm mx-auto">
+        <div className="empty-state bg-[#141418] border border-white/[0.08] rounded-2xl p-8 text-center">
+          <Sparkles className="h-8 w-8 text-[#C9A961] mx-auto mb-2" />
+          <h3 className="text-sm font-semibold text-white">No leads in queue</h3>
+          <p className="text-xs text-[#9A9AA5] mt-1 max-w-sm mx-auto">
             Get started by adding your first inbound lead or importing contacts via CSV.
           </p>
           <button
@@ -275,77 +275,77 @@ export function LeadsPage() {
               <div
                 key={lead.id}
                 onClick={() => navigate(`/leads/${lead.id}`)}
-                className="stripe-card p-4 flex flex-col justify-between cursor-pointer hover:border-[#635bff]/40"
+                className="stripe-card p-4 flex flex-col justify-between cursor-pointer bg-[#141418] border border-white/[0.08] hover:border-[#C9A961]/40 rounded-2xl transition-all"
               >
                 <div>
                   <div className="flex items-start justify-between gap-2 mb-3">
                     <div className="flex items-center gap-2.5">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f2f4f8] text-[#0a2540] font-bold text-xs border border-[#e3e8ee]">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#181820] text-[#C9A961] font-semibold text-xs border border-white/[0.08]">
                         {initials}
                       </div>
                       <div>
-                        <h3 className="text-xs font-bold text-[#0a2540] group-hover:text-[#635bff] transition-colors">
+                        <h3 className="text-xs font-semibold text-white group-hover:text-[#C9A961] transition-colors">
                           {lead.fullName}
                         </h3>
-                        <span className={`inline-block px-2 py-0.2 text-[10px] font-extrabold rounded-full border mt-0.5 ${statusColors[lead.status]}`}>
+                        <span className={`inline-block px-2 py-0.2 text-[10px] font-mono rounded-full border mt-0.5 ${statusColors[lead.status]}`}>
                           {lead.status}
                         </span>
                       </div>
                     </div>
 
-                    <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded-md border ${priorityColors[lead.priority]}`}>
+                    <span className={`px-2 py-0.5 text-[10px] font-mono rounded-full border ${priorityColors[lead.priority]}`}>
                       {lead.priority}
                     </span>
                   </div>
 
-                  <div className="space-y-1 text-xs text-[#4f566b] mb-3 bg-[#f8f9fa] p-2 rounded-lg border border-[#e3e8ee]">
+                  <div className="space-y-1 text-xs text-[#9A9AA5] mb-3 bg-[#181820] p-2.5 rounded-xl border border-white/[0.08]">
                     {lead.email && (
                       <div className="flex items-center gap-1.5">
-                        <Mail className="h-3.5 w-3.5 text-[#8792a2] flex-shrink-0" />
-                        <span className="truncate text-[#1a1f36] text-[11px]">{lead.email}</span>
+                        <Mail className="h-3.5 w-3.5 text-[#6E6E7A] flex-shrink-0" />
+                        <span className="truncate text-[#F5F5F7] text-[11px] font-mono">{lead.email}</span>
                       </div>
                     )}
                     {lead.phone && (
                       <div className="flex items-center gap-1.5">
-                        <Phone className="h-3.5 w-3.5 text-[#8792a2] flex-shrink-0" />
-                        <span className="text-[#1a1f36] text-[11px]">{lead.phone}</span>
+                        <Phone className="h-3.5 w-3.5 text-[#6E6E7A] flex-shrink-0" />
+                        <span className="text-[#F5F5F7] text-[11px] font-mono">{lead.phone}</span>
                       </div>
                     )}
                   </div>
 
                   {/* ── Requirement Summary Pill ── */}
-                  <div className="rounded-lg bg-[#f8f9fa] p-3 border border-[#e3e8ee] space-y-1.5 text-xs">
-                    <div className="flex items-center justify-between text-[#4f566b] font-semibold text-[11px]">
-                      <span className="flex items-center gap-1 text-[#0a2540]">
-                        <DollarSign className="h-3.5 w-3.5 text-[#059669]" />
+                  <div className="rounded-xl bg-[#181820] p-3 border border-white/[0.08] space-y-1.5 text-xs">
+                    <div className="flex items-center justify-between text-[#9A9AA5] text-[11px]">
+                      <span className="flex items-center gap-1 text-white">
+                        <DollarSign className="h-3.5 w-3.5 text-emerald-400" />
                         Max Budget
                       </span>
-                      <span className="text-[#0a2540] font-bold">
+                      <span className="text-[#C9A961] font-mono font-medium">
                         {req?.maxBudget ? `$${req.maxBudget.toLocaleString()}` : 'Flexible'}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between text-[#4f566b] text-[11px]">
-                      <span className="flex items-center gap-1 text-[#0a2540]">
-                        <Building2 className="h-3.5 w-3.5 text-[#635bff]" />
+                    <div className="flex items-center justify-between text-[#9A9AA5] text-[11px]">
+                      <span className="flex items-center gap-1 text-white">
+                        <Building2 className="h-3.5 w-3.5 text-[#C9A961]" />
                         Preference
                       </span>
-                      <span className="text-[#1a1f36]">
+                      <span className="text-[#F5F5F7]">
                         {req?.propertyType || 'Any'} • {req?.minBedrooms ? `${req.minBedrooms}+ Beds` : 'Any'}
                       </span>
                     </div>
 
                     {req?.preferredLocations?.length > 0 && (
-                      <p className="text-[10px] text-[#8792a2] truncate pt-1 border-t border-[#e3e8ee]">
+                      <p className="text-[10px] text-[#9A9AA5] truncate pt-1 border-t border-white/[0.08]">
                         📍 {req.preferredLocations.join(', ')}
                       </p>
                     )}
                   </div>
                 </div>
 
-                <div className="mt-4 pt-2.5 border-t border-[#e3e8ee] flex items-center justify-between text-xs text-[#8792a2]">
-                  <span className="text-[10px]">Source: {lead.source}</span>
-                  <span className="text-[#635bff] font-bold text-[11px] flex items-center gap-1">
+                <div className="mt-4 pt-2.5 border-t border-white/[0.08] flex items-center justify-between text-xs text-[#6E6E7A]">
+                  <span className="text-[10px] font-mono">Source: {lead.source}</span>
+                  <span className="text-[#C9A961] font-semibold text-[11px] flex items-center gap-1">
                     Open Cockpit <ChevronRight className="h-3.5 w-3.5" />
                   </span>
                 </div>
@@ -357,16 +357,16 @@ export function LeadsPage() {
 
       {/* ── Add Lead Modal ── */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0a2540]/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-lg rounded-xl bg-white p-5 border border-[#e3e8ee] shadow-xl space-y-4 animate-in fade-in duration-150">
-            <div className="flex items-center justify-between border-b border-[#e3e8ee] pb-3">
-              <h2 className="text-sm font-bold text-[#0a2540] flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-[#635bff]" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-[#141418] p-6 border border-white/[0.08] shadow-2xl space-y-4 animate-in fade-in duration-150 text-white">
+            <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+              <h2 className="text-sm font-semibold text-white flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-[#C9A961]" />
                 Add Inbound Lead &amp; Auto-Extract
               </h2>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="text-[#8792a2] hover:text-[#0a2540] text-xs font-bold"
+                className="text-[#9A9AA5] hover:text-white text-xs font-bold p-1 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
               >
                 ✕
               </button>
@@ -421,7 +421,7 @@ export function LeadsPage() {
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#e3e8ee]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-white/[0.08]">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
