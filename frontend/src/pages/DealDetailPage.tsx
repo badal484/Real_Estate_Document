@@ -17,8 +17,6 @@ import {
   SlidersHorizontal,
   History,
   Clock,
-  Sparkles,
-  ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -88,20 +86,20 @@ export function DealDetailPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-[1600px] mx-auto">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-8">
       {/* Unified Command Center Header & Tab Navigation */}
       <DealHeader deal={deal} notifSettings={notifSettings} activeTab="milestones" />
 
       {dealError && (
-        <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-xs text-destructive">
+        <div className="flex items-center gap-2 rounded-2xl border border-destructive/20 bg-destructive/10 p-4 text-xs text-destructive">
           <AlertTriangle className="h-4 w-4 shrink-0" />
           <span>{dealError}</span>
         </div>
       )}
 
       {summaryMessage && (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-50/80 dark:bg-emerald-950/40 p-4 text-xs text-emerald-800 dark:text-emerald-300">
-          <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+        <div className="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-xs text-emerald-800">
+          <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
           <span>{summaryMessage}</span>
         </div>
       )}
@@ -115,21 +113,21 @@ export function DealDetailPage() {
       />
 
       {/* Automated Email Alerts Dispatch Bar */}
-      <div className="rounded-xl border border-border/70 bg-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20">
-            <Mail className="h-4 w-4" />
+      <div className="rounded-3xl border border-[#E4E4E7] bg-white p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-clean-sm">
+        <div className="flex items-center gap-3.5">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#F4F4F5] text-[#09090B] border border-[#E4E4E7]">
+            <Mail className="h-5 w-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-xs font-bold text-foreground tracking-tight">
+              <h3 className="text-xs font-semibold text-[#09090B] tracking-tight">
                 Automated Deadline Alerts (Resend Engine)
               </h3>
-              <Badge variant={notifSettings?.enabled ? 'success' : 'neutral'} className="text-[10px]">
+              <Badge variant={notifSettings?.enabled ? 'success' : 'neutral'} className="text-[11px] px-2.5 py-0.5 rounded-full">
                 {notifSettings?.enabled ? 'Armed' : 'Standby'}
               </Badge>
             </div>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
+            <p className="text-xs text-[#71717A] mt-0.5">
               {notifSettings?.enabled && (notifSettings.recipients?.length ?? 0) > 0
                 ? `${notifSettings.recipients.length} configured recipient(s) &bull; Alerts dispatch at T-3, T-1, and 9:00 AM day-of milestone.`
                 : 'Alerts require at least one recipient email to trigger automated notifications.'}
@@ -144,12 +142,12 @@ export function DealDetailPage() {
             size="sm"
             onClick={handleSendSummary}
             disabled={sendingSummary}
-            className="h-8 px-3 text-xs gap-1.5"
+            className="rounded-full h-8.5 px-4 text-xs font-medium gap-1.5"
           >
             {sendingSummary ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#09090B]" />
             ) : (
-              <Send className="h-3.5 w-3.5 text-muted-foreground" />
+              <Send className="h-3.5 w-3.5 text-[#71717A]" />
             )}
             <span>Send Summary Now</span>
           </Button>
@@ -158,42 +156,42 @@ export function DealDetailPage() {
             asChild
             variant="secondary"
             size="sm"
-            className="h-8 px-3 text-xs gap-1"
+            className="rounded-full h-8.5 px-4 text-xs font-medium gap-1.5 bg-[#F4F4F5] hover:bg-white border border-[#E4E4E7]"
           >
             <Link to={`/deals/${dealId}/notifications`}>
-              <SlidersHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
+              <SlidersHorizontal className="h-3.5 w-3.5 text-[#71717A]" />
               <span>Configure Alerts</span>
-              <ChevronRight className="h-3 w-3 text-muted-foreground" />
+              <ChevronRight className="h-3 w-3 text-[#A1A1AA]" />
             </Link>
           </Button>
         </div>
       </div>
 
       {/* Main Deadline Timeline */}
-      <section className="space-y-3">
+      <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-primary" />
-              <h2 className="text-sm font-bold text-foreground tracking-tight uppercase tracking-wider">
+              <Clock className="h-4 w-4 text-[#09090B]" />
+              <h2 className="text-sm font-semibold text-[#09090B] tracking-tight uppercase tracking-wider">
                 Contingency Milestone Schedule
               </h2>
             </div>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="text-xs text-[#71717A] mt-0.5">
               Deterministic deadlines calculated from contract mutual acceptance date and jurisdiction rules.
             </p>
           </div>
         </div>
 
         {loading && (
-          <div className="rounded-xl border border-border/70 bg-card flex items-center justify-center gap-2 py-14 text-xs text-muted-foreground shadow-2xs">
-            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+          <div className="rounded-3xl border border-[#E4E4E7] bg-white flex items-center justify-center gap-2 py-14 text-xs text-[#71717A] shadow-clean-sm">
+            <Loader2 className="h-4 w-4 animate-spin text-[#09090B]" />
             <span>Computing contract timeline milestones...</span>
           </div>
         )}
 
         {error && (
-          <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-xs text-destructive">
+          <div className="flex items-center gap-2 rounded-2xl border border-destructive/20 bg-destructive/10 p-4 text-xs text-destructive">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>
@@ -221,11 +219,11 @@ export function DealDetailPage() {
       <div className="text-right pb-4">
         <Link
           to={`/audit?dealId=${dealId}`}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#09090B] hover:underline transition-colors"
         >
-          <History className="h-3.5 w-3.5" />
+          <History className="h-3.5 w-3.5 text-[#71717A]" />
           <span>View complete tamper-evident audit history</span>
-          <ChevronRight className="h-3.5 w-3.5" />
+          <ChevronRight className="h-3.5 w-3.5 text-[#A1A1AA]" />
         </Link>
       </div>
     </div>
