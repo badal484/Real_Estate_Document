@@ -43,55 +43,55 @@ export function EditDeadlineModal({ isOpen, deadline, dealId, onClose, onSuccess
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md animate-fadeIn">
-      <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-5">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm animate-fadeIn">
+      <div className="w-full max-w-md rounded-3xl border border-[#E4E4E7] bg-white p-7 shadow-2xl space-y-6 text-[#09090B]">
+        <div className="flex items-center justify-between border-b border-[#E4E4E7] pb-4">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 border border-amber-200">
               <IconCalendar className="h-5 w-5" />
             </span>
             <div>
-              <h3 className="text-base font-bold text-slate-100">Edit &amp; Confirm Deadline</h3>
-              <p className="text-xs text-slate-400">{deadline.label}</p>
+              <h3 className="text-base font-bold text-[#09090B]">Edit &amp; Confirm Deadline</h3>
+              <p className="text-xs text-[#71717A]">{deadline.label}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+            className="rounded-full p-2 text-[#71717A] hover:bg-zinc-100 hover:text-[#09090B] transition-colors"
           >
-            <IconX className="h-5 w-5" />
+            <IconX className="h-4 w-4" />
           </button>
         </div>
 
         {error && (
-          <p className="banner-error">
-            <IconExclamationTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            {error}
-          </p>
+          <div className="flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 p-3.5 text-xs text-rose-700">
+            <IconExclamationTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" />
+            <span>{error}</span>
+          </div>
         )}
 
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
           <div>
-            <label className="label">Confirmed Target Date</label>
+            <label className="text-xs font-semibold text-[#09090B] block mb-1.5">Confirmed Target Date</label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
               required
-              className="input"
+              className="w-full rounded-full bg-[#F4F4F5] border border-[#E4E4E7] px-4 py-2.5 text-xs font-mono text-[#09090B] focus:bg-white focus:border-[#09090B] focus:outline-none transition-all"
             />
           </div>
 
           <div>
-            <label className="label">Day Type Calculation</label>
-            <div className="grid grid-cols-2 gap-2">
+            <label className="text-xs font-semibold text-[#09090B] block mb-1.5">Day Type Calculation</label>
+            <div className="inline-flex w-full p-1 bg-[#F4F4F5] rounded-full border border-[#E4E4E7]">
               <button
                 type="button"
                 onClick={() => setDayType('calendar')}
-                className={`rounded-xl p-2.5 text-xs font-semibold border transition-all ${
+                className={`flex-1 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   dayType === 'calendar'
-                    ? 'border-brand-500 bg-brand-500/20 text-brand-300 ring-1 ring-brand-500/40'
-                    : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:border-slate-700'
+                    ? 'bg-white text-[#09090B] shadow-clean-xs'
+                    : 'text-[#71717A] hover:text-[#09090B]'
                 }`}
               >
                 Calendar Days
@@ -99,10 +99,10 @@ export function EditDeadlineModal({ isOpen, deadline, dealId, onClose, onSuccess
               <button
                 type="button"
                 onClick={() => setDayType('business')}
-                className={`rounded-xl p-2.5 text-xs font-semibold border transition-all ${
+                className={`flex-1 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   dayType === 'business'
-                    ? 'border-brand-500 bg-brand-500/20 text-brand-300 ring-1 ring-brand-500/40'
-                    : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:border-slate-700'
+                    ? 'bg-white text-[#09090B] shadow-clean-xs'
+                    : 'text-[#71717A] hover:text-[#09090B]'
                 }`}
               >
                 Business Days
@@ -111,9 +111,9 @@ export function EditDeadlineModal({ isOpen, deadline, dealId, onClose, onSuccess
           </div>
 
           {deadline.clause?.rawText && (
-            <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3 text-xs text-slate-400">
-              <span className="font-semibold text-slate-300 block mb-1">Contract Raw Text Quote:</span>
-              <p className="italic leading-relaxed text-slate-400">&ldquo;{deadline.clause.rawText}&rdquo;</p>
+            <div className="rounded-2xl border border-[#E4E4E7] bg-[#F9FAFB] p-4 text-xs text-[#71717A]">
+              <span className="font-bold text-[#09090B] block mb-1">Contract Raw Text Quote:</span>
+              <p className="italic leading-relaxed text-[#71717A]">&ldquo;{deadline.clause.rawText}&rdquo;</p>
             </div>
           )}
 
@@ -121,14 +121,14 @@ export function EditDeadlineModal({ isOpen, deadline, dealId, onClose, onSuccess
             <button
               type="button"
               onClick={onClose}
-              className="btn-secondary flex-1"
+              className="flex-1 rounded-full border border-[#E4E4E7] bg-white hover:bg-zinc-100 text-[#09090B] font-semibold py-2.5 text-xs transition-colors shadow-clean-xs"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="btn-primary flex-1"
+              className="flex-1 rounded-full bg-[#09090B] hover:bg-black text-white font-semibold py-2.5 text-xs transition-colors shadow-clean-xs disabled:opacity-50"
             >
               {submitting ? 'Saving...' : 'Confirm & Activate'}
             </button>
