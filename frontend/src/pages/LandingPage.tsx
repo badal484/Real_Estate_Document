@@ -8,6 +8,11 @@ import {
   CheckCircle2,
   Scale,
   Sparkles,
+  ChevronRight,
+  FileText,
+  Clock,
+  Bell,
+  ArrowUpRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -71,279 +76,315 @@ const METRICS = [
   { value: '$420M+', label: 'Earnest Money Protected', sub: 'Across 12,000+ Escrows' },
   { value: '99.98%', label: 'Date Math Precision', sub: 'Deterministic State Rules' },
   { value: '< 2.4s', label: 'Clause Extraction Speed', sub: 'Verbatim PDF Citations' },
-  { value: '100%', label: 'E&O Risk Mitigation', sub: 'Immutable Cryptographic Logs' },
+  { value: '100%', label: 'E&O Risk Mitigation', sub: 'Cryptographic Audit Trail' },
 ];
 
 export function LandingPage() {
   const { user } = useAuth();
   const [selectedState, setSelectedState] = useState(STATE_TEMPLATES[0]);
+  const [activeTab, setActiveTab] = useState<'surveillance' | 'copilot' | 'alerts'>('surveillance');
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-[#F5F5F7] selection:bg-[#C9A961]/25 font-sans antialiased overflow-x-hidden">
-      {/* Background Subtle Luxury Architectural Glow */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden z-0">
-        <div className="absolute -top-32 left-1/2 -translate-x-1/2 h-[600px] w-[1000px] rounded-full bg-gradient-to-b from-[#C9A961]/10 via-[#181820]/20 to-transparent blur-3xl opacity-70" />
-        <div className="absolute top-[40%] -left-40 h-[500px] w-[500px] rounded-full bg-[#161622]/40 blur-3xl" />
-        <div className="absolute top-[70%] -right-40 h-[500px] w-[500px] rounded-full bg-[#C9A961]/5 blur-3xl" />
+    <div className="min-h-screen bg-white text-[#09090B] font-sans antialiased overflow-x-hidden selection:bg-neutral-200">
+      {/* ── 0. Top Announcement Banner (ElevenLabs Style) ── */}
+      <div className="border-b border-neutral-200/80 bg-[#FAFAFA] py-2 px-4 text-center text-xs font-medium text-[#52525B]">
+        <span className="inline-flex items-center gap-2">
+          <span className="rounded-full bg-black text-white px-2 py-0.5 text-[10px] font-bold">V2</span>
+          <span>Meet Contingency Copilot v2 — Deterministic real estate contract surveillance.</span>
+          <Link to="/docs" className="font-semibold text-black hover:underline inline-flex items-center gap-0.5 ml-1">
+            Discover <ChevronRight className="h-3 w-3" />
+          </Link>
+        </span>
       </div>
 
-      <div className="relative z-10">
-        {/* ── 1. Luxury Navbar ── */}
-        <header className="sticky top-0 z-50 border-b border-white/6 bg-[#0A0A0B]/80 backdrop-blur-xl">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 sm:px-8">
-            <Link to="/" className="flex items-center gap-3 group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#141418] border border-white/10 text-white shadow-luxury-sm group-hover:border-[#C9A961]/40 transition-all">
-                <Building2 className="h-5 w-5 text-[#C9A961]" />
-              </div>
-              <div>
-                <span className="text-sm font-bold tracking-tight text-[#F5F5F7] block">
-                  Contingency Copilot
-                </span>
-                <span className="text-[10px] text-[#9A9AA5] font-medium block">
-                  Real Estate Closing Suite
-                </span>
-              </div>
-            </Link>
-
-            <nav className="hidden md:flex items-center gap-8 text-xs text-[#9A9AA5] font-medium">
-              <a href="#features" className="hover:text-[#F5F5F7] transition-colors">Features</a>
-              <a href="#state-rules" className="hover:text-[#F5F5F7] transition-colors">State Rules</a>
-              <Link to="/pricing" className="hover:text-[#F5F5F7] transition-colors">Pricing</Link>
-              <Link to="/security" className="hover:text-[#F5F5F7] transition-colors">Security &amp; E&amp;O</Link>
-              <Link to="/docs" className="hover:text-[#F5F5F7] transition-colors">Docs</Link>
-            </nav>
-
-            <div className="flex items-center gap-3">
-              {user ? (
-                <Button asChild size="sm" className="bg-[#C9A961] hover:bg-[#DFBF77] text-[#0A0A0B] font-bold text-xs h-9 px-5 rounded-full shadow-sm">
-                  <Link to="/deals">
-                    <span>Brokerage Workspace</span>
-                    <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
-                  </Link>
-                </Button>
-              ) : (
-                <Button asChild size="sm" className="bg-[#C9A961] hover:bg-[#DFBF77] text-[#0A0A0B] font-bold text-xs h-9 px-5 rounded-full shadow-sm">
-                  <Link to="/login">
-                    <span>Sign In</span>
-                    <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
-                  </Link>
-                </Button>
-              )}
+      {/* ── 1. Minimal Header / Navbar (ElevenLabs Style) ── */}
+      <header className="sticky top-0 z-50 border-b border-neutral-200/80 bg-white/90 backdrop-blur-md">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3.5 sm:px-8">
+          <Link to="/" className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#09090B] text-white font-bold shadow-clean-xs">
+              <Building2 className="h-4 w-4 text-white" />
             </div>
-          </div>
-        </header>
-
-        {/* ── 2. Hero Section ── */}
-        <section className="relative px-6 pt-24 pb-20 text-center max-w-5xl mx-auto space-y-7">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="inline-flex items-center gap-2 rounded-full border border-[#C9A961]/30 bg-[#C9A961]/10 px-4 py-1.5 text-xs font-semibold text-[#C9A961] backdrop-blur-md"
-          >
-            <ShieldCheck className="h-3.5 w-3.5 text-[#C9A961]" />
-            <span>Deterministic Real Estate Contract Surveillance Engine</span>
-          </motion.div>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.05 }}
-            className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-[#F5F5F7] leading-[1.08] max-w-4xl mx-auto"
-          >
-            Never miss a contract deadline.
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-            className="text-base sm:text-lg text-[#9A9AA5] max-w-2xl mx-auto leading-relaxed font-normal"
-          >
-            Ingest executed Purchase &amp; Sale Agreements to extract binding deadlines, calculate statutory business-day calendar math, dispatch automated milestone alerts, and verify contract quotes with exact page citations.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.15 }}
-            className="flex flex-wrap items-center justify-center gap-4 pt-2"
-          >
-            <Button asChild size="lg" className="h-12 px-7 text-xs font-bold bg-[#C9A961] hover:bg-[#DFBF77] text-[#0A0A0B] rounded-full shadow-lg shadow-[#C9A961]/20">
-              <Link to={user ? "/upload" : "/login"}>
-                <span>{user ? "Ingest Purchase Agreement" : "Get Started Free"}</span>
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Link>
-            </Button>
-
-            <Button variant="secondary" asChild size="lg" className="h-12 px-7 text-xs font-semibold rounded-full border border-white/10 bg-[#16161C] text-[#F5F5F7] hover:border-[#C9A961]/40 hover:bg-[#1E1E26]">
-              <Link to="/pricing">
-                <span>View Plans &amp; Pricing</span>
-              </Link>
-            </Button>
-          </motion.div>
-
-          {/* Social Trust Indicators */}
-          <div className="pt-10 flex flex-wrap items-center justify-center gap-8 text-xs text-[#9A9AA5] border-t border-white/6 max-w-3xl mx-auto font-medium">
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5 text-[#C9A961]" /> SOC2 Certified Infrastructure
+            <span className="text-sm font-bold tracking-tight text-[#09090B]">
+              Contingency Copilot
             </span>
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5 text-[#C9A961]" /> Multi-State Legal Standards
-            </span>
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5 text-[#C9A961]" /> 256-Bit Encrypted Vault
-            </span>
-          </div>
-        </section>
+          </Link>
 
-        {/* ── Hero Visual Mockup ── */}
-        <section className="max-w-6xl mx-auto px-6 pb-24">
-          <div className="rounded-3xl border border-white/8 bg-gradient-to-b from-[#181820]/80 to-[#121216] p-2.5 shadow-2xl overflow-hidden ring-1 ring-white/5">
-            <img
-              src="/assets/hero_mockup.jpg"
-              alt="Contingency Copilot Interface Showcase"
-              className="w-full h-auto rounded-2xl border border-white/6 object-cover"
-            />
-          </div>
-        </section>
+          <nav className="hidden md:flex items-center gap-8 text-xs text-[#52525B] font-medium">
+            <a href="#features" className="hover:text-black transition-colors">Features</a>
+            <a href="#state-rules" className="hover:text-black transition-colors">State Rules</a>
+            <Link to="/pricing" className="hover:text-black transition-colors">Pricing</Link>
+            <Link to="/security" className="hover:text-black transition-colors">Security &amp; E&amp;O</Link>
+            <Link to="/docs" className="hover:text-black transition-colors">Docs</Link>
+          </nav>
 
-        {/* ── 3. FEATURES SECTION CAROUSEL (Key Requirement) ── */}
-        <section id="features" className="max-w-7xl mx-auto px-6 py-24 border-t border-white/6">
-          <div className="text-center space-y-3 mb-12 max-w-2xl mx-auto">
-            <Badge variant="gold" className="text-[11px] gap-1.5 py-1 px-3">
-              <Sparkles className="h-3 w-3 text-[#C9A961]" />
-              Platform Capabilities
-            </Badge>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#F5F5F7] tracking-tight">
-              Engineered for flawless transactions
-            </h2>
-            <p className="text-xs sm:text-sm text-[#9A9AA5] leading-relaxed">
-              Browse our complete suite of real estate contract surveillance tools. Slide or swipe to explore each feature module.
-            </p>
-          </div>
-
-          {/* Interactive Feature Slider Component */}
-          <FeatureCarousel />
-        </section>
-
-        {/* ── 4. Key Metrics Grid ── */}
-        <section className="border-y border-white/6 bg-[#0E0E12]/60 py-16 px-6">
-          <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            {METRICS.map((m, i) => (
-              <div key={i} className="space-y-1.5">
-                <div className="text-3xl sm:text-5xl font-black text-[#F5F5F7] font-mono tracking-tight">
-                  {m.value}
-                </div>
-                <div className="text-xs font-bold text-[#C9A961]">{m.label}</div>
-                <div className="text-[10px] text-[#9A9AA5]">{m.sub}</div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ── 5. State Contract Rules Selector ── */}
-        <section id="state-rules" className="max-w-5xl mx-auto px-6 py-28 space-y-10">
-          <div className="text-center space-y-3 max-w-xl mx-auto">
-            <Badge variant="neutral" className="border-white/10 bg-[#16161C] text-[#F5F5F7] text-[11px] py-1 px-3">
-              <Scale className="h-3.5 w-3.5 text-[#C9A961] mr-1.5" />
-              State Jurisdiction Engine
-            </Badge>
-            <h2 className="text-3xl font-extrabold text-[#F5F5F7] tracking-tight">
-              Pre-configured statutory form rules
-            </h2>
-            <p className="text-xs sm:text-sm text-[#9A9AA5]">
-              Select a state to review standardized inspection periods, loan approval windows, and daily cutoff standards.
-            </p>
-          </div>
-
-          <div className="rounded-3xl border border-white/8 bg-[#141418] p-6 sm:p-8 space-y-6 shadow-luxury-md">
-            {/* Clean State Pill Buttons */}
-            <div className="flex flex-wrap gap-2.5">
-              {STATE_TEMPLATES.map((tmpl) => (
-                <button
-                  key={tmpl.id}
-                  type="button"
-                  onClick={() => setSelectedState(tmpl)}
-                  className={`px-4 py-2 rounded-full text-xs font-semibold transition-all border cursor-pointer ${
-                    selectedState.id === tmpl.id
-                      ? 'bg-[#C9A961] text-[#0A0A0B] border-[#C9A961] shadow-sm font-bold'
-                      : 'bg-[#1A1A22] text-[#9A9AA5] border-white/8 hover:text-[#F5F5F7] hover:border-white/20'
-                  }`}
+          <div className="flex items-center gap-2.5">
+            {user ? (
+              <Button asChild size="sm" className="btn-pill-primary text-xs">
+                <Link to="/deals">
+                  <span>Workspace</span>
+                  <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                </Link>
+              </Button>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="px-4 py-2 text-xs font-medium text-[#52525B] hover:text-black transition-colors"
                 >
-                  {tmpl.code}
-                </button>
-              ))}
-            </div>
-
-            {/* Results Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-              <div className="p-4 rounded-2xl bg-[#0F0F13] border border-white/6 space-y-1">
-                <span className="text-[10px] text-[#9A9AA5] uppercase font-mono tracking-wider block">Inspection Window</span>
-                <span className="text-sm font-bold text-[#F5F5F7] font-mono mt-0.5 block">{selectedState.inspection}</span>
-              </div>
-              <div className="p-4 rounded-2xl bg-[#0F0F13] border border-white/6 space-y-1">
-                <span className="text-[10px] text-[#9A9AA5] uppercase font-mono tracking-wider block">Financing Contingency</span>
-                <span className="text-sm font-bold text-[#C9A961] font-mono mt-0.5 block">{selectedState.financing}</span>
-              </div>
-              <div className="p-4 rounded-2xl bg-[#0F0F13] border border-white/6 space-y-1">
-                <span className="text-[10px] text-[#9A9AA5] uppercase font-mono tracking-wider block">Daily Cutoff Standard</span>
-                <span className="text-sm font-bold text-[#F5F5F7] font-mono mt-0.5 block">{selectedState.cutoff}</span>
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-xl bg-white/3 border border-white/5 text-xs text-[#9A9AA5] italic">
-              Note: {selectedState.rule}
-            </div>
+                  Log in
+                </Link>
+                <Button asChild size="sm" className="btn-pill-primary text-xs">
+                  <Link to="/login">
+                    <span>Sign up</span>
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
-        </section>
+        </div>
+      </header>
 
-        {/* ── 6. Minimal Call To Action ── */}
-        <section className="max-w-5xl mx-auto px-6 pb-28">
-          <div className="rounded-3xl border border-[#C9A961]/30 bg-gradient-to-b from-[#181822] via-[#121216] to-[#0A0A0B] p-10 sm:p-14 text-center space-y-6 shadow-2xl relative overflow-hidden">
-            <div className="space-y-3 max-w-xl mx-auto">
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#F5F5F7] tracking-tight">
-                Ready to protect your escrow pipeline?
-              </h2>
-              <p className="text-xs sm:text-sm text-[#9A9AA5]">
-                Empower your transaction coordinators and agents with automated contingency surveillance.
-              </p>
-            </div>
+      {/* ── 2. ElevenLabs-Inspired Hero Section ── */}
+      <section className="px-6 pt-20 pb-16 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-end mb-12">
+          {/* Main bold headline (Left) */}
+          <div className="lg:col-span-7 space-y-4">
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-[#09090B] leading-[1.06]">
+              Bringing precision <br className="hidden sm:inline" />
+              to contract closings
+            </h1>
+          </div>
 
-            <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
-              <Button asChild size="lg" className="h-12 px-8 text-xs font-bold bg-[#C9A961] hover:bg-[#DFBF77] text-[#0A0A0B] rounded-full shadow-lg shadow-[#C9A961]/25">
-                <Link to={user ? "/deals" : "/login"}>
-                  <span>{user ? "Open Workspace" : "Get Started Now"}</span>
+          {/* Subtitle & Dual Pill Buttons (Right) */}
+          <div className="lg:col-span-5 space-y-6">
+            <p className="text-sm sm:text-base text-[#52525B] leading-relaxed">
+              Powering premier brokerages, escrow teams, and top agents. Ingest executed Purchase &amp; Sale Agreements to extract binding deadlines, calculate statutory calendar math, and eliminate missed contingencies.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <Button asChild size="lg" className="btn-pill-primary text-xs px-6 py-3">
+                <Link to={user ? "/upload" : "/login"}>
+                  <span>Get started free</span>
                   <ArrowRight className="h-4 w-4 ml-2" />
+                </Link>
+              </Button>
+
+              <Button asChild variant="outline" size="lg" className="btn-pill-outline text-xs px-6 py-3">
+                <Link to="/pricing">
+                  <span>Contact sales</span>
                 </Link>
               </Button>
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* ── 7. Luxury Minimal Footer ── */}
-        <footer className="border-t border-white/6 py-12 px-6 sm:px-8 text-xs text-[#9A9AA5] bg-[#0A0A0B]">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-xl bg-[#141418] border border-white/10 flex items-center justify-center text-[#C9A961]">
-                <Building2 className="h-4 w-4" />
+        {/* ── Segmented Control Bar (ElevenLabs Pill Tab Style) ── */}
+        <div className="rounded-3xl border border-neutral-200/80 bg-[#F9FAFB] p-3 sm:p-5 shadow-clean-sm">
+          <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 no-scrollbar">
+            <button
+              onClick={() => setActiveTab('surveillance')}
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'surveillance'
+                  ? 'bg-white text-black shadow-clean-xs border border-neutral-200'
+                  : 'text-[#71717A] hover:text-black hover:bg-neutral-200/50'
+              }`}
+            >
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              <span>Contract Surveillance</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('copilot')}
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'copilot'
+                  ? 'bg-white text-black shadow-clean-xs border border-neutral-200'
+                  : 'text-[#71717A] hover:text-black hover:bg-neutral-200/50'
+              }`}
+            >
+              <span className="h-2 w-2 rounded-full bg-sky-500" />
+              <span>AI Copilot &amp; Citations</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('alerts')}
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'alerts'
+                  ? 'bg-white text-black shadow-clean-xs border border-neutral-200'
+                  : 'text-[#71717A] hover:text-black hover:bg-neutral-200/50'
+              }`}
+            >
+              <span className="h-2 w-2 rounded-full bg-amber-500" />
+              <span>Milestone Alerts</span>
+            </button>
+          </div>
+
+          {/* Hero Visual Mockup Container */}
+          <div className="rounded-2xl border border-neutral-200 bg-white overflow-hidden shadow-clean-sm">
+            <img
+              src="/assets/hero_mockup.jpg"
+              alt="Contingency Copilot Interface Showcase"
+              className="w-full h-auto object-cover"
+            />
+          </div>
+        </div>
+
+        {/* Trust Indicators */}
+        <div className="pt-10 flex flex-wrap items-center justify-center gap-8 text-xs text-[#52525B] max-w-3xl mx-auto font-medium">
+          <span className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-emerald-600" /> SOC2 Type II Certified
+          </span>
+          <span className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Multi-State Legal Standards
+          </span>
+          <span className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-emerald-600" /> 256-Bit Encrypted Vault
+          </span>
+        </div>
+      </section>
+
+      {/* ── 3. FEATURES SECTION CAROUSEL (ElevenLabs Style) ── */}
+      <section id="features" className="max-w-7xl mx-auto px-6 py-20 border-t border-neutral-200/80">
+        <div className="space-y-3 mb-12 max-w-2xl">
+          <Badge variant="outline" className="text-xs font-semibold px-3 py-1">
+            <Sparkles className="h-3.5 w-3.5 text-neutral-800 mr-1.5" />
+            Platform Capabilities
+          </Badge>
+          <h2 className="text-3xl sm:text-4xl font-bold text-[#09090B] tracking-tight">
+            Engineered for flawless transactions
+          </h2>
+          <p className="text-sm text-[#52525B] leading-relaxed">
+            Browse our complete suite of real estate contract surveillance tools. Explore how each module guards transactions.
+          </p>
+        </div>
+
+        {/* Interactive Feature Slider Component */}
+        <FeatureCarousel />
+      </section>
+
+      {/* ── 4. Key Metrics Grid ── */}
+      <section className="border-y border-neutral-200/80 bg-[#FAFAFA] py-16 px-6">
+        <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          {METRICS.map((m, i) => (
+            <div key={i} className="space-y-1">
+              <div className="text-3xl sm:text-5xl font-extrabold text-[#09090B] tracking-tight">
+                {m.value}
               </div>
-              <div>
-                <span className="font-bold text-[#F5F5F7] block">Contingency Copilot</span>
-                <span className="text-[10px] text-[#686873]">Autonomous Real Estate Closing Suite &copy; {new Date().getFullYear()}</span>
-              </div>
+              <div className="text-xs font-semibold text-[#09090B]">{m.label}</div>
+              <div className="text-[11px] text-[#71717A]">{m.sub}</div>
             </div>
+          ))}
+        </div>
+      </section>
 
-            <div className="flex flex-wrap items-center gap-6 text-xs font-medium">
-              <Link to="/contracts" className="hover:text-[#F5F5F7] transition-colors">State Rules</Link>
-              <Link to="/pricing" className="hover:text-[#F5F5F7] transition-colors">Pricing</Link>
-              <Link to="/security" className="hover:text-[#F5F5F7] transition-colors">Security &amp; E&amp;O</Link>
-              <Link to="/docs" className="hover:text-[#F5F5F7] transition-colors">Documentation</Link>
-              <Link to="/deals" className="hover:text-[#F5F5F7] transition-colors">Portfolio</Link>
+      {/* ── 5. State Contract Rules Selector ── */}
+      <section id="state-rules" className="max-w-6xl mx-auto px-6 py-24 space-y-10">
+        <div className="text-center space-y-3 max-w-xl mx-auto">
+          <Badge variant="outline" className="text-xs font-semibold px-3 py-1">
+            <Scale className="h-3.5 w-3.5 text-neutral-800 mr-1.5" />
+            State Jurisdiction Engine
+          </Badge>
+          <h2 className="text-3xl sm:text-4xl font-bold text-[#09090B] tracking-tight">
+            Multi-State Statutory Accuracy
+          </h2>
+          <p className="text-sm text-[#52525B]">
+            Real estate deadlines vary strictly by governing state association standard forms. Select your market to inspect the rules.
+          </p>
+        </div>
+
+        {/* State Pill Buttons */}
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {STATE_TEMPLATES.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setSelectedState(t)}
+              className={`rounded-full px-5 py-2 text-xs font-semibold transition-all cursor-pointer ${
+                selectedState.id === t.id
+                  ? 'bg-black text-white shadow-clean-xs'
+                  : 'bg-[#F4F4F5] text-[#52525B] hover:text-black hover:bg-neutral-200/70 border border-neutral-200'
+              }`}
+            >
+              {t.state} ({t.code.split(' ')[0]})
+            </button>
+          ))}
+        </div>
+
+        {/* Selected State Rule Card */}
+        <div className="rounded-3xl border border-neutral-200 bg-white p-7 sm:p-9 shadow-clean-sm max-w-4xl mx-auto">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-100 pb-6 mb-6">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl font-bold text-[#09090B]">{selectedState.state}</span>
+                <Badge variant="default" className="text-[11px] font-semibold">{selectedState.code}</Badge>
+              </div>
+              <p className="text-xs text-[#52525B] mt-1">{selectedState.rule}</p>
+            </div>
+            <div className="text-right">
+              <span className="text-[10px] text-[#71717A] uppercase font-semibold tracking-wider block">Official Cutoff Time</span>
+              <span className="text-sm font-bold text-[#09090B]">{selectedState.cutoff}</span>
             </div>
           </div>
-        </footer>
-      </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className="p-4 rounded-2xl bg-[#F9FAFB] border border-neutral-200/70">
+              <span className="text-[10px] font-semibold text-[#71717A] uppercase tracking-wider block mb-1">Inspection Period</span>
+              <span className="text-base font-bold text-[#09090B] block">{selectedState.inspection}</span>
+              <span className="text-[11px] text-[#71717A] mt-1 block">Buyer right to remedy or terminate</span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#F9FAFB] border border-neutral-200/70">
+              <span className="text-[10px] font-semibold text-[#71717A] uppercase tracking-wider block mb-1">Financing Commitment</span>
+              <span className="text-base font-bold text-[#09090B] block">{selectedState.financing}</span>
+              <span className="text-[11px] text-[#71717A] mt-1 block">Loan approval &amp; appraisal addendum</span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#F9FAFB] border border-neutral-200/70">
+              <span className="text-[10px] font-semibold text-[#71717A] uppercase tracking-wider block mb-1">Title Examination</span>
+              <span className="text-base font-bold text-[#09090B] block">{selectedState.title}</span>
+              <span className="text-[11px] text-[#71717A] mt-1 block">Objections to defects &amp; encumbrances</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 6. Bottom Call to Action ── */}
+      <section className="border-t border-neutral-200/80 bg-[#FAFAFA] py-20 px-6 text-center">
+        <div className="max-w-3xl mx-auto space-y-6">
+          <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-[#09090B]">
+            Never miss a closing deadline again.
+          </h2>
+          <p className="text-sm sm:text-base text-[#52525B] max-w-xl mx-auto">
+            Join thousands of real estate professionals protecting earnest money deposits with automated surveillance.
+          </p>
+          <div className="pt-2">
+            <Button asChild size="lg" className="btn-pill-primary text-xs px-8 py-3">
+              <Link to={user ? "/upload" : "/login"}>
+                <span>Get started in 30 seconds</span>
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 7. Footer ── */}
+      <footer className="border-t border-neutral-200/80 bg-white py-12 px-6 text-xs text-[#71717A]">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-6 rounded-full bg-black text-white flex items-center justify-center font-bold text-[10px]">
+              C
+            </div>
+            <span className="font-semibold text-[#09090B]">Contingency Copilot</span>
+            <span className="text-neutral-400">© 2026</span>
+          </div>
+
+          <div className="flex items-center gap-6 font-medium">
+            <Link to="/pricing" className="hover:text-black">Pricing</Link>
+            <Link to="/security" className="hover:text-black">Security</Link>
+            <Link to="/docs" className="hover:text-black">API Docs</Link>
+            <Link to="/contracts" className="hover:text-black">Contracts Library</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
