@@ -30,15 +30,15 @@ function ProtectedLayout() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0A0A0B]">
-        <Loader2 className="h-6 w-6 animate-spin text-[#C9A961]" />
+      <div className="flex min-h-screen items-center justify-center bg-[#F9FAFB]">
+        <Loader2 className="h-6 w-6 animate-spin text-[#09090B]" />
       </div>
     );
   }
   if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
 
   return (
-    <div className="flex min-h-screen bg-[#0A0A0B] text-[#F5F5F7]">
+    <div className="flex min-h-screen bg-[#F9FAFB] text-[#09090B]">
       {/* Fixed Left Vertical Sidebar */}
       <Sidebar />
 

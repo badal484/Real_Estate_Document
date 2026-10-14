@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Building2, Plus, ShieldCheck, BookOpen, Layers, History, Users, BookOpenCheck, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Building2, Plus, ShieldCheck, BookOpen, Layers, History, Users, BookOpenCheck, CheckCircle2 } from 'lucide-react';
 import { UserMenu } from './UserMenu';
 import { AgentPlaybookModal } from './deal/AgentPlaybookModal';
 
@@ -21,12 +21,12 @@ export function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 stripe-nav bg-white">
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-[#E4E4E7]">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between px-4 py-2.5 sm:px-6">
           {/* Brand Logo */}
           <Link to="/deals" className="flex items-center gap-2.5 group">
-            <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-[#0f172a] text-white shadow-xs group-hover:bg-[#1e293b] ring-1 ring-slate-900/10 transition-all">
-              <Building2 className="h-4.5 w-4.5 text-white" />
+            <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-[#09090B] text-white shadow-clean-xs transition-transform group-hover:scale-105">
+              <Building2 className="h-4 w-4 text-white" />
               <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -34,20 +34,20 @@ export function Navbar() {
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
-                <span className="text-sm font-bold tracking-tight text-[#0f172a] group-hover:text-[#1d4ed8] transition-colors">
+                <span className="text-sm font-bold tracking-tight text-[#09090B]">
                   Contingency Copilot
                 </span>
-                <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200/80 px-2 py-0.5 text-[10px] font-bold text-[#1d4ed8]">
-                  <CheckCircle2 className="h-3 w-3 text-[#059669]" />
-                  MLS &amp; Escrow Suite
+                <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-neutral-100 border border-neutral-200 px-2 py-0.5 text-[10px] font-semibold text-[#09090B]">
+                  <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                  MLS &amp; Escrow
                 </span>
               </div>
-              <span className="text-[10px] text-[#64748b] font-medium">Brokerage Escrow &amp; Contract Surveillance</span>
+              <span className="text-[10px] text-[#71717A] font-medium">Real Estate Closing Suite</span>
             </div>
           </Link>
 
           {/* Center Navigation Links */}
-          <nav className="flex items-center gap-1 text-xs font-semibold bg-[#f8fafc] p-1 rounded-xl border border-[#e2e8f0]">
+          <nav className="flex items-center gap-1 text-xs font-medium bg-[#F4F4F5] p-1 rounded-full border border-[#E4E4E7]">
             {NAV_LINKS.map((link) => {
               const active =
                 link.href === '/deals'
@@ -60,7 +60,7 @@ export function Navbar() {
                   <Link
                     key={link.href}
                     to={link.href}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-[#0f172a] hover:bg-[#1e293b] text-white px-3 py-1.5 text-xs font-semibold shadow-2xs active:scale-[0.98] transition-all"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-[#09090B] hover:bg-neutral-800 text-white px-3.5 py-1.5 text-xs font-semibold shadow-clean-xs active:scale-[0.98] transition-all"
                   >
                     <Icon className="h-3.5 w-3.5 text-white" />
                     <span>{link.label}</span>
@@ -73,26 +73,26 @@ export function Navbar() {
                   key={link.href}
                   to={link.href}
                   aria-current={active ? 'page' : undefined}
-                  className={`relative inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 transition-all ${
+                  className={`relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-all ${
                     active
-                      ? 'bg-white text-[#0f172a] font-bold shadow-2xs border border-[#e2e8f0]'
-                      : 'text-[#475569] hover:bg-[#f1f5f9] hover:text-[#0f172a]'
+                      ? 'bg-white text-[#09090B] font-semibold shadow-clean-xs border border-[#E4E4E7]'
+                      : 'text-[#71717A] hover:bg-neutral-200/50 hover:text-[#09090B]'
                   }`}
                 >
-                  <Icon className={`h-3.5 w-3.5 ${active ? 'text-[#1d4ed8]' : 'text-[#94a3b8]'}`} />
+                  <Icon className={`h-3.5 w-3.5 ${active ? 'text-[#09090B]' : 'text-[#71717A]'}`} />
                   <span>{link.label}</span>
                 </Link>
               );
             })}
 
-            <div className="h-4 w-px bg-[#e2e8f0] mx-1 hidden lg:block" />
+            <div className="h-4 w-px bg-[#E4E4E7] mx-1 hidden lg:block" />
 
             <button
               type="button"
               onClick={() => setPlaybookOpen(true)}
-              className="hidden lg:inline-flex items-center gap-1.5 rounded-lg bg-white hover:bg-[#f8fafc] px-2.5 py-1.5 text-xs font-semibold text-[#475569] border border-[#e2e8f0] transition-all cursor-pointer shadow-2xs"
+              className="hidden lg:inline-flex items-center gap-1.5 rounded-full bg-white hover:bg-neutral-50 px-3 py-1.5 text-xs font-medium text-[#09090B] border border-[#E4E4E7] transition-all cursor-pointer shadow-clean-xs"
             >
-              <BookOpen className="h-3.5 w-3.5 text-[#1d4ed8]" />
+              <BookOpen className="h-3.5 w-3.5 text-[#09090B]" />
               <span>Playbook</span>
             </button>
 

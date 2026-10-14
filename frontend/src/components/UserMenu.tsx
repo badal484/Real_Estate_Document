@@ -8,10 +8,10 @@ import { Badge } from './ui/badge';
 function Avatar({ user, size }: { user: User; size: 'sm' | 'md' }) {
   const dims = size === 'sm' ? 'h-7 w-7 text-xs' : 'h-8 w-8 text-xs';
   if (user.pictureUrl) {
-    return <img src={user.pictureUrl} alt="" referrerPolicy="no-referrer" className={`${dims} rounded-full object-cover border border-white/[0.1]`} />;
+    return <img src={user.pictureUrl} alt="" referrerPolicy="no-referrer" className={`${dims} rounded-full object-cover border border-neutral-200`} />;
   }
   return (
-    <span className={`${dims} flex items-center justify-center rounded-full bg-[#181820] font-semibold text-[#C9A961] border border-[#C9A961]/30`}>
+    <span className={`${dims} flex items-center justify-center rounded-full bg-[#09090B] font-semibold text-white`}>
       {(user.name ?? user.email).charAt(0).toUpperCase()}
     </span>
   );
@@ -47,56 +47,53 @@ export function UserMenu() {
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-2 rounded-xl py-1 pl-1 pr-2 text-[#F5F5F7] transition-colors hover:bg-white/[0.05] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#C9A961]/50 cursor-pointer"
+        className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2.5 text-[#09090B] transition-colors hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/10 cursor-pointer"
       >
         <Avatar user={user} size="sm" />
-        <span className="hidden max-w-[130px] truncate text-xs font-medium md:inline text-[#F5F5F7]">{user.name ?? user.email}</span>
+        <span className="hidden max-w-[130px] truncate text-xs font-semibold md:inline text-[#09090B]">{user.name ?? user.email}</span>
         <ChevronDown
-          className={`h-3 w-3 text-[#9A9AA5] transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+          className={`h-3 w-3 text-[#71717A] transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
         />
       </button>
 
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: 4, scale: 0.98 }}
+            initial={{ opacity: 0, y: 6, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.98 }}
-            transition={{ duration: 0.12 }}
-            role="menu"
-            className="absolute right-0 mt-2 w-64 origin-top-right overflow-hidden rounded-2xl border border-white/[0.08] bg-[#141418] shadow-2xl z-50 text-[#F5F5F7]"
+            transition={{ duration: 0.15 }}
+            className="absolute right-0 top-full mt-2 w-72 rounded-2xl border border-[#E4E4E7] bg-white p-3 shadow-clean-lg z-50"
           >
-            <div className="flex items-center gap-2.5 border-b border-white/[0.08] p-3.5 bg-[#181820]">
+            <div className="flex items-center gap-3 border-b border-[#E4E4E7] pb-3 mb-2 px-1">
               <Avatar user={user} size="md" />
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1">
-                  <p className="truncate text-xs font-semibold text-[#F5F5F7]">{user.name || 'Agent User'}</p>
-                </div>
-                <p className="truncate text-[11px] text-[#9A9AA5] font-mono">{user.email}</p>
+                <p className="truncate text-xs font-semibold text-[#09090B]">{user.name || 'Managing Broker'}</p>
+                <p className="truncate text-[11px] text-[#71717A] font-mono">{user.email}</p>
               </div>
             </div>
 
-            <div className="p-2 space-y-1">
-              <div className="flex items-center justify-between px-2.5 py-1.5 text-[11px] text-[#9A9AA5]">
-                <span className="flex items-center gap-1.5">
-                  <Shield className="h-3.5 w-3.5 text-[#C9A961]" />
-                  <span>Role</span>
+            <div className="px-2 py-1.5 mb-2 rounded-xl bg-[#F9FAFB] border border-[#E4E4E7]">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-[#71717A] flex items-center gap-1">
+                  <Shield className="h-3 w-3 text-neutral-800" /> Organization Role
                 </span>
-                <Badge variant="gold" className="text-[10px]">Brokerage Admin</Badge>
+                <Badge variant="outline" className="text-[10px] font-semibold py-0.5">
+                  {user.role || 'BROKER'}
+                </Badge>
               </div>
-
-              <div className="h-px bg-white/[0.08] my-1" />
-
-              <button
-                type="button"
-                role="menuitem"
-                onClick={signOut}
-                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-rose-400 transition-colors hover:bg-rose-500/10 cursor-pointer"
-              >
-                <LogOut className="h-3.5 w-3.5" />
-                <span>Sign out</span>
-              </button>
             </div>
+
+            <button
+              onClick={() => {
+                setOpen(false);
+                signOut();
+              }}
+              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              <span>Sign out</span>
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
