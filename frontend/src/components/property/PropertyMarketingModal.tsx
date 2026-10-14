@@ -8,7 +8,6 @@ import {
   FileText,
   Megaphone,
   X,
-  CheckCircle2,
 } from 'lucide-react';
 import { Badge } from '../ui/badge';
 
@@ -99,81 +98,83 @@ Contact Agent for Private Entry Code & Disclosures.`,
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl border border-slate-200 w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="bg-white rounded-3xl border border-[#E4E4E7] w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="p-6 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+        <div className="p-6 bg-white flex items-center justify-between border-b border-[#E4E4E7]">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/30 text-[10px]">
+              <Badge variant="neutral" className="bg-[#F4F4F5] text-[#09090B] border-[#E4E4E7] text-[10px] px-2.5 py-0.5 rounded-full">
                 AI Marketing Suite
               </Badge>
-              <span className="text-xs text-slate-400">{property.city}</span>
+              <span className="text-xs text-[#71717A]">{property.city}</span>
             </div>
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <Megaphone className="h-5 w-5 text-sky-400" /> {property.title}
+            <h2 className="text-lg font-semibold text-[#09090B] flex items-center gap-2">
+              <Megaphone className="h-5 w-5 text-amber-500" /> {property.title}
             </h2>
-            <p className="text-xs text-slate-300 font-mono mt-0.5">{formattedPrice} • {property.address}</p>
+            <p className="text-xs text-[#71717A] font-mono mt-0.5">{formattedPrice} • {property.address}</p>
           </div>
 
-          <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10">
+          <button onClick={onClose} className="p-1.5 rounded-full text-[#71717A] hover:text-[#09090B] hover:bg-[#F4F4F5] transition-colors cursor-pointer">
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-slate-100 bg-slate-50 px-6 pt-3 gap-2 overflow-x-auto text-xs font-semibold">
-          <button
-            onClick={() => setActiveTab('INSTAGRAM')}
-            className={`pb-3 px-3 border-b-2 transition-all flex items-center gap-1.5 ${
-              activeTab === 'INSTAGRAM' ? 'border-indigo-600 text-indigo-600 font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <Share2 className="h-4 w-4" /> Social Post
-          </button>
-          <button
-            onClick={() => setActiveTab('EMAIL')}
-            className={`pb-3 px-3 border-b-2 transition-all flex items-center gap-1.5 ${
-              activeTab === 'EMAIL' ? 'border-indigo-600 text-indigo-600 font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <Mail className="h-4 w-4" /> Email Blast
-          </button>
-          <button
-            onClick={() => setActiveTab('MLS')}
-            className={`pb-3 px-3 border-b-2 transition-all flex items-center gap-1.5 ${
-              activeTab === 'MLS' ? 'border-indigo-600 text-indigo-600 font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <FileText className="h-4 w-4" /> MLS Copy
-          </button>
-          <button
-            onClick={() => setActiveTab('FLYER')}
-            className={`pb-3 px-3 border-b-2 transition-all flex items-center gap-1.5 ${
-              activeTab === 'FLYER' ? 'border-indigo-600 text-indigo-600 font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <Share2 className="h-4 w-4" /> Open House Flyer
-          </button>
+        <div className="border-b border-[#E4E4E7] bg-[#F9FAFB] p-3 overflow-x-auto">
+          <div className="p-1 bg-[#F4F4F5] rounded-full inline-flex border border-[#E4E4E7] text-xs font-medium">
+            <button
+              onClick={() => setActiveTab('INSTAGRAM')}
+              className={`px-3.5 py-1 rounded-full transition-all flex items-center gap-1.5 ${
+                activeTab === 'INSTAGRAM' ? 'bg-white text-[#09090B] font-semibold shadow-xs' : 'text-[#71717A] hover:text-[#09090B]'
+              }`}
+            >
+              <Share2 className="h-3.5 w-3.5" /> <span>Social Post</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('EMAIL')}
+              className={`px-3.5 py-1 rounded-full transition-all flex items-center gap-1.5 ${
+                activeTab === 'EMAIL' ? 'bg-white text-[#09090B] font-semibold shadow-xs' : 'text-[#71717A] hover:text-[#09090B]'
+              }`}
+            >
+              <Mail className="h-3.5 w-3.5" /> <span>Email Blast</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('MLS')}
+              className={`px-3.5 py-1 rounded-full transition-all flex items-center gap-1.5 ${
+                activeTab === 'MLS' ? 'bg-white text-[#09090B] font-semibold shadow-xs' : 'text-[#71717A] hover:text-[#09090B]'
+              }`}
+            >
+              <FileText className="h-3.5 w-3.5" /> <span>MLS Copy</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('FLYER')}
+              className={`px-3.5 py-1 rounded-full transition-all flex items-center gap-1.5 ${
+                activeTab === 'FLYER' ? 'bg-white text-[#09090B] font-semibold shadow-xs' : 'text-[#71717A] hover:text-[#09090B]'
+              }`}
+            >
+              <Share2 className="h-3.5 w-3.5" /> <span>Open House Flyer</span>
+            </button>
+          </div>
         </div>
 
         {/* Content Box */}
         <div className="p-6 space-y-4 overflow-y-auto flex-1">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-              <Sparkles className="h-3.5 w-3.5 text-indigo-600" /> Generated {activeTab} Marketing Copy
+            <span className="text-xs font-semibold text-[#09090B] uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Generated {activeTab} Marketing Copy
             </span>
 
             <button
               onClick={() => handleCopy(copyTemplates[activeTab], activeTab)}
-              className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-colors flex items-center gap-1.5 shadow-xs"
+              className="px-4 py-1.5 rounded-full bg-[#09090B] hover:bg-black text-white font-medium text-xs transition-all flex items-center gap-1.5 shadow-clean-xs active:scale-95 cursor-pointer"
             >
-              {copiedTab === activeTab ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-              {copiedTab === activeTab ? 'Copied to Clipboard!' : 'Copy Copy'}
+              {copiedTab === activeTab ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+              <span>{copiedTab === activeTab ? 'Copied!' : 'Copy Copy'}</span>
             </button>
           </div>
 
-          <div className="bg-slate-900 text-slate-100 p-4 rounded-xl font-mono text-xs leading-relaxed whitespace-pre-wrap border border-slate-800 select-all">
+          <div className="bg-[#F9FAFB] text-[#09090B] p-4 rounded-2xl font-mono text-xs leading-relaxed whitespace-pre-wrap border border-[#E4E4E7] select-all">
             {copyTemplates[activeTab]}
           </div>
         </div>
