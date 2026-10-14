@@ -17,25 +17,25 @@ export function buttonVariants({
   className?: string;
 } = {}) {
   const baseStyles =
-    'inline-flex items-center justify-center whitespace-nowrap rounded-full font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A961]/40 disabled:pointer-events-none disabled:opacity-50 select-none cursor-pointer';
+    'inline-flex items-center justify-center whitespace-nowrap rounded-full font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20 disabled:pointer-events-none disabled:opacity-50 select-none cursor-pointer';
 
   const variants = {
     default:
-      'bg-[#C9A961] text-[#0A0A0B] hover:bg-[#DFBF77] active:bg-[#B5934C] shadow-sm hover:shadow-[0_0_20px_rgba(201,169,97,0.35)]',
+      'bg-[#09090B] text-white hover:bg-[#27272A] active:scale-[0.98] shadow-clean-xs',
     gold:
-      'bg-[#C9A961] text-[#0A0A0B] hover:bg-[#DFBF77] active:bg-[#B5934C] shadow-sm hover:shadow-[0_0_20px_rgba(201,169,97,0.35)]',
+      'bg-[#09090B] text-white hover:bg-[#27272A] active:scale-[0.98] shadow-clean-xs',
     brand:
-      'bg-[#C9A961] text-[#0A0A0B] hover:bg-[#DFBF77] active:bg-[#B5934C] shadow-sm',
+      'bg-[#09090B] text-white hover:bg-[#27272A] active:scale-[0.98] shadow-clean-xs',
     secondary:
-      'bg-[#1A1A22] text-[#F5F5F7] border border-white/10 hover:bg-[#22222C] hover:border-[#C9A961]/40 active:scale-[0.99]',
+      'bg-[#F4F4F5] text-[#09090B] hover:bg-[#E4E4E7] active:scale-[0.98]',
     outline:
-      'border border-white/10 bg-transparent text-[#F5F5F7] hover:bg-white/5 hover:border-white/20 active:scale-[0.99]',
+      'border border-[#E4E4E7] bg-white text-[#09090B] hover:bg-[#F9FAFB] hover:border-[#D4D4D8] active:scale-[0.98] shadow-clean-xs',
     ghost:
-      'text-[#9A9AA5] hover:bg-white/5 hover:text-[#F5F5F7] active:scale-[0.99]',
+      'text-[#52525B] hover:bg-neutral-100 hover:text-[#09090B] active:scale-[0.98]',
     destructive:
-      'bg-rose-600/90 text-white hover:bg-rose-500 shadow-sm active:scale-[0.99]',
+      'bg-rose-600 text-white hover:bg-rose-700 shadow-clean-xs active:scale-[0.98]',
     link:
-      'text-[#C9A961] underline-offset-4 hover:underline p-0 h-auto rounded-none',
+      'text-[#09090B] underline-offset-4 hover:underline p-0 h-auto rounded-none font-normal',
   };
 
   const sizes = {
@@ -61,16 +61,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     }
 
     return (
-      <button
-        ref={ref}
-        disabled={disabled}
-        className={combinedClassName}
-        {...props}
-      >
+      <button ref={ref} className={combinedClassName} disabled={disabled} {...props}>
         {children}
       </button>
     );
   }
 );
-
 Button.displayName = 'Button';

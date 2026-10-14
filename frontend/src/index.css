@@ -9,36 +9,36 @@
 
 @layer base {
   :root {
-    /* Luxury Dark Palette (Mizumi/Baccarat PropTech vibe) */
-    --background: 240 6% 4%; /* #0A0A0B Near Black */
-    --foreground: 240 6% 96%; /* #F5F5F7 Off White */
+    /* ElevenLabs / Modern Crisp SaaS Palette */
+    --background: 0 0% 100%; /* #FFFFFF */
+    --foreground: 240 10% 4%; /* #09090B High Contrast Black */
 
-    --card: 240 7% 9%; /* #141418 Surface */
-    --card-foreground: 240 6% 96%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 4%;
 
-    --popover: 240 7% 9%;
-    --popover-foreground: 240 6% 96%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 4%;
 
-    --primary: 41 49% 58%; /* #C9A961 Warm Champagne Gold */
-    --primary-foreground: 240 6% 4%; /* #0A0A0B */
+    --primary: 240 10% 4%; /* #09090B Solid Jet Black */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 6% 14%; /* #1E1E26 */
-    --secondary-foreground: 240 6% 96%;
+    --secondary: 240 5% 96%; /* #F4F4F5 Soft Light Gray */
+    --secondary-foreground: 240 10% 4%;
 
-    --muted: 240 5% 15%;
-    --muted-foreground: 240 4% 63%; /* #9A9AA5 Muted Grey */
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%; /* #71717A Neutral Subtitle */
 
-    --accent: 41 49% 58%;
-    --accent-foreground: 240 6% 4%;
+    --accent: 240 5% 96%;
+    --accent-foreground: 240 10% 4%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 5% 16%; /* rgba(255,255,255,0.08) */
-    --input: 240 5% 16%;
-    --ring: 41 49% 58%;
+    --border: 240 6% 90%; /* #E4E4E7 Crisp Divider */
+    --input: 240 6% 90%;
+    --ring: 240 10% 4%;
 
-    --radius: 0.875rem; /* 14px */
+    --radius: 1rem;
   }
 
   html {
@@ -46,19 +46,19 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'tnum';
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   body {
-    background-color: #0A0A0B;
-    color: #F5F5F7;
+    background-color: #FFFFFF;
+    color: #09090B;
     min-height: 100vh;
     position: relative;
     overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply tracking-tight font-semibold text-[#F5F5F7];
+    @apply tracking-tight font-semibold text-[#09090B];
   }
 
   /* Custom Minimal Slim Scrollbar */
@@ -70,103 +70,117 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(0, 0, 0, 0.12);
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(201, 169, 97, 0.4);
+    background: rgba(0, 0, 0, 0.25);
   }
 }
 
 @layer components {
-  /* ── Luxury Real Estate Design System Tokens ── */
+  /* ── ElevenLabs Clean Design System Tokens ── */
   .stripe-nav {
-    background-color: rgba(14, 14, 18, 0.85);
+    background-color: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(16px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    border-bottom: 1px solid #E4E4E7;
   }
 
   .stripe-card {
-    background-color: #141418;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 1rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    background-color: #FFFFFF;
+    border: 1px solid #E4E4E7;
+    border-radius: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .stripe-card:hover {
-    border-color: rgba(201, 169, 97, 0.3);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(201, 169, 97, 0.08);
+    border-color: #D4D4D8;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
   }
 
-  /* ── Luxury Buttons (Champagne Gold & Dark Outline) ── */
+  /* ── ElevenLabs Pill Buttons ── */
+  .btn-pill-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-[#09090B] hover:bg-[#27272A] active:scale-[0.98] text-white px-5 py-2.5 text-xs font-semibold shadow-clean-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer;
+  }
+
+  .btn-pill-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-[#F4F4F5] hover:bg-[#E4E4E7] active:scale-[0.98] text-[#09090B] px-5 py-2.5 text-xs font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer;
+  }
+
+  .btn-pill-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-[#E4E4E7] bg-white hover:bg-[#F9FAFB] hover:border-[#D4D4D8] active:scale-[0.98] text-[#09090B] px-5 py-2.5 text-xs font-semibold shadow-clean-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer;
+  }
+
+  .btn-pill-ghost {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium text-[#71717A] hover:bg-neutral-100 hover:text-[#09090B] transition-all cursor-pointer;
+  }
+
+  /* Backwards compatibility button classes */
   .btn-stripe-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-[#C9A961] hover:bg-[#DFBF77] active:bg-[#B5934C] text-[#0A0A0B] px-4 py-2 text-xs font-bold shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:shadow-[0_0_15px_rgba(201,169,97,0.35)];
+    @apply btn-pill-primary;
   }
-
   .btn-stripe-navy {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-[#1E1E26] hover:bg-[#282834] text-[#F5F5F7] border border-white/10 px-4 py-2 text-xs font-semibold shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer;
+    @apply btn-pill-primary;
   }
-
   .btn-stripe-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-[#16161C] text-[#F5F5F7] hover:bg-[#1E1E26] hover:border-[#C9A961]/40 px-4 py-2 text-xs font-semibold shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer;
+    @apply btn-pill-outline;
   }
-
   .btn-stripe-ghost {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-[#9A9AA5] hover:bg-white/5 hover:text-[#F5F5F7] transition-all cursor-pointer;
+    @apply btn-pill-ghost;
   }
 
   .card {
-    @apply rounded-2xl border border-white/10 bg-[#141418] shadow-luxury-sm transition-all;
+    @apply rounded-3xl border border-[#E4E4E7] bg-white shadow-clean-sm transition-all;
   }
 
   .card-hover {
-    @apply rounded-2xl border border-white/10 bg-[#141418] shadow-luxury-sm transition-all hover:border-[#C9A961]/30 hover:shadow-luxury-md;
+    @apply rounded-3xl border border-[#E4E4E7] bg-white shadow-clean-sm transition-all hover:border-[#D4D4D8] hover:shadow-clean-md;
   }
 
   .input-base {
-    @apply w-full rounded-xl border border-white/10 bg-[#101014] px-3.5 py-2 text-xs text-[#F5F5F7] placeholder:text-[#686873] focus:border-[#C9A961] focus:ring-2 focus:ring-[#C9A961]/20 focus:outline-none transition-all;
+    @apply w-full rounded-full border border-[#E4E4E7] bg-white px-4 py-2.5 text-xs text-[#09090B] placeholder:text-[#A1A1AA] focus:border-[#09090B] focus:ring-2 focus:ring-black/5 focus:outline-none transition-all;
   }
 
   .label-base {
-    @apply mb-1.5 block text-xs font-medium text-[#9A9AA5];
+    @apply mb-1.5 block text-xs font-medium text-[#52525B];
   }
 
   .banner-error {
-    @apply flex items-start gap-2 rounded-xl border border-rose-500/20 bg-rose-950/30 px-3.5 py-2.5 text-xs text-rose-300;
+    @apply flex items-start gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-800;
   }
 
   .banner-success {
-    @apply flex items-start gap-2 rounded-xl border border-emerald-500/20 bg-emerald-950/30 px-3.5 py-2.5 text-xs text-emerald-300;
+    @apply flex items-start gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-800;
   }
 
   .empty-state {
-    @apply rounded-2xl border border-dashed border-white/10 bg-[#141418] p-10 text-center;
+    @apply rounded-3xl border border-dashed border-[#E4E4E7] bg-[#F9FAFB] p-10 text-center;
   }
 
-  /* ── PropTech Badges ── */
+  /* ── Pill Badges & Segmented Controls ── */
   .badge-escrow-active {
-    @apply inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 px-2.5 py-0.5 text-[10px] font-semibold;
+    @apply inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 px-3 py-1 text-[11px] font-medium;
   }
 
   .badge-escrow-pending {
-    @apply inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-400 px-2.5 py-0.5 text-[10px] font-semibold;
+    @apply inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200/80 text-amber-700 px-3 py-1 text-[11px] font-medium;
   }
 
   .badge-escrow-closed {
-    @apply inline-flex items-center gap-1 rounded-full bg-white/5 border border-white/10 text-[#9A9AA5] px-2.5 py-0.5 text-[10px] font-semibold;
+    @apply inline-flex items-center gap-1.5 rounded-full bg-neutral-100 border border-neutral-200 text-neutral-600 px-3 py-1 text-[11px] font-medium;
   }
 
   .glass-panel {
-    background-color: #141418;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+    background-color: #FFFFFF;
+    border: 1px solid #E4E4E7;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
   }
 
   .glass-badge {
-    background-color: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    color: #F5F5F7;
+    background-color: #F4F4F5;
+    border: 1px solid #E4E4E7;
+    color: #09090B;
   }
 }
 
