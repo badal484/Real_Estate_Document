@@ -1103,21 +1103,21 @@ export function LeadDetailPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-12">
       {/* ── Top Bar ── */}
       <div className="flex items-center justify-between">
         <button
           onClick={() => navigate('/leads')}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-medium text-[#71717A] hover:text-[#09090B] transition-colors cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" /> Back to Leads Dashboard
         </button>
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-500">Status:</span>
-          <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-emerald-500 text-white">
+        <div className="flex items-center gap-2.5">
+          <span className="text-xs text-[#71717A]">Status:</span>
+          <span className="px-3 py-0.5 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
             {lead.status}
           </span>
-          <span className="px-2 py-0.5 text-xs font-bold rounded-md bg-amber-100 text-amber-800 border border-amber-200">
+          <span className="px-3 py-0.5 text-xs font-semibold rounded-full bg-amber-50 text-amber-700 border border-amber-200">
             {lead.priority} Priority
           </span>
         </div>
@@ -1126,7 +1126,7 @@ export function LeadDetailPage() {
       {/* ── Action Feedback Banner ── */}
       {actionFeedback && (
         <div
-          className={`p-3 rounded-xl text-xs flex items-center justify-between border ${
+          className={`p-4 rounded-2xl text-xs flex items-center justify-between border ${
             actionFeedback.type === 'success'
               ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
               : actionFeedback.type === 'warning'
@@ -1142,7 +1142,7 @@ export function LeadDetailPage() {
           </div>
           <button
             onClick={() => setActionFeedback(null)}
-            className="text-xs font-bold hover:opacity-75"
+            className="text-xs font-bold hover:opacity-75 cursor-pointer"
           >
             ✕
           </button>
@@ -1151,18 +1151,18 @@ export function LeadDetailPage() {
 
       {/* ── Stagnant Inactivity Warning ── */}
       {lead.isInactiveWarning && (
-        <div className="rounded-xl bg-amber-50 border border-amber-200 p-3.5 text-xs text-amber-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-xs">
-          <div className="flex items-center gap-2.5">
-            <Clock className="h-4 w-4 text-amber-600 flex-shrink-0" />
+        <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-xs text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-clean-xs">
+          <div className="flex items-center gap-3">
+            <Clock className="h-4 w-4 text-amber-600 shrink-0" />
             <div>
-              <span className="font-bold">Attention — Inactivity Warning:</span> No qualifying advisor activity has been recorded on this lead for{' '}
-              <span className="font-extrabold">{lead.daysSinceLastActivity} days</span>. Owner review recommended.
+              <span className="font-semibold">Attention — Inactivity Warning:</span> No qualifying advisor activity has been recorded on this lead for{' '}
+              <span className="font-bold">{lead.daysSinceLastActivity} days</span>. Owner review recommended.
             </div>
           </div>
           {currentUser?.role === 'OWNER' && (
             <button
               onClick={() => setShowReassignModal(true)}
-              className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-amber-600 text-white hover:bg-amber-700 transition-colors w-fit"
+              className="px-3.5 py-1.5 text-xs font-medium rounded-full bg-amber-600 text-white hover:bg-amber-700 transition-colors shrink-0 shadow-clean-xs"
             >
               Reassign Lead
             </button>
@@ -1171,15 +1171,15 @@ export function LeadDetailPage() {
       )}
 
       {/* ── Lead Title & Header ── */}
-      <div className="rounded-2xl bg-white border border-slate-200/80 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="rounded-3xl bg-white border border-[#E4E4E7] p-6 sm:p-7 shadow-clean-sm flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div className="flex items-center gap-4">
-          <div className="h-12 w-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+          <div className="h-12 w-12 rounded-2xl bg-[#F4F4F5] border border-[#E4E4E7] flex items-center justify-center text-[#09090B] shrink-0">
             <User className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">{lead.fullName}</h1>
-            <p className="text-xs text-slate-500">
-              Source: <span className="font-semibold text-slate-700">{lead.source}</span> • Contact: {lead.email || lead.phone || 'None'}
+            <h1 className="text-xl sm:text-2xl font-semibold text-[#09090B] tracking-tight">{lead.fullName}</h1>
+            <p className="text-xs text-[#71717A] mt-1">
+              Source: <span className="font-medium text-[#09090B]">{lead.source}</span> • Contact: {lead.email || lead.phone || 'None'}
             </p>
           </div>
         </div>
@@ -1187,21 +1187,21 @@ export function LeadDetailPage() {
         {/* ── AI Mode & Human Takeover Controls ── */}
         <div className="flex flex-wrap items-center gap-3">
           {/* AI Draft Mode Toggle */}
-          <div className="flex flex-col gap-1 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-1 bg-[#F9FAFB] p-3 rounded-2xl border border-[#E4E4E7]">
+            <div className="flex items-center gap-3">
               <div className="text-left">
-                <p className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
-                  <Sparkles className="h-3 w-3 text-indigo-600" />
+                <p className="text-xs font-medium text-[#09090B] flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5 text-amber-500" />
                   {thread?.autoReplyEnabled ? '⚡ Autopilot: Instant Auto-Reply' : '📝 Copilot: Review Drafts First'}
                 </p>
               </div>
               <button
                 onClick={handleToggleAutoPilot}
                 disabled={togglingAutoPilot}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 ${
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-all flex items-center gap-1 cursor-pointer active:scale-95 ${
                   thread?.autoReplyEnabled
-                    ? 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-xs'
-                    : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                    ? 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-clean-xs'
+                    : 'bg-white border border-[#E4E4E7] text-[#09090B] hover:bg-[#F4F4F5]'
                 }`}
                 title="Click to switch between Instant Auto-Reply and Copilot Draft Mode"
               >
@@ -1209,7 +1209,7 @@ export function LeadDetailPage() {
                 {thread?.autoReplyEnabled ? '⚡ Autopilot ON' : 'Enable Autopilot'}
               </button>
             </div>
-            <p className="text-[10px] text-slate-400">
+            <p className="text-[11px] text-[#71717A]">
               {thread?.autoReplyEnabled
                 ? 'Conversation replies are auto-approved instantly. Database criteria changes require manual review.'
                 : 'AI suggested replies are held for advisor review (Pending Approval).'}
@@ -1217,17 +1217,17 @@ export function LeadDetailPage() {
           </div>
 
           {/* Takeover Control */}
-          <div className="flex items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+          <div className="flex items-center gap-2 bg-[#F9FAFB] p-3 rounded-2xl border border-[#E4E4E7]">
             <button
               onClick={handleToggleTakeover}
               disabled={togglingTakeover}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5 ${
+              className={`px-4 py-2 rounded-full text-xs font-medium shadow-clean-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 ${
                 thread?.isHumanTakeover
                   ? 'bg-amber-600 text-white hover:bg-amber-500'
-                  : 'bg-indigo-600 text-white hover:bg-indigo-500'
+                  : 'bg-[#09090B] text-white hover:bg-black'
               }`}
             >
-              {togglingTakeover && <Loader2 className="h-3 w-3 animate-spin" />}
+              {togglingTakeover && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
               {thread?.isHumanTakeover ? 'Resume AI' : 'Takeover Chat'}
             </button>
           </div>
@@ -1235,17 +1235,17 @@ export function LeadDetailPage() {
       </div>
 
       {/* ── Lead Ownership & Claim/Release Bar ── */}
-      <div className="rounded-2xl bg-white border border-slate-200/80 p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Current Advisor:</span>
+      <div className="rounded-2xl bg-white border border-[#E4E4E7] p-5 shadow-clean-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-2.5">
+          <span className="text-xs font-semibold text-[#71717A] uppercase tracking-wider">Current Advisor:</span>
           {lead.assignedUser ? (
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#635bff] bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
-              <UserCheck className="h-3.5 w-3.5" />
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#09090B] bg-[#F4F4F5] px-3.5 py-1 rounded-full border border-[#E4E4E7]">
+              <UserCheck className="h-3.5 w-3.5 text-[#71717A]" />
               {lead.assignedUser.name || lead.assignedUser.email}
               {lead.assignedUserId === currentUser?.id && ' (You)'}
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 border-dashed">
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-800 bg-amber-50 px-3.5 py-1 rounded-full border border-amber-200">
               <Inbox className="h-3.5 w-3.5" />
               Unassigned Pool
             </span>

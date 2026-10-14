@@ -389,106 +389,106 @@ export function LeadsPage() {
 
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto pb-12">
-      {/* ── Stripe Page Header ── */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-[#e3e8ee] pb-5">
+      {/* ── ElevenLabs SaaS Page Header ── */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-[#E4E4E7] pb-6">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold tracking-tight text-[#0a2540]">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-semibold tracking-tight text-[#09090B]">
               AI Lead Operations &amp; Extraction
             </h1>
-            <span className="inline-flex items-center gap-1 rounded-full bg-[#635bff]/10 px-2.5 py-0.5 text-xs font-bold text-[#635bff] border border-[#635bff]/20">
-              <Zap className="h-3 w-3 text-[#635bff]" /> Auto-Extraction Active
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-0.5 text-xs font-medium text-emerald-700 border border-emerald-200">
+              <Zap className="h-3 w-3 text-emerald-600" /> Auto-Extraction Active
             </span>
           </div>
-          <p className="text-xs text-[#4f566b] mt-0.5">
+          <p className="text-xs text-[#71717A] mt-1">
             Real-time buyer requirement synthesis, state machine controls &amp; inventory matching.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={() => setShowCsvModal(true)}
-            className="btn-stripe-secondary text-xs"
+            className="px-4 py-2 rounded-full bg-white hover:bg-[#F4F4F5] text-[#09090B] text-xs font-medium flex items-center gap-2 border border-[#E4E4E7] transition-all cursor-pointer shadow-clean-xs active:scale-95"
           >
-            <FileSpreadsheet className="h-3.5 w-3.5 text-[#059669]" />
-            Import CSV
+            <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600" />
+            <span>Import CSV</span>
           </button>
           <button
             onClick={() => setShowAddModal(true)}
-            className="btn-stripe-primary text-xs"
+            className="px-4 py-2 rounded-full bg-[#09090B] hover:bg-black text-white text-xs font-medium flex items-center gap-2 transition-all cursor-pointer shadow-clean-xs active:scale-95"
           >
             <Plus className="h-3.5 w-3.5" />
-            Add Inbound Lead
+            <span>Add Inbound Lead</span>
           </button>
         </div>
       </div>
 
-      {/* ── Stripe Metric Cards Grid ── */}
+      {/* ── ElevenLabs Metric Cards Grid ── */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="stripe-card p-4 flex items-center justify-between">
+        <div className="bg-white rounded-3xl border border-[#E4E4E7] p-5 shadow-clean-sm hover:border-[#D4D4D8] transition-all flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-[#4f566b] uppercase tracking-wider">Total Active Leads</span>
-            <div className="text-2xl font-black text-[#0a2540] mt-1">{totalLeadsCount}</div>
-            <span className="text-[11px] text-[#059669] font-bold flex items-center gap-1 mt-1">
+            <span className="text-[11px] font-semibold text-[#71717A] uppercase tracking-wider">Total Active Leads</span>
+            <div className="text-2xl font-semibold text-[#09090B] mt-1">{totalLeadsCount}</div>
+            <span className="text-[11px] text-emerald-700 font-medium flex items-center gap-1 mt-1">
               <TrendingUp className="h-3 w-3" /> Live Pipeline
             </span>
           </div>
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#635bff]/10 text-[#635bff] border border-[#635bff]/20">
-            <Users className="h-4.5 w-4.5" />
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#F4F4F5] text-[#09090B] border border-[#E4E4E7]">
+            <Users className="h-5 w-5 text-[#09090B]" />
           </div>
         </div>
 
-        <div className="stripe-card p-4 flex items-center justify-between">
+        <div className="bg-white rounded-3xl border border-[#E4E4E7] p-5 shadow-clean-sm hover:border-[#D4D4D8] transition-all flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-[#4f566b] uppercase tracking-wider">New Inbound Queue</span>
-            <div className="text-2xl font-black text-[#059669] mt-1">{newLeadsCount}</div>
-            <span className="text-[11px] text-[#4f566b] mt-1">Awaiting Contact</span>
+            <span className="text-[11px] font-semibold text-[#71717A] uppercase tracking-wider">New Inbound Queue</span>
+            <div className="text-2xl font-semibold text-[#09090B] mt-1">{newLeadsCount}</div>
+            <span className="text-[11px] text-[#71717A] mt-1">Awaiting Contact</span>
           </div>
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-[#059669] border border-emerald-200">
-            <Sparkles className="h-4.5 w-4.5" />
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <Sparkles className="h-5 w-5 text-emerald-600" />
           </div>
         </div>
 
-        <div className="stripe-card p-4 flex items-center justify-between">
+        <div className="bg-white rounded-3xl border border-[#E4E4E7] p-5 shadow-clean-sm hover:border-[#D4D4D8] transition-all flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-[#4f566b] uppercase tracking-wider">High Priority Buyers</span>
-            <div className="text-2xl font-black text-[#d97706] mt-1">{urgentCount}</div>
-            <span className="text-[11px] text-[#d97706] font-bold mt-1">Immediate Timeline</span>
+            <span className="text-[11px] font-semibold text-[#71717A] uppercase tracking-wider">High Priority Buyers</span>
+            <div className="text-2xl font-semibold text-amber-700 mt-1">{urgentCount}</div>
+            <span className="text-[11px] text-amber-800 font-medium mt-1">Immediate Timeline</span>
           </div>
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 text-[#d97706] border border-amber-200">
-            <Zap className="h-4.5 w-4.5" />
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-50 text-amber-700 border border-amber-200">
+            <Zap className="h-5 w-5 text-amber-600" />
           </div>
         </div>
 
-        <div className="stripe-card p-4 flex items-center justify-between">
+        <div className="bg-white rounded-3xl border border-[#E4E4E7] p-5 shadow-clean-sm hover:border-[#D4D4D8] transition-all flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-[#4f566b] uppercase tracking-wider">AI Sales Copilot</span>
-            <div className="text-2xl font-black text-[#0a2540] mt-1">Active</div>
-            <span className="text-[11px] text-[#635bff] font-bold mt-1">Assisted Drafting</span>
+            <span className="text-[11px] font-semibold text-[#71717A] uppercase tracking-wider">AI Sales Copilot</span>
+            <div className="text-2xl font-semibold text-[#09090B] mt-1">Active</div>
+            <span className="text-[11px] text-[#71717A] font-medium mt-1">Assisted Drafting</span>
           </div>
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-[#0a2540] border border-[#e3e8ee]">
-            <Bot className="h-4.5 w-4.5" />
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#F4F4F5] text-[#09090B] border border-[#E4E4E7]">
+            <Bot className="h-5 w-5 text-[#09090B]" />
           </div>
         </div>
       </div>
 
       {/* ── Pool Tabs & Search Controls ── */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2 border-b border-[#e3e8ee] pb-2 overflow-x-auto">
+      <div className="space-y-4">
+        <div className="p-1 bg-[#F4F4F5] rounded-full inline-flex border border-[#E4E4E7] overflow-x-auto max-w-full">
           <button
             onClick={() => setPoolTab('ACTION_QUEUE')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shrink-0 ${
+            className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 shrink-0 ${
               poolTab === 'ACTION_QUEUE'
-                ? 'bg-[#635bff] text-white shadow-xs'
-                : 'text-[#4f566b] hover:bg-[#f2f4f8] hover:text-[#0a2540]'
+                ? 'bg-white text-[#09090B] font-semibold shadow-xs'
+                : 'text-[#71717A] hover:text-[#09090B]'
             }`}
           >
             <Zap className="h-3.5 w-3.5" />
-            Action Queue
+            <span>Action Queue</span>
             {actionQueueSummary && actionQueueSummary.totalActive > 0 && (
               <span
-                className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                  poolTab === 'ACTION_QUEUE' ? 'bg-white/20 text-white' : 'bg-rose-500 text-white'
+                className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                  poolTab === 'ACTION_QUEUE' ? 'bg-[#09090B] text-white' : 'bg-rose-500 text-white'
                 }`}
               >
                 {actionQueueSummary.overdueCount > 0
@@ -501,69 +501,69 @@ export function LeadsPage() {
           </button>
           <button
             onClick={() => setPoolTab('ALL')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shrink-0 ${
+            className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 shrink-0 ${
               poolTab === 'ALL'
-                ? 'bg-[#0a2540] text-white shadow-xs'
-                : 'text-[#4f566b] hover:bg-[#f2f4f8] hover:text-[#0a2540]'
+                ? 'bg-white text-[#09090B] font-semibold shadow-xs'
+                : 'text-[#71717A] hover:text-[#09090B]'
             }`}
           >
             <Users className="h-3.5 w-3.5" />
-            All Leads
+            <span>All Leads</span>
           </button>
           <button
             onClick={() => setPoolTab('MY')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 ${
+            className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 shrink-0 ${
               poolTab === 'MY'
-                ? 'bg-[#635bff] text-white shadow-xs'
-                : 'text-[#4f566b] hover:bg-[#f2f4f8] hover:text-[#0a2540]'
+                ? 'bg-white text-[#09090B] font-semibold shadow-xs'
+                : 'text-[#71717A] hover:text-[#09090B]'
             }`}
           >
             <UserCheck className="h-3.5 w-3.5" />
-            My Leads
+            <span>My Leads</span>
           </button>
           <button
             onClick={() => setPoolTab('UNASSIGNED')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 ${
+            className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 shrink-0 ${
               poolTab === 'UNASSIGNED'
-                ? 'bg-amber-600 text-white shadow-xs'
-                : 'text-[#4f566b] hover:bg-[#f2f4f8] hover:text-[#0a2540]'
+                ? 'bg-white text-[#09090B] font-semibold shadow-xs'
+                : 'text-[#71717A] hover:text-[#09090B]'
             }`}
           >
             <Inbox className="h-3.5 w-3.5" />
-            Unassigned Pool
+            <span>Unassigned Pool</span>
           </button>
           <button
             onClick={() => setPoolTab('TASKS')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 ${
+            className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 shrink-0 ${
               poolTab === 'TASKS'
-                ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-[#4f566b] hover:bg-[#f2f4f8] hover:text-[#0a2540]'
+                ? 'bg-white text-[#09090B] font-semibold shadow-xs'
+                : 'text-[#71717A] hover:text-[#09090B]'
             }`}
           >
             <ListTodo className="h-3.5 w-3.5" />
-            Follow-Up Tasks
+            <span>Follow-Up Tasks</span>
             {taskCounts.overdue > 0 ? (
-              <span className="px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[10px] font-bold animate-pulse">
+              <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-semibold animate-pulse">
                 {taskCounts.overdue} overdue
               </span>
             ) : taskCounts.upcoming > 0 ? (
-              <span className="px-1.5 py-0.2 rounded-full bg-indigo-500 text-white text-[10px] font-bold">
+              <span className="px-2 py-0.5 rounded-full bg-[#09090B] text-white text-[10px] font-semibold">
                 {taskCounts.upcoming}
               </span>
             ) : null}
           </button>
           <button
             onClick={() => setPoolTab('SITE_VISITS')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 ${
+            className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 shrink-0 ${
               poolTab === 'SITE_VISITS'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-[#4f566b] hover:bg-[#f2f4f8] hover:text-[#0a2540]'
+                ? 'bg-white text-[#09090B] font-semibold shadow-xs'
+                : 'text-[#71717A] hover:text-[#09090B]'
             }`}
           >
             <Building2 className="h-3.5 w-3.5" />
-            Site Visits
+            <span>Site Visits</span>
             {scheduledVisitsCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-emerald-500 text-white text-[10px] font-bold">
+              <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-semibold">
                 {scheduledVisitsCount}
               </span>
             )}
