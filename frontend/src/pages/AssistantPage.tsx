@@ -7,20 +7,13 @@ import { PdfViewer } from '@/components/pdf/PdfViewer';
 import { ChatWindow } from '@/components/assistant/ChatWindow';
 import { DealHeader } from '@/components/deal/DealHeader';
 import {
-  ChevronRight,
   FileText,
   AlertTriangle,
   Loader2,
-  Building2,
-  ShieldCheck,
-  Mail,
-  Sparkles,
   Plus,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import type { Deal, Document as Doc, Citation, NotificationSetting } from '@/types';
-import { formatDate } from '@/utils/date';
 
 export function AssistantPage() {
   const { id } = useParams<{ id: string }>();
@@ -142,36 +135,36 @@ export function AssistantPage() {
   const currentDoc = documents.find((d) => d.id === selectedDocId);
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-10rem)] lg:h-[calc(100vh-10rem)] max-w-[1600px] mx-auto space-y-3">
+    <div className="flex flex-col min-h-[calc(100vh-10rem)] lg:h-[calc(100vh-10rem)] max-w-[1600px] mx-auto space-y-4 pb-6">
       {/* Universal Deal Header Command Bar */}
       <DealHeader deal={deal} notifSettings={notifSettings} activeTab="assistant" />
 
       {error && (
-        <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-2.5 text-xs text-destructive shrink-0">
+        <div className="flex items-center gap-2 rounded-2xl border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive shrink-0">
           <AlertTriangle className="h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Main Dual-Pane Responsive Split Workspace */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 flex-1 min-h-0">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 min-h-0">
         {/* Left Pane: Interactive PDF Viewer (7 cols / 58% width) */}
         <div className="lg:col-span-7 h-full flex flex-col min-h-[460px] lg:min-h-0">
           {loadingDocs ? (
-            <div className="rounded-xl border border-border/70 bg-card h-full flex flex-col items-center justify-center gap-2 text-muted-foreground text-xs shadow-2xs">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            <div className="rounded-3xl border border-[#E4E4E7] bg-white h-full flex flex-col items-center justify-center gap-3 text-[#71717A] text-xs shadow-clean-sm">
+              <Loader2 className="h-6 w-6 animate-spin text-[#09090B]" />
               <span>Loading transaction contract documents...</span>
             </div>
           ) : documents.length === 0 ? (
-            <div className="rounded-xl border border-border/70 bg-card h-full flex flex-col items-center justify-center p-8 text-center text-muted-foreground space-y-3 shadow-2xs">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground border border-border/60">
+            <div className="rounded-3xl border border-[#E4E4E7] bg-white h-full flex flex-col items-center justify-center p-8 text-center text-[#71717A] space-y-3.5 shadow-clean-sm">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F4F4F5] text-[#09090B] border border-[#E4E4E7]">
                 <FileText className="h-6 w-6" />
               </div>
-              <h4 className="text-sm font-semibold text-foreground">No Contract Documents Uploaded</h4>
-              <p className="text-xs max-w-xs text-muted-foreground">
+              <h4 className="text-sm font-semibold text-[#09090B]">No Contract Documents Uploaded</h4>
+              <p className="text-xs max-w-xs text-[#71717A]">
                 Upload the purchase agreement or counter offer PDF to enable deep citation-grounded viewing.
               </p>
-              <Button asChild size="sm" className="text-xs gap-1.5">
+              <Button asChild size="sm" className="rounded-full text-xs font-medium gap-1.5 bg-[#09090B] hover:bg-black text-white">
                 <Link to="/upload">
                   <Plus className="h-3.5 w-3.5" />
                   <span>Upload Purchase Agreement</span>
@@ -188,7 +181,7 @@ export function AssistantPage() {
               selectedDocId={selectedDocId}
               onSelectDoc={setSelectedDocId}
               onClearHighlight={() => setHighlightQuote(undefined)}
-              className="flex-1 shadow-2xs"
+              className="flex-1 shadow-clean-sm rounded-3xl"
             />
           )}
         </div>

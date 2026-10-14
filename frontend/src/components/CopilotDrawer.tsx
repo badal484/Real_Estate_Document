@@ -4,9 +4,6 @@ import {
   IconX,
   IconSparkles,
   IconDocumentText,
-  IconClock,
-  IconShieldCheck,
-  IconDollar,
   IconArrowRight,
 } from './icons';
 
@@ -99,38 +96,38 @@ export function CopilotDrawer({ isOpen, onClose, dealAddress }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-slate-950/80 backdrop-blur-md animate-fadeIn">
+    <div className="fixed inset-0 z-50 overflow-hidden bg-black/40 backdrop-blur-xs animate-fadeIn">
       <div className="absolute inset-y-0 right-0 flex max-w-full pl-10">
-        <div className="w-screen max-w-md border-l border-slate-800 bg-slate-900 shadow-2xl flex flex-col">
+        <div className="w-screen max-w-md border-l border-[#E4E4E7] bg-white shadow-2xl flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4 bg-slate-950/60">
+          <div className="flex items-center justify-between border-b border-[#E4E4E7] px-6 py-4 bg-white">
             <div className="flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-500/20 text-brand-400 ring-1 ring-brand-500/40">
+              <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#F4F4F5] text-[#09090B] border border-[#E4E4E7]">
                 <IconBot className="h-5 w-5" />
               </span>
               <div>
-                <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-[#09090B] flex items-center gap-2">
                   Document Copilot AI
-                  <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400 border border-emerald-500/20">
+                  <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 border border-emerald-200">
                     Live
                   </span>
                 </h3>
-                <p className="text-xs text-slate-400 truncate max-w-[220px]">
+                <p className="text-xs text-[#71717A] truncate max-w-[220px]">
                   {dealAddress || 'Real Estate Analysis'}
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-slate-100 transition-colors"
+              className="rounded-full p-1.5 text-[#71717A] hover:bg-[#F4F4F5] hover:text-[#09090B] transition-colors cursor-pointer"
             >
               <IconX className="h-5 w-5" />
             </button>
           </div>
 
           {/* Quick Preset Prompts */}
-          <div className="border-b border-slate-800/80 bg-slate-950/30 p-3">
-            <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          <div className="border-b border-[#E4E4E7] bg-[#F9FAFB] p-3.5">
+            <p className="px-1 mb-2 text-[11px] font-semibold uppercase tracking-wider text-[#71717A]">
               Instant Document Prompts
             </p>
             <div className="flex flex-wrap gap-1.5">
@@ -138,7 +135,7 @@ export function CopilotDrawer({ isOpen, onClose, dealAddress }: Props) {
                 <button
                   key={i}
                   onClick={() => handleSend(p.query)}
-                  className="rounded-lg border border-slate-800 bg-slate-900/90 px-2.5 py-1 text-xs text-slate-300 hover:border-brand-500/40 hover:bg-brand-500/10 hover:text-brand-300 transition-all text-left"
+                  className="rounded-full border border-[#E4E4E7] bg-white px-3 py-1 text-xs text-[#09090B] hover:border-[#A1A1AA] hover:bg-[#F4F4F5] transition-all text-left shadow-clean-xs cursor-pointer active:scale-95"
                 >
                   {p.label}
                 </button>
@@ -147,7 +144,7 @@ export function CopilotDrawer({ isOpen, onClose, dealAddress }: Props) {
           </div>
 
           {/* Messages Feed */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#F9FAFB]/50">
             {messages.map((m) => (
               <div
                 key={m.id}
@@ -156,25 +153,25 @@ export function CopilotDrawer({ isOpen, onClose, dealAddress }: Props) {
                 }`}
               >
                 {m.sender === 'assistant' && (
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-600/30 text-brand-400 border border-brand-500/30">
-                    <IconSparkles className="h-4 w-4" />
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-[#F4F4F5] text-[#09090B] border border-[#E4E4E7]">
+                    <IconSparkles className="h-4 w-4 text-amber-500" />
                   </span>
                 )}
                 <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs leading-relaxed shadow-sm ${
+                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs leading-relaxed shadow-clean-xs ${
                     m.sender === 'user'
-                      ? 'bg-brand-600 text-white rounded-br-none'
-                      : 'bg-slate-800/80 text-slate-200 border border-slate-700/60 rounded-bl-none'
+                      ? 'bg-[#09090B] text-white rounded-br-xs'
+                      : 'bg-white text-[#09090B] border border-[#E4E4E7] rounded-bl-xs'
                   }`}
                 >
                   <p>{m.text}</p>
                   {m.clauseRef && (
-                    <div className="mt-2 flex items-center gap-1.5 rounded bg-slate-950/60 px-2 py-1 text-[11px] font-medium text-brand-300 border border-brand-500/20">
-                      <IconDocumentText className="h-3 w-3" />
+                    <div className="mt-2.5 flex items-center gap-1.5 rounded-lg bg-[#F4F4F5] px-2.5 py-1 text-[11px] font-medium text-[#09090B] border border-[#E4E4E7]">
+                      <IconDocumentText className="h-3.5 w-3.5 text-[#71717A]" />
                       <span>{m.clauseRef}</span>
                     </div>
                   )}
-                  <span className="mt-1 block text-[10px] text-slate-400 opacity-75">
+                  <span className={`mt-1.5 block text-[10px] ${m.sender === 'user' ? 'text-zinc-400' : 'text-[#A1A1AA]'}`}>
                     {m.timestamp}
                   </span>
                 </div>
@@ -182,15 +179,15 @@ export function CopilotDrawer({ isOpen, onClose, dealAddress }: Props) {
             ))}
 
             {isTyping && (
-              <div className="flex items-center gap-2 text-xs text-slate-400 py-2">
-                <IconSparkles className="h-4 w-4 animate-spin text-brand-400" />
+              <div className="flex items-center gap-2 text-xs text-[#71717A] py-2">
+                <IconSparkles className="h-4 w-4 animate-spin text-amber-500" />
                 <span>AI is scanning document clauses...</span>
               </div>
             )}
           </div>
 
           {/* Input Footer */}
-          <div className="border-t border-slate-800 bg-slate-950 p-3">
+          <div className="border-t border-[#E4E4E7] bg-white p-3.5">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -203,12 +200,12 @@ export function CopilotDrawer({ isOpen, onClose, dealAddress }: Props) {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask about inspection, earnest deposit, financing..."
-                className="input text-xs py-2"
+                className="flex-1 bg-[#F4F4F5] border border-[#E4E4E7] rounded-full px-4 py-2 text-xs text-[#09090B] placeholder-[#71717A] focus:outline-none focus:border-[#09090B] transition-all"
               />
               <button
                 type="submit"
                 disabled={!input.trim()}
-                className="btn-primary shrink-0 py-2 px-3 text-xs"
+                className="rounded-full bg-[#09090B] hover:bg-black text-white p-2.5 text-xs transition-all active:scale-95 disabled:opacity-40 cursor-pointer"
               >
                 <IconArrowRight className="h-4 w-4" />
               </button>

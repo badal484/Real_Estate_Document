@@ -1,16 +1,10 @@
 import { useState } from 'react';
 import type { DealSummaryResponse } from '@/types';
 import {
-  CheckCircle2,
   AlertTriangle,
   FileText,
   Sparkles,
-  Copy,
-  Check,
-  Download,
   ShieldCheck,
-  X,
-  Clock,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -21,15 +15,15 @@ interface Props {
 }
 
 export function SummaryPanel({ summary, loading }: Props) {
-  const [copied, setCopied] = useState(false);
-  const [showBriefModal, setShowBriefModal] = useState(false);
+  const [, setCopied] = useState(false);
+  const [, setShowBriefModal] = useState(false);
 
   if (loading || !summary) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-6 animate-pulse space-y-3">
-        <div className="h-4 bg-slate-200 rounded w-1/3"></div>
-        <div className="h-16 bg-slate-100 rounded"></div>
-        <div className="h-32 bg-slate-100 rounded"></div>
+      <div className="rounded-3xl border border-[#E4E4E7] bg-white p-6 animate-pulse space-y-4 shadow-clean-sm">
+        <div className="h-5 bg-[#F4F4F5] rounded-full w-1/3"></div>
+        <div className="h-20 bg-[#F4F4F5] rounded-2xl"></div>
+        <div className="h-32 bg-[#F4F4F5] rounded-2xl"></div>
       </div>
     );
   }
@@ -84,29 +78,19 @@ ${
 `;
   };
 
-  const handleCopyBrief = () => {
+  const handleExportBrief = () => {
     const text = generateMarkdownBrief();
     navigator.clipboard.writeText(text);
     setCopied(true);
+    setShowBriefModal(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleDownloadBrief = () => {
-    const text = generateMarkdownBrief();
-    const blob = new Blob([text], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Executive_Brief_${summary.keyEntities.propertyAddress.replace(/[^a-zA-Z0-9]/g, '_')}.md`;
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   return (
     <div className="space-y-4">
       {/* Top Health Gauge & Action Bar */}
-      <div className="flex items-center justify-between gap-3 p-3.5 bg-white rounded-xl border border-slate-200/80 shadow-xs">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-[#E4E4E7] shadow-clean-xs">
+        <div className="flex items-center gap-3.5">
           {/* Circular Progress Gauge */}
           <div className="relative flex h-12 w-12 items-center justify-center shrink-0">
             <svg className="h-12 w-12 -rotate-90 transform" viewBox="0 0 90 90">
@@ -117,7 +101,7 @@ ${
                 stroke="currentColor"
                 strokeWidth="7"
                 fill="transparent"
-                className="text-slate-100"
+                className="text-[#F4F4F5]"
               />
               <circle
                 cx="45"
@@ -133,23 +117,23 @@ ${
               />
             </svg>
             <div className="absolute flex flex-col items-center justify-center text-center">
-              <span className="text-xs font-bold tracking-tight text-slate-900 leading-none font-mono">
+              <span className="text-xs font-bold tracking-tight text-[#09090B] leading-none font-mono">
                 {healthScore}
               </span>
             </div>
           </div>
 
           <div>
-            <div className="flex items-center gap-1.5">
-              <h4 className="text-xs font-bold text-slate-900">
+            <div className="flex items-center gap-2">
+              <h4 className="text-xs font-semibold text-[#09090B]">
                 Transaction Health Score
               </h4>
-              <Badge variant="neutral" className="text-[10px] px-1 py-0">
-                <ShieldCheck className="h-2.5 w-2.5 text-emerald-600 mr-0.5" />
+              <Badge variant="success" className="text-[10px] px-2 py-0.5 rounded-full">
+                <ShieldCheck className="h-2.5 w-2.5 text-emerald-600 mr-1" />
                 Audited
               </Badge>
             </div>
-            <p className="text-[11px] text-slate-500 mt-0.5">
+            <p className="text-xs text-[#71717A] mt-0.5">
               {healthScore >= 80
                 ? 'High compliance — low risk detected'
                 : 'Attention needed on unverified terms'}
@@ -159,34 +143,34 @@ ${
 
         <Button
           variant="outline"
-          size="xs"
-          onClick={() => setShowBriefModal(true)}
-          className="shrink-0"
+          size="sm"
+          onClick={handleExportBrief}
+          className="shrink-0 rounded-full h-8 px-3.5 text-xs font-medium"
         >
-          <FileText className="h-3 w-3 mr-1" />
-          <span>Export Brief</span>
+          <FileText className="h-3.5 w-3.5 mr-1 text-[#71717A]" />
+          <span>Copy Brief</span>
         </Button>
       </div>
 
       {/* Executive Summary */}
-      <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-3.5 space-y-1.5">
-        <div className="flex items-center gap-1.5">
-          <Sparkles className="h-3.5 w-3.5 text-slate-700" />
-          <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+      <div className="rounded-2xl border border-[#E4E4E7] bg-[#F9FAFB] p-4 space-y-1.5 shadow-clean-xs">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-amber-500" />
+          <h3 className="text-xs font-semibold text-[#09090B] uppercase tracking-wider">
             Executive Brief
           </h3>
         </div>
-        <p className="text-xs leading-relaxed text-slate-700">
+        <p className="text-xs leading-relaxed text-[#71717A]">
           {summary.executiveSummary}
         </p>
       </div>
 
       {/* Risk Matrix */}
       {summary.riskMatrix.length > 0 && (
-        <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-2.5">
-          <div className="flex items-center gap-1.5">
-            <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+        <div className="rounded-2xl border border-[#E4E4E7] bg-white p-4 space-y-3 shadow-clean-xs">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            <h3 className="text-xs font-semibold text-[#09090B] uppercase tracking-wider">
               Identified Risks ({summary.riskMatrix.length})
             </h3>
           </div>
@@ -195,19 +179,19 @@ ${
             {summary.riskMatrix.map((risk, idx) => (
               <div
                 key={idx}
-                className={`p-2.5 rounded-lg border text-xs ${
+                className={`p-3 rounded-xl border text-xs ${
                   risk.severity === 'high'
-                    ? 'border-rose-200 bg-rose-50/50 text-rose-950'
-                    : 'border-amber-200 bg-amber-50/50 text-amber-950'
+                    ? 'border-rose-200 bg-rose-50/70 text-rose-950'
+                    : 'border-amber-200 bg-amber-50/70 text-amber-950'
                 }`}
               >
-                <div className="flex items-center justify-between font-bold">
+                <div className="flex items-center justify-between font-semibold">
                   <span>{risk.title}</span>
-                  <Badge variant={risk.severity === 'high' ? 'destructive' : 'warning'} className="text-[9px] uppercase px-1 py-0">
+                  <Badge variant={risk.severity === 'high' ? 'destructive' : 'warning'} className="text-[10px] uppercase px-2 py-0.5 rounded-full">
                     {risk.severity}
                   </Badge>
                 </div>
-                <p className="mt-1 text-slate-700 text-[11px] leading-relaxed">{risk.description}</p>
+                <p className="mt-1 text-[#71717A] text-xs leading-relaxed">{risk.description}</p>
               </div>
             ))}
           </div>
@@ -215,108 +199,36 @@ ${
       )}
 
       {/* Contingency Matrix */}
-      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-        <div className="p-3 border-b border-slate-100 flex items-center justify-between">
-          <div>
-            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-              Contingency Milestones ({summary.contingencyMatrix.length})
-            </h3>
-          </div>
+      <div className="rounded-2xl border border-[#E4E4E7] bg-white overflow-hidden shadow-clean-xs">
+        <div className="p-4 border-b border-[#E4E4E7] flex items-center justify-between">
+          <h4 className="text-xs font-semibold text-[#09090B] uppercase tracking-wider">
+            Contingency Matrix
+          </h4>
+          <span className="text-xs text-[#71717A]">
+            {confirmedCount} of {totalDeadlines} locked
+          </span>
         </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-600">
-            <thead className="bg-slate-50 text-slate-700 border-b border-slate-100 text-[11px]">
-              <tr>
-                <th className="py-2 px-3 font-semibold">Contingency</th>
-                <th className="py-2 px-3 font-semibold">Target Date</th>
-                <th className="py-2 px-3 font-semibold">Source</th>
-                <th className="py-2 px-3 font-semibold text-right">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {summary.contingencyMatrix.map((item, idx) => (
-                <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
-                  <td className="py-2 px-3 font-semibold text-slate-900">{item.label}</td>
-                  <td className="py-2 px-3 font-mono text-[11px] text-slate-800 font-medium">{item.targetDate}</td>
-                  <td className="py-2 px-3 text-slate-500 truncate max-w-[140px] text-[11px]">
-                    {item.sourceDocument ? (
-                      <span>
-                        {item.sourceDocument} {item.pageNumber ? `(P.${item.pageNumber})` : ''}
-                      </span>
-                    ) : (
-                      '—'
-                    )}
-                  </td>
-                  <td className="py-2 px-3 text-right">
-                    {item.isConfirmed ? (
-                      <Badge variant="success" className="text-[10px] px-1.5 py-0">
-                        <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />
-                        Verified
-                      </Badge>
-                    ) : (
-                      <Badge variant="warning" className="text-[10px] px-1.5 py-0">
-                        <Clock className="h-2.5 w-2.5 mr-0.5" />
-                        Pending
-                      </Badge>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="divide-y divide-[#E4E4E7]">
+          {summary.contingencyMatrix.map((c, i) => (
+            <div key={i} className="p-3.5 flex items-center justify-between text-xs hover:bg-[#F9FAFB] transition-colors">
+              <div>
+                <span className="font-semibold text-[#09090B]">{c.label}</span>
+                {c.sourceDocument && (
+                  <span className="block text-[11px] text-[#A1A1AA] mt-0.5">
+                    {c.sourceDocument} {c.pageNumber ? `(P. ${c.pageNumber})` : ''}
+                  </span>
+                )}
+              </div>
+              <div className="text-right">
+                <span className="font-mono text-xs font-medium text-[#09090B] block">{c.targetDate}</span>
+                <Badge variant={c.isConfirmed ? 'success' : 'neutral'} className="text-[10px] px-2 py-0.5 rounded-full mt-0.5">
+                  {c.isConfirmed ? 'Confirmed' : 'Pending'}
+                </Badge>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-
-      {/* Export Executive Brief Modal */}
-      {showBriefModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50">
-              <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-slate-700" />
-                <h3 className="text-sm font-bold text-slate-900">Executive Deal Brief</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowBriefModal(false)}
-                className="text-slate-400 hover:text-slate-700 cursor-pointer"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="p-4 space-y-3 max-h-[60vh] overflow-y-auto">
-              <div className="p-3 bg-slate-900 text-slate-200 rounded-lg font-mono text-[11px] leading-relaxed whitespace-pre-wrap select-all">
-                {generateMarkdownBrief()}
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between px-5 py-3 bg-slate-50 border-t border-slate-100">
-              <span className="text-[11px] text-slate-400">Ready to share</span>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="xs" onClick={handleDownloadBrief}>
-                  <Download className="h-3 w-3 mr-1" />
-                  <span>Download .md</span>
-                </Button>
-                <Button variant="default" size="xs" onClick={handleCopyBrief}>
-                  {copied ? (
-                    <>
-                      <Check className="h-3 w-3 mr-1" />
-                      <span>Copied</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-3 w-3 mr-1" />
-                      <span>Copy Brief</span>
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
