@@ -14,6 +14,7 @@ import {
   Code,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { Badge } from '@/components/ui/badge';
 
 interface TeamMember {
   id: string;
@@ -33,7 +34,7 @@ export function OrganizationPage() {
   // White-Label Settings State
   const [orgName, setOrgName] = useState('Apex Brokerage Group Inc.');
   const [customDomain, setCustomDomain] = useState('ai.apexbrokerage.com');
-  const [primaryColor, setPrimaryColor] = useState('#C9A961');
+  const [primaryColor, setPrimaryColor] = useState('#09090B');
   const [aiPersona, setAiPersona] = useState('PROFESSIONAL');
   const [maxAutoBudget, setMaxAutoBudget] = useState('2500000');
   const [savedBranding, setSavedBranding] = useState(false);
@@ -130,264 +131,100 @@ export function OrganizationPage() {
   return (
     <div className="space-y-8 pb-12 max-w-[1600px] mx-auto">
       {/* ── B2B Header Card ── */}
-      <div className="bg-[#141418] border border-white/[0.08] p-8 rounded-2xl relative overflow-hidden shadow-xl">
+      <div className="bg-white border border-[#E4E4E7] p-8 rounded-3xl relative overflow-hidden shadow-clean-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#34D399]/15 px-2.5 py-0.5 text-xs font-semibold text-[#34D399] border border-[#34D399]/25">
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200">
                 <CheckCircle2 className="h-3.5 w-3.5" /> B2B Enterprise Workspace
               </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#C9A961]/15 px-2.5 py-0.5 text-xs font-semibold text-[#C9A961] border border-[#C9A961]/25">
-                4 / 10 Agent Seats Used
+              <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-3 py-0.5 text-xs font-semibold text-zinc-800 border border-zinc-200">
+                <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Multi-Tenant RAG Ready
               </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-[#F5F5F7]">
-              {orgName}
+            <h1 className="text-2xl sm:text-3xl font-semibold text-[#09090B] tracking-tight">
+              Agency &amp; Brokerage Administration
             </h1>
-            <p className="text-xs text-[#9A9AA5] max-w-xl">
-              Manage team members, white-label agency branding, AI persona tone, and custom CRM webhook integrations.
+            <p className="text-xs text-[#71717A] max-w-2xl leading-relaxed">
+              Manage your real estate brokerage seats, tenant-isolated vector indexing, whitelabel branding, and lead capture webhooks.
             </p>
           </div>
 
           <button
             onClick={() => setShowInviteModal(true)}
-            className="inline-flex items-center gap-2 rounded-full bg-[#C9A961] hover:bg-[#D4B774] text-[#0A0A0B] px-5 py-2.5 text-xs font-semibold transition-all shadow-md self-start md:self-auto"
+            className="px-5 py-2.5 rounded-full bg-[#09090B] hover:bg-black text-white text-xs font-medium flex items-center gap-2 shadow-clean-xs transition-all cursor-pointer shrink-0 active:scale-95"
           >
-            <UserPlus className="h-4 w-4" /> Invite Team Member
+            <UserPlus className="h-4 w-4" />
+            <span>Invite Team Member</span>
           </button>
         </div>
       </div>
 
-      {/* ── 2-Column Section: White-Label Branding & AI Persona ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* White-Label Branding Form */}
-        <div className="bg-[#141418] border border-white/[0.08] p-6 rounded-2xl space-y-4 shadow-xl">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-[#F5F5F7] flex items-center gap-2">
-              <Palette className="h-4.5 w-4.5 text-[#C9A961]" /> White-Label Agency Branding
-            </h2>
-            <span className="inline-block px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-[#C9A961]/15 text-[#C9A961] border border-[#C9A961]/25">
-              Custom Branding
-            </span>
-          </div>
-
-          <form onSubmit={handleSaveBranding} className="space-y-4 text-xs">
-            <div>
-              <label className="block text-[11px] font-medium text-[#9A9AA5] mb-1">Brokerage Company Name</label>
-              <input
-                type="text"
-                value={orgName}
-                onChange={(e) => setOrgName(e.target.value)}
-                className="w-full bg-[#0D0D11] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-[#F5F5F7] focus:border-[#C9A961] outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-medium text-[#9A9AA5] mb-1">Custom Subdomain</label>
-              <div className="flex items-center">
-                <span className="px-3 py-2 bg-[#0D0D11] text-[#6E6E7A] rounded-l-xl border border-r-0 border-white/[0.08] font-mono text-[11px]">
-                  https://
-                </span>
-                <input
-                  type="text"
-                  value={customDomain}
-                  onChange={(e) => setCustomDomain(e.target.value)}
-                  className="w-full bg-[#0D0D11] px-3 py-2 rounded-r-xl border border-white/[0.08] font-mono text-[#F5F5F7] focus:outline-none focus:border-[#C9A961] text-xs"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[11px] font-medium text-[#9A9AA5] mb-1">Brand Accent Color</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={primaryColor}
-                    onChange={(e) => setPrimaryColor(e.target.value)}
-                    className="h-9 w-9 rounded-lg border border-white/[0.08] bg-[#0D0D11] cursor-pointer p-0.5"
-                  />
-                  <span className="font-mono text-[#F5F5F7] font-semibold">{primaryColor}</span>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-medium text-[#9A9AA5] mb-1">Max Auto-Pilot Budget ($)</label>
-                <input
-                  type="number"
-                  value={maxAutoBudget}
-                  onChange={(e) => setMaxAutoBudget(e.target.value)}
-                  className="w-full bg-[#0D0D11] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-[#F5F5F7] font-mono focus:border-[#C9A961] outline-none"
-                  placeholder="e.g. 2,500,000"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="inline-flex items-center gap-2 rounded-full bg-[#C9A961] hover:bg-[#D4B774] text-[#0A0A0B] font-semibold px-5 py-2 text-xs transition-all shadow-sm"
-            >
-              {savedBranding ? <Check className="h-3.5 w-3.5 text-[#0A0A0B]" /> : <Sparkles className="h-3.5 w-3.5" />}
-              {savedBranding ? 'Branding Saved!' : 'Save Branding Preferences'}
-            </button>
-          </form>
-        </div>
-
-        {/* AI Persona & Tone Configurator */}
-        <div className="bg-[#141418] border border-white/[0.08] p-6 rounded-2xl space-y-4 shadow-xl">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-[#F5F5F7] flex items-center gap-2">
-              <Bot className="h-4.5 w-4.5 text-[#C9A961]" /> AI Tone &amp; Persona Selector
-            </h2>
-            <span className="inline-block px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-[#34D399]/15 text-[#34D399] border border-[#34D399]/25">
-              Active Persona
-            </span>
-          </div>
-
-          <p className="text-xs text-[#9A9AA5]">
-            Customize how your AI Assistant speaks to prospective buyers across WhatsApp, Live Chat, and Email.
-          </p>
-
-          <div className="space-y-2.5 text-xs">
-            <label
-              onClick={() => setAiPersona('PROFESSIONAL')}
-              className={`p-3.5 rounded-xl border transition-all flex items-center justify-between cursor-pointer ${
-                aiPersona === 'PROFESSIONAL'
-                  ? 'border-[#C9A961] bg-[#C9A961]/10 text-[#F5F5F7]'
-                  : 'border-white/[0.08] bg-[#0D0D11] hover:border-white/20 text-[#9A9AA5]'
-              }`}
-            >
-              <div>
-                <p className="font-semibold text-[#F5F5F7]">🌟 Warm &amp; Professional (Recommended)</p>
-                <p className="text-[11px] text-[#9A9AA5] mt-0.5">Polite, helpful, consultative. Great for standard buyer inquiries.</p>
-              </div>
-              <input type="radio" checked={aiPersona === 'PROFESSIONAL'} readOnly className="h-4 w-4 accent-[#C9A961]" />
-            </label>
-
-            <label
-              onClick={() => setAiPersona('LUXURY')}
-              className={`p-3.5 rounded-xl border transition-all flex items-center justify-between cursor-pointer ${
-                aiPersona === 'LUXURY'
-                  ? 'border-[#C9A961] bg-[#C9A961]/10 text-[#F5F5F7]'
-                  : 'border-white/[0.08] bg-[#0D0D11] hover:border-white/20 text-[#9A9AA5]'
-              }`}
-            >
-              <div>
-                <p className="font-semibold text-[#F5F5F7]">💎 Luxury &amp; Exclusive</p>
-                <p className="text-[11px] text-[#9A9AA5] mt-0.5">Refined, discreet, high-end vocabulary for luxury estates ($2M+).</p>
-              </div>
-              <input type="radio" checked={aiPersona === 'LUXURY'} readOnly className="h-4 w-4 accent-[#C9A961]" />
-            </label>
-
-            <label
-              onClick={() => setAiPersona('INVESTOR')}
-              className={`p-3.5 rounded-xl border transition-all flex items-center justify-between cursor-pointer ${
-                aiPersona === 'INVESTOR'
-                  ? 'border-[#C9A961] bg-[#C9A961]/10 text-[#F5F5F7]'
-                  : 'border-white/[0.08] bg-[#0D0D11] hover:border-white/20 text-[#9A9AA5]'
-              }`}
-            >
-              <div>
-                <p className="font-semibold text-[#F5F5F7]">⚡ Direct &amp; Energetic (Investor Focus)</p>
-                <p className="text-[11px] text-[#9A9AA5] mt-0.5">Concise, metrics-driven, fast responses tailored for flippers and REIT investors.</p>
-              </div>
-              <input type="radio" checked={aiPersona === 'INVESTOR'} readOnly className="h-4 w-4 accent-[#C9A961]" />
-            </label>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Integration Hub & Embed Code Snippet Card ── */}
-      <div className="bg-[#141418] border border-white/[0.08] p-6 rounded-2xl space-y-4 shadow-xl">
-        <div>
-          <h2 className="text-sm font-semibold text-[#F5F5F7] flex items-center gap-2">
-            <Code className="h-4.5 w-4.5 text-[#C9A961]" /> 1-Click Integrations &amp; Website Widget Embed
-          </h2>
-          <p className="text-xs text-[#9A9AA5] mt-0.5">
-            Copy this embed script to add the AI Live Chat Assistant directly to your brokerage website, or connect Zillow and WhatsApp.
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <label className="block text-xs font-medium text-[#9A9AA5]">Website Live Chat Embed Snippet:</label>
-          <div className="flex items-center gap-3 bg-[#0D0D11] text-[#C9A961] p-4 rounded-xl border border-white/[0.08] font-mono text-xs overflow-x-auto">
-            <span className="flex-1 truncate">{embedCodeSnippet}</span>
-            <button
-              onClick={handleCopyEmbedSnippet}
-              className="inline-flex items-center gap-1.5 rounded-full bg-[#C9A961] hover:bg-[#D4B774] text-[#0A0A0B] text-xs font-semibold px-4 py-1.5 shrink-0 transition-all"
-            >
-              {copiedSnippet ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-              {copiedSnippet ? 'Copied Code!' : 'Copy Snippet'}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Team Members Table ── */}
-      <div className="bg-[#141418] border border-white/[0.08] rounded-2xl overflow-hidden shadow-xl">
-        <div className="p-6 border-b border-white/[0.06] flex items-center justify-between">
+      {/* ── Team Members Grid & Table ── */}
+      <div className="bg-white border border-[#E4E4E7] rounded-3xl p-6 sm:p-7 shadow-clean-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E4E4E7] pb-4">
           <div>
-            <h2 className="text-sm font-semibold text-[#F5F5F7] flex items-center gap-2">
-              <Users className="h-4.5 w-4.5 text-[#C9A961]" /> Organization Team Members
+            <h2 className="text-base font-semibold text-[#09090B] flex items-center gap-2">
+              <Users className="h-5 w-5 text-[#09090B]" />
+              Authorized Agents &amp; Staff ({teamMembers.length})
             </h2>
-            <p className="text-xs text-[#9A9AA5] mt-0.5">Agents and administrators belonging to your brokerage organization.</p>
+            <p className="text-xs text-[#71717A] mt-0.5">
+              Team members share your brokerage's isolated contract knowledge base and lead pool.
+            </p>
           </div>
-          <span className="inline-block px-2.5 py-1 text-xs font-medium rounded-full bg-[#C9A961]/15 text-[#C9A961] border border-[#C9A961]/25">
-            Multi-Tenant Isolated Workspace
-          </span>
+          <Badge variant="neutral" className="text-xs px-3 py-1 rounded-full bg-[#F4F4F5] text-[#09090B] border-[#E4E4E7]">
+            Plan Limit: 4 / 20 Seats Used
+          </Badge>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#0D0D11] text-[#9A9AA5] font-semibold border-b border-white/[0.06]">
+            <thead className="text-[11px] uppercase tracking-wider text-[#71717A] border-b border-[#E4E4E7]">
               <tr>
-                <th className="py-3.5 px-6">Member Name</th>
-                <th className="py-3.5 px-6">Email Address</th>
-                <th className="py-3.5 px-6">Role</th>
-                <th className="py-3.5 px-6">Status</th>
-                <th className="py-3.5 px-6">Joined Date</th>
-                <th className="py-3.5 px-6 text-right">Actions</th>
+                <th className="pb-3 pl-2">Name &amp; Email</th>
+                <th className="pb-3">Role</th>
+                <th className="pb-3">Status</th>
+                <th className="pb-3">Joined Date</th>
+                <th className="pb-3 text-right pr-2">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.06] text-[#F5F5F7]">
-              {teamMembers.map((member) => (
-                <tr key={member.id} className="hover:bg-white/[0.02] transition-colors">
-                  <td className="py-4 px-6 font-semibold text-[#F5F5F7] flex items-center gap-2.5">
-                    <div className="h-7 w-7 rounded-full bg-[#C9A961]/15 text-[#C9A961] font-bold flex items-center justify-center text-xs border border-[#C9A961]/25">
-                      {member.name.charAt(0).toUpperCase()}
+            <tbody className="divide-y divide-[#E4E4E7]">
+              {teamMembers.map((m) => (
+                <tr key={m.id} className="hover:bg-[#F9FAFB] transition-colors">
+                  <td className="py-3.5 pl-2">
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-full bg-[#09090B] text-white flex items-center justify-center font-semibold text-xs">
+                        {m.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <span className="font-semibold text-[#09090B] block">{m.name}</span>
+                        <span className="text-[11px] text-[#71717A] font-mono">{m.email}</span>
+                      </div>
                     </div>
-                    {member.name}
                   </td>
-                  <td className="py-4 px-6 text-[#9A9AA5]">{member.email}</td>
-                  <td className="py-4 px-6">
-                    <span
-                      className={`px-2 py-0.5 rounded-full font-semibold text-[11px] ${
-                        member.role === 'BROKER_ADMIN'
-                          ? 'bg-[#C9A961]/15 text-[#C9A961] border border-[#C9A961]/25'
-                          : 'bg-white/[0.06] text-[#9A9AA5] border border-white/[0.08]'
-                      }`}
-                    >
-                      {member.role === 'BROKER_ADMIN' ? 'Broker Admin' : 'Agent'}
+                  <td className="py-3.5">
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F4F4F5] text-[#09090B] border border-[#E4E4E7]">
+                      {m.role === 'BROKER_ADMIN' ? 'Broker / Admin' : 'Real Estate Agent'}
                     </span>
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="py-3.5">
                     <span
-                      className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
-                        member.status === 'ACTIVE'
-                          ? 'bg-[#34D399]/15 text-[#34D399] border border-[#34D399]/25'
-                          : 'bg-amber-500/15 text-amber-300 border border-amber-500/25'
+                      className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium border ${
+                        m.status === 'ACTIVE'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : 'bg-amber-50 text-amber-700 border-amber-200'
                       }`}
                     >
-                      {member.status}
+                      {m.status}
                     </span>
                   </td>
-                  <td className="py-4 px-6 text-[#6E6E7A] font-mono">{member.joinedAt}</td>
-                  <td className="py-4 px-6 text-right">
-                    {member.role !== 'BROKER_ADMIN' && (
+                  <td className="py-3.5 text-[#71717A] font-mono">{m.joinedAt}</td>
+                  <td className="py-3.5 text-right pr-2">
+                    {m.role !== 'BROKER_ADMIN' && (
                       <button
-                        onClick={() => handleRemoveMember(member.id)}
-                        className="p-1.5 rounded-lg text-[#6E6E7A] hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
-                        title="Remove Team Member"
+                        onClick={() => handleRemoveMember(m.id)}
+                        className="text-[#A1A1AA] hover:text-rose-600 transition-colors p-1.5 cursor-pointer"
+                        title="Remove member"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -400,85 +237,187 @@ export function OrganizationPage() {
         </div>
       </div>
 
-      {/* ── Webhook & API Key Settings Card ── */}
-      <div className="bg-[#141418] border border-white/[0.08] p-6 rounded-2xl space-y-4 shadow-xl">
-        <div>
-          <h2 className="text-sm font-semibold text-[#F5F5F7] flex items-center gap-2">
-            <Key className="h-4.5 w-4.5 text-[#C9A961]" /> Organization Webhook &amp; Integration Keys
-          </h2>
-          <p className="text-xs text-[#9A9AA5] mt-0.5">
-            Use this secret key to connect your website forms, WhatsApp Cloud API, Zillow, or Facebook Webhooks directly to your AI Lead Management workspace.
-          </p>
+      {/* ── Settings Grid ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Whitelabel & Branding */}
+        <div className="bg-white border border-[#E4E4E7] rounded-3xl p-6 sm:p-7 shadow-clean-sm space-y-5">
+          <div className="flex items-center gap-2.5 border-b border-[#E4E4E7] pb-4">
+            <Palette className="h-5 w-5 text-[#09090B]" />
+            <div>
+              <h3 className="text-sm font-semibold text-[#09090B]">White-Label Brokerage Branding</h3>
+              <p className="text-xs text-[#71717A]">Custom styling for agent client reports and shared links.</p>
+            </div>
+          </div>
+
+          <form onSubmit={handleSaveBranding} className="space-y-4 text-xs">
+            <div>
+              <label className="block font-medium text-[#09090B] mb-1.5">Brokerage Display Name</label>
+              <input
+                type="text"
+                value={orgName}
+                onChange={(e) => setOrgName(e.target.value)}
+                className="w-full bg-[#F4F4F5] border border-[#E4E4E7] rounded-full px-4 py-2.5 text-xs text-[#09090B] focus:border-[#09090B] focus:bg-white focus:outline-none transition-all shadow-clean-xs"
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium text-[#09090B] mb-1.5">Custom Subdomain</label>
+              <input
+                type="text"
+                value={customDomain}
+                onChange={(e) => setCustomDomain(e.target.value)}
+                className="w-full bg-[#F4F4F5] border border-[#E4E4E7] rounded-full px-4 py-2.5 text-xs text-[#09090B] focus:border-[#09090B] focus:bg-white focus:outline-none transition-all shadow-clean-xs font-mono"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block font-medium text-[#09090B] mb-1.5">Brand Accent Color</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    className="h-9 w-9 rounded-xl border border-[#E4E4E7] bg-white cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    className="flex-1 bg-[#F4F4F5] border border-[#E4E4E7] rounded-full px-3 py-2 text-xs font-mono text-[#09090B]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-medium text-[#09090B] mb-1.5">AI Persona Tone</label>
+                <select
+                  value={aiPersona}
+                  onChange={(e) => setAiPersona(e.target.value)}
+                  className="w-full bg-[#F4F4F5] border border-[#E4E4E7] rounded-full px-3.5 py-2.5 text-xs text-[#09090B] focus:border-[#09090B] focus:outline-none"
+                >
+                  <option value="PROFESSIONAL">Professional &amp; Strict</option>
+                  <option value="FRIENDLY">Warm &amp; Conversational</option>
+                  <option value="INVESTOR">High-End Investor Focus</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="pt-2 flex items-center justify-between">
+              {savedBranding && (
+                <span className="text-emerald-700 font-medium flex items-center gap-1.5">
+                  <Check className="h-4 w-4" /> Branding settings saved!
+                </span>
+              )}
+              <button
+                type="submit"
+                className="ml-auto px-5 py-2 rounded-full bg-[#09090B] hover:bg-black text-white text-xs font-medium shadow-clean-xs transition-all cursor-pointer active:scale-95"
+              >
+                Save Preferences
+              </button>
+            </div>
+          </form>
         </div>
 
-        <div className="flex items-center gap-3 bg-[#0D0D11] text-[#C9A961] p-4 rounded-xl border border-white/[0.08] font-mono text-xs">
-          <span className="flex-1 truncate">{webhookSecret}</span>
-          <button
-            onClick={handleCopyWebhookSecret}
-            className="inline-flex items-center gap-1.5 rounded-full bg-[#C9A961] hover:bg-[#D4B774] text-[#0A0A0B] text-xs font-semibold px-4 py-1.5 shrink-0 transition-all"
-          >
-            {copiedKey ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-            {copiedKey ? 'Copied Key!' : 'Copy Secret'}
-          </button>
+        {/* API Integration & Webhook Key */}
+        <div className="bg-white border border-[#E4E4E7] rounded-3xl p-6 sm:p-7 shadow-clean-sm space-y-5 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2.5 border-b border-[#E4E4E7] pb-4">
+              <Code className="h-5 w-5 text-[#09090B]" />
+              <div>
+                <h3 className="text-sm font-semibold text-[#09090B]">Webhooks &amp; Lead Ingestion API</h3>
+                <p className="text-xs text-[#71717A]">Connect Zillow, Realtor.com, or your agency website directly.</p>
+              </div>
+            </div>
+
+            <div className="space-y-4 pt-4 text-xs">
+              <div>
+                <label className="block font-medium text-[#09090B] mb-1">Organization Webhook Secret</label>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-[#F9FAFB] border border-[#E4E4E7] rounded-full px-4 py-2 font-mono text-xs text-[#09090B] truncate">
+                    {webhookSecret}
+                  </div>
+                  <button
+                    onClick={handleCopyWebhookSecret}
+                    className="p-2.5 rounded-full border border-[#E4E4E7] bg-white hover:bg-[#F4F4F5] text-[#71717A] hover:text-[#09090B] transition-colors cursor-pointer shadow-clean-xs"
+                    title="Copy secret"
+                  >
+                    {copiedKey ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-medium text-[#09090B] mb-1">Embeddable Website Lead Capture Widget</label>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-[#F9FAFB] border border-[#E4E4E7] rounded-2xl p-3 font-mono text-[11px] text-[#71717A] truncate">
+                    {embedCodeSnippet}
+                  </div>
+                  <button
+                    onClick={handleCopyEmbedSnippet}
+                    className="p-2.5 rounded-full border border-[#E4E4E7] bg-white hover:bg-[#F4F4F5] text-[#71717A] hover:text-[#09090B] transition-colors cursor-pointer shadow-clean-xs shrink-0"
+                    title="Copy embed snippet"
+                  >
+                    {copiedSnippet ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-[#E4E4E7] flex items-center justify-between text-xs text-[#71717A]">
+            <span>Security Status: <strong>Enforced 256-bit TLS</strong></span>
+            <span className="text-emerald-700 font-medium">99.98% SLA</span>
+          </div>
         </div>
       </div>
 
       {/* ── Invite Modal ── */}
       {showInviteModal && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#141418] rounded-2xl border border-white/[0.08] p-6 w-full max-w-md shadow-2xl space-y-5 animate-in fade-in duration-150">
-            <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
-              <h3 className="text-sm font-semibold text-[#F5F5F7] flex items-center gap-2">
-                <UserPlus className="h-4.5 w-4.5 text-[#C9A961]" /> Invite Agent to Organization
-              </h3>
-              <button
-                onClick={() => setShowInviteModal(false)}
-                className="text-[#6E6E7A] hover:text-[#F5F5F7] font-semibold transition-colors"
-              >
-                ✕
-              </button>
-            </div>
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-[#E4E4E7] w-full max-w-md shadow-2xl p-6 space-y-4">
+            <h3 className="text-base font-semibold text-[#09090B]">Invite Agent or Staff</h3>
+            <p className="text-xs text-[#71717A]">Send an instant invitation link to join your brokerage workspace.</p>
 
             <form onSubmit={handleSendInvite} className="space-y-4 text-xs">
               <div>
-                <label className="block text-[11px] font-medium text-[#9A9AA5] mb-1">Agent Email Address *</label>
+                <label className="block font-medium text-[#09090B] mb-1">Email Address</label>
                 <input
                   type="email"
                   required
                   placeholder="agent@brokerage.com"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  className="w-full bg-[#0D0D11] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-[#F5F5F7] placeholder-[#6E6E7A] focus:border-[#C9A961] outline-none"
+                  className="w-full bg-[#F4F4F5] border border-[#E4E4E7] rounded-full px-4 py-2.5 text-xs text-[#09090B] focus:border-[#09090B] focus:bg-white focus:outline-none transition-all shadow-clean-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-medium text-[#9A9AA5] mb-1">Organization Role</label>
+                <label className="block font-medium text-[#09090B] mb-1">Role Permissions</label>
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value as any)}
-                  className="w-full bg-[#0D0D11] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-[#F5F5F7] focus:border-[#C9A961] outline-none"
+                  className="w-full bg-[#F4F4F5] border border-[#E4E4E7] rounded-full px-4 py-2.5 text-xs text-[#09090B] focus:border-[#09090B] focus:outline-none"
                 >
-                  <option value="AGENT">Agent (Standard Seat)</option>
-                  <option value="BROKER_ADMIN">Broker Admin (Full Access)</option>
+                  <option value="AGENT">Real Estate Agent (View &amp; Edit Assigned Deals)</option>
+                  <option value="BROKER_ADMIN">Broker Admin (Full Access + Financial Analytics)</option>
                 </select>
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-white/[0.08]">
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#E4E4E7]">
                 <button
                   type="button"
                   onClick={() => setShowInviteModal(false)}
-                  className="rounded-full border border-white/[0.08] bg-[#0D0D11] hover:bg-white/[0.06] text-[#9A9AA5] hover:text-[#F5F5F7] px-4 py-2 text-xs font-medium transition-all"
+                  className="px-4 py-2 rounded-full border border-[#E4E4E7] text-[#71717A] hover:bg-[#F4F4F5] transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={sendingInvite}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-[#C9A961] hover:bg-[#D4B774] text-[#0A0A0B] px-5 py-2 text-xs font-semibold transition-all"
+                  className="px-4 py-2 rounded-full bg-[#09090B] hover:bg-black text-white font-medium transition-all shadow-clean-xs cursor-pointer active:scale-95"
                 >
-                  {sendingInvite && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                  Send Email Invite
+                  {sendingInvite ? 'Sending...' : 'Send Invitation'}
                 </button>
               </div>
             </form>

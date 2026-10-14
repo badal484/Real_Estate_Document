@@ -1,19 +1,9 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import {
-  FileText,
   Building2,
-  Calendar,
-  Clock,
-  ShieldCheck,
-  CheckCircle2,
-  ArrowRight,
   BookOpen,
-  Info,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 
 interface ContractStandard {
   id: string;
@@ -183,35 +173,35 @@ export function ContractsLibraryPage() {
   const currentStandard = CONTRACT_STANDARDS.find((c) => c.id === activeTab) || CONTRACT_STANDARDS[0];
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-[#F5F5F7] pb-24">
+    <div className="space-y-8 pb-16 max-w-[1600px] mx-auto">
       {/* Header */}
-      <section className="pt-10 pb-12 text-center border-b border-white/[0.08] bg-[#0D0D11]/60 backdrop-blur-md">
+      <section className="pt-4 pb-8 text-center border-b border-[#E4E4E7]">
         <div className="mx-auto max-w-4xl px-4 sm:px-6">
-          <Badge variant="neutral" className="mb-3 bg-[#C9A961]/10 text-[#C9A961] border border-[#C9A961]/20 px-3.5 py-1 text-xs font-medium">
-            <BookOpen className="h-3.5 w-3.5 text-[#C9A961] mr-1.5 inline" /> State Real Estate Contract Knowledge Base
+          <Badge variant="neutral" className="mb-3 bg-zinc-100 text-zinc-800 border-zinc-200 px-3.5 py-1 text-xs font-medium rounded-full">
+            <BookOpen className="h-3.5 w-3.5 text-[#09090B] mr-1.5 inline" /> State Real Estate Contract Knowledge Base
           </Badge>
-          <h1 className="text-3xl sm:text-4xl font-semibold text-[#F5F5F7] tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-semibold text-[#09090B] tracking-tight">
             State Contract Standards &amp; Rules Engine
           </h1>
-          <p className="mt-3 text-sm text-[#9A9AA5] max-w-2xl mx-auto leading-relaxed">
+          <p className="mt-3 text-xs sm:text-sm text-[#71717A] max-w-2xl mx-auto leading-relaxed">
             Contingency Copilot automatically adapts date calculations, weekend spillovers, and cutoff times based on official state association guidelines.
           </p>
         </div>
       </section>
 
       {/* Main Content */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-10">
+      <div className="space-y-6">
         {/* State Tabs Navigation */}
-        <div className="flex items-center gap-2.5 overflow-x-auto pb-4 border-b border-white/[0.08]">
+        <div className="p-1 bg-[#F4F4F5] rounded-full inline-flex border border-[#E4E4E7] overflow-x-auto max-w-full">
           {CONTRACT_STANDARDS.map((std) => (
             <button
               key={std.id}
               type="button"
               onClick={() => setActiveTab(std.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
                 activeTab === std.id
-                  ? 'bg-[#C9A961] text-[#0A0A0B] shadow-sm'
-                  : 'bg-[#141418] border border-white/[0.08] text-[#9A9AA5] hover:text-[#F5F5F7] hover:border-white/20'
+                  ? 'bg-white text-[#09090B] font-semibold shadow-xs'
+                  : 'text-[#71717A] hover:text-[#09090B]'
               }`}
             >
               <Building2 className="h-3.5 w-3.5" />
@@ -221,95 +211,60 @@ export function ContractsLibraryPage() {
           ))}
         </div>
 
-        {/* Selected State Standard Overview Card */}
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Summary Box */}
-          <Card className="bg-[#141418] p-6 rounded-2xl border border-white/[0.08] lg:col-span-1 space-y-5 shadow-xl">
+        {/* Selected Standard Overview Card */}
+        <div className="bg-white rounded-3xl border border-[#E4E4E7] p-6 sm:p-7 shadow-clean-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E4E4E7] pb-4">
             <div>
-              <span className="text-[11px] font-semibold text-[#C9A961] uppercase tracking-wider">{currentStandard.state} Standard</span>
-              <h2 className="text-2xl font-semibold text-[#F5F5F7] mt-0.5">{currentStandard.name}</h2>
-              <p className="text-xs text-[#9A9AA5] mt-1">Widely used across {currentStandard.popularIn}</p>
-            </div>
-
-            <div className="space-y-3.5 pt-3 border-t border-white/[0.06] text-xs">
-              <div className="flex items-start gap-2.5">
-                <Calendar className="h-4 w-4 text-[#C9A961] mt-0.5 flex-shrink-0" />
-                <div>
-                  <span className="font-semibold text-[#F5F5F7] block">Day Calculation Standard</span>
-                  <span className="text-[#9A9AA5]">{currentStandard.defaultDayMath}</span>
-                </div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-[#09090B]">{currentStandard.name}</h2>
+                <Badge variant="success" className="text-[10px] px-2.5 py-0.5 rounded-full">
+                  {currentStandard.code}
+                </Badge>
               </div>
-
-              <div className="flex items-start gap-2.5">
-                <Clock className="h-4 w-4 text-[#C9A961] mt-0.5 flex-shrink-0" />
-                <div>
-                  <span className="font-semibold text-[#F5F5F7] block">Daily Cutoff Time</span>
-                  <span className="text-[#9A9AA5]">{currentStandard.cutoffTime}</span>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-2.5">
-                <ShieldCheck className="h-4 w-4 text-[#34D399] mt-0.5 flex-shrink-0" />
-                <div>
-                  <span className="font-semibold text-[#F5F5F7] block">AI Validation Engine</span>
-                  <span className="text-[#9A9AA5]">Cross-checked against state legal addenda &amp; Form 35/22 revisions.</span>
-                </div>
-              </div>
+              <p className="text-xs text-[#71717A] mt-1">Prevalent in: {currentStandard.popularIn}</p>
             </div>
-
-            <div className="pt-4 border-t border-white/[0.06]">
-              <Button asChild className="w-full rounded-full bg-[#C9A961] hover:bg-[#D4B774] text-[#0A0A0B] font-semibold text-xs py-2.5">
-                <Link to="/upload">
-                  Scan {currentStandard.name} Contract <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
-                </Link>
-              </Button>
-            </div>
-          </Card>
-
-          {/* Right Clause Cards Breakdown */}
-          <div className="lg:col-span-2 space-y-4">
-            <h3 className="text-base font-semibold text-[#F5F5F7] flex items-center gap-2">
-              <FileText className="h-4 w-4 text-[#C9A961]" /> Standard Contingency Clauses &amp; Rules
-            </h3>
-
-            <div className="space-y-3">
-              {currentStandard.clauses.map((clause, idx) => (
-                <div
-                  key={idx}
-                  className="bg-[#141418] p-5 rounded-xl border border-white/[0.08] hover:border-[#C9A961]/30 transition-all space-y-2.5 shadow-md"
-                >
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <h4 className="text-xs font-semibold text-[#F5F5F7] flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-[#34D399]" />
-                      {clause.title}
-                    </h4>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-[10px] bg-[#0D0D11] border-white/[0.08] text-[#9A9AA5] font-mono">
-                        Standard: {clause.standardDays}
-                      </Badge>
-                      <Badge
-                        variant={clause.type === 'critical' ? 'destructive' : 'neutral'}
-                        className={`text-[10px] ${
-                          clause.type === 'critical'
-                            ? 'bg-rose-500/15 text-rose-300 border-rose-500/25'
-                            : 'bg-white/[0.06] text-[#9A9AA5] border-white/[0.08]'
-                        }`}
-                      >
-                        {clause.type.toUpperCase()}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-[#9A9AA5] leading-relaxed">{clause.description}</p>
-
-                  <div className="flex items-center gap-2 text-[11px] font-mono text-[#6E6E7A] pt-2 border-t border-white/[0.06]">
-                    <Info className="h-3 w-3 text-[#C9A961]" />
-                    <span>Citation: {clause.citation}</span>
-                  </div>
-                </div>
-              ))}
+            <div className="text-left sm:text-right text-xs">
+              <span className="text-[#71717A] block">Standard Cutoff Time</span>
+              <strong className="text-[#09090B] font-mono font-medium">{currentStandard.cutoffTime}</strong>
             </div>
           </div>
+
+          <div className="p-3.5 bg-[#F9FAFB] border border-[#E4E4E7] rounded-2xl text-xs text-[#71717A]">
+            <strong className="text-[#09090B] font-medium">Calculation Rule: </strong>
+            {currentStandard.defaultDayMath}
+          </div>
+        </div>
+
+        {/* Standard Clauses Grid */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          {currentStandard.clauses.map((clause, idx) => (
+            <div
+              key={idx}
+              className="bg-white rounded-3xl border border-[#E4E4E7] p-5 shadow-clean-sm hover:border-[#D4D4D8] transition-all space-y-3 flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <h3 className="text-sm font-semibold text-[#09090B]">{clause.title}</h3>
+                  <Badge
+                    variant={clause.type === 'critical' ? 'destructive' : clause.type === 'strict' ? 'warning' : 'neutral'}
+                    className="text-[10px] uppercase px-2 py-0.5 rounded-full"
+                  >
+                    {clause.type}
+                  </Badge>
+                </div>
+
+                <div className="text-xl font-semibold text-[#09090B] font-mono mb-2">
+                  {clause.standardDays}
+                </div>
+
+                <p className="text-xs text-[#71717A] leading-relaxed">{clause.description}</p>
+              </div>
+
+              <div className="pt-3 border-t border-[#E4E4E7] text-[11px] font-mono text-[#A1A1AA]">
+                {clause.citation}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
